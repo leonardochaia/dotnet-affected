@@ -5,7 +5,6 @@
             This may be Overridden per project if needed, however pleas don't.
         -->
         <TargetFramework>net5.0</TargetFramework>
-        <DebugType>Full</DebugType>
 
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 

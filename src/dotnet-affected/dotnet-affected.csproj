@@ -6,8 +6,9 @@
         <OutputType>Exe</OutputType>
         <ToolCommandName>dotnet-affected</ToolCommandName>
         
-        <Version>1.0.0-preview-0</Version>
+        <Version>1.0.0-preview-1</Version>
         <IsPackable>true</IsPackable>
+        <PackAsTool>true</PackAsTool>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <Authors>Leonardo Chaia</Authors>
         <Title>$(AssemblyTitle)</Title>
