@@ -22,7 +22,7 @@ graph.
 The tool can be installed using `dotnet install`:
 
 ```bash
-dotnet install --global Affected
+dotnet install --global dotnet-affected
 ```
 
 You can then run the tool using `dotnet affected` in the root of your repository.
