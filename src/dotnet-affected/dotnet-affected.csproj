@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <Nullable>enable</Nullable>
+
+        <OutputType>Exe</OutputType>
+        <ToolCommandName>dotnet-affected</ToolCommandName>
+        
+        <Version>1.0.0-preview-0</Version>
+        <IsPackable>true</IsPackable>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <Authors>Leonardo Chaia</Authors>
+        <Title>$(AssemblyTitle)</Title>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+        <RepositoryUrl>https://github.com/leonardochaia/dotnet-affected.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <ContinuousIntegrationBuild>$(CI_BUILD)</ContinuousIntegrationBuild>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
+        <PackageReference Include="Microsoft.Build.Locator" />
+        <PackageReference Include="System.CommandLine" />
+        <PackageReference Include="LibGit2Sharp" />
+    </ItemGroup>
+
+    <ItemGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true'">
+        <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All"/>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <!-- This makes the assembly internal symbols visible to an assembly with a .Tests suffix. -->
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+            <_Parameter1>dotnet-affected.Tests</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
+
+</Project>

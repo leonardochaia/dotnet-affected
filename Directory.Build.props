@@ -1,0 +1,21 @@
+﻿<Project>
+    <PropertyGroup>
+        <!--
+            We can set the target of all projects here.
+            This may be Overridden per project if needed, however pleas don't.
+        -->
+        <TargetFramework>net5.0</TargetFramework>
+        <DebugType>Full</DebugType>
+
+        <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+
+        <!-- https://github.com/NuGet/Home/wiki/Centrally-managing-NuGet-package-versions -->
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    </PropertyGroup>
+
+    <!-- Some general configuration applied to all projects -->
+    <PropertyGroup>
+        <CliPath>$(MSBuildThisFileDirectory)src/dotnet-affected/</CliPath>
+    </PropertyGroup>
+
+</Project>

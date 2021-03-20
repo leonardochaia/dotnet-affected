@@ -1,0 +1,11 @@
+﻿{
+    "profiles": {
+        "Help": {
+            "commandName": "Project",
+            "commandLineArgs": "--help",
+            "environmentVariables": {
+                "DOTNET_ENVIRONMENT": "Development"
+            }
+        }
+    }
+}
