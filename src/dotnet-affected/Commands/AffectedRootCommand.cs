@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Affected.Cli.Views;
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.CommandLine.IO;
 using System.Linq;
 
 namespace Affected.Cli.Commands
@@ -25,30 +25,21 @@ namespace Affected.Cli.Commands
             this.AddGlobalOption(fromOption);
             this.AddGlobalOption(new ToOption(fromOption));
 
-            this.Handler = CommandHandler.Create<IConsole, CommandExecutionData>(this.AffectedHandler);
+            this.Handler = CommandHandler.Create<CommandExecutionData, ViewRenderingContext>(this.AffectedHandler);
         }
 
         private void AffectedHandler(
-            IConsole console,
-            CommandExecutionData data)
+            CommandExecutionData data,
+            ViewRenderingContext renderingContext)
         {
             using var context = data.BuildExecutionContext();
+            var affectedNodes = context.FindAffectedProjects();
 
-            console.Out.WriteLine("Files inside these projects have changed:");
-            foreach (var node in context.NodesWithChanges)
-            {
-                console.Out.WriteLine($"\t{node.GetProjectName()}");
-            }
+            var rootView = new WithChangesAndAffectedView(
+                context.NodesWithChanges,
+                affectedNodes);
 
-            console.Out.WriteLine();
-
-            console.Out.WriteLine("These projects are affected by those changes:");
-            var affectedProjects = context.FindAffectedProjects();
-
-            foreach (var affected in affectedProjects)
-            {
-                console.Out.WriteLine($"\t{affected.GetProjectName()}");
-            }
+            renderingContext.Render(rootView);
         }
 
         private class AssumeChangesOption : Option<IEnumerable<string>>

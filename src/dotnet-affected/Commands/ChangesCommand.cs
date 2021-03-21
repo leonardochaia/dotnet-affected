@@ -1,6 +1,7 @@
-﻿using System.CommandLine;
+﻿using Affected.Cli.Views;
+using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.CommandLine.IO;
+using System.CommandLine.Rendering.Views;
 
 namespace Affected.Cli.Commands
 {
@@ -11,20 +12,18 @@ namespace Affected.Cli.Commands
         {
             this.Description = "Finds projects that have any changes in any of its files using Git";
 
-            this.Handler = CommandHandler.Create<CommandExecutionData, IConsole>(this.ChangesHandler);
+            this.Handler = CommandHandler.Create<CommandExecutionData, ViewRenderingContext>(this.ChangesHandler);
         }
 
         private void ChangesHandler(
             CommandExecutionData data,
-            IConsole console)
+            ViewRenderingContext renderingContext)
         {
             using var context = data.BuildExecutionContext();
 
-            console.Out.WriteLine("Files inside these projects have changed:");
-            foreach (var node in context.NodesWithChanges)
-            {
-                console.Out.WriteLine($"\t{node.GetProjectName()}");
-            }
+            var rootView = new NodesWithChangesView(context.NodesWithChanges);
+            rootView.Add(new ContentView(string.Empty));
+            renderingContext.Render(rootView);
         }
     }
 }

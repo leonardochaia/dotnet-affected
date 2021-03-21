@@ -1,10 +1,11 @@
-﻿using Microsoft.Build.Construction;
+﻿using Affected.Cli.Views;
+using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Graph;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.CommandLine.IO;
+using System.CommandLine.Rendering.Views;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -21,74 +22,66 @@ namespace Affected.Cli.Commands
 
             this.AddOption(new OutputOptions());
 
-            this.Handler = CommandHandler.Create<IConsole, string, CommandExecutionData>(this.GenTraversalHandler);
+            this.Handler = CommandHandler.Create<IConsole, string, CommandExecutionData, ViewRenderingContext>(this.GenTraversalHandler);
         }
 
         private void GenTraversalHandler(
             IConsole console,
             string output,
-            CommandExecutionData data)
+            CommandExecutionData data,
+            ViewRenderingContext renderingContext)
         {
             using var context = data.BuildExecutionContext();
-
-            if (data.Verbose)
-            {
-                console.Out.WriteLine("Files inside these projects have changed:");
-                foreach (var node in context.NodesWithChanges)
-                {
-                    console.Out.WriteLine($"\t{node.GetProjectName()}");
-                }
-
-                console.Out.WriteLine();
-            }
-
-            var affectedProjects = context.FindAffectedProjects();
-
-            if (data.Verbose)
-            {
-                console.Out.WriteLine("These projects are affected by those changes:");
-                foreach (var affected in affectedProjects)
-                {
-                    console.Out.WriteLine($"\t{affected.GetProjectName()}");
-                }
-
-                console.Out.WriteLine();
-            }
-
-            if (data.Verbose)
-            {
-                console.Out.WriteLine("Generating Traversal SDK Project");
-                console.Out.WriteLine();
-            }
+            var affectedNodes = context.FindAffectedProjects();
 
             var project = this.CreateTraversalProjectForTree(
-                affectedProjects,
+                affectedNodes,
                 context.NodesWithChanges);
+            var projectXml = project.Xml.RawXml;
 
-            this.WriteOutput(console, project.Xml.RawXml, output);
-        }
+            var rootView = new StackLayoutView();
 
-        private void WriteOutput(IConsole console, string xml, string? outputPath)
-        {
-            if (outputPath == null)
+            if (data.Verbose)
             {
-                // if no output, write to stdout
-                console.Out.WriteLine(xml);
+                var changesAndAffectedView = new WithChangesAndAffectedView(
+                    context.NodesWithChanges,
+                    affectedNodes
+                );
+
+                rootView.Add(changesAndAffectedView);
+
+                rootView.Add(new ContentView("Generating Traversal SDK Project"));
+                rootView.Add(new ContentView(string.Empty));
+            }
+
+            // If no output path, print the XML
+            if (string.IsNullOrEmpty(output))
+            {
+                rootView.Add(new ContentView(projectXml));
             }
             else
             {
                 // If we have an output path, we'll create a file with the contents.
-                // If it's a directory, append a file name to it
-                if (Path.GetFileName(outputPath) == null)
-                {
-                    outputPath = Path.Combine(outputPath, "dir.proj");
-                }
+                var filePath = this.WriteProjectFileToDisk(projectXml, output);
 
-                console.Out.WriteLine($"Creating file at {outputPath}");
-
-                using StreamWriter outputFile = new StreamWriter(outputPath);
-                outputFile.Write(xml);
+                rootView.Add(new ContentView($"Generated Project file at {filePath}"));
             }
+
+            rootView.Add(new ContentView(string.Empty));
+            renderingContext.Render(rootView);
+        }
+
+        private string WriteProjectFileToDisk(string xml, string outputPath)
+        {
+            // If it's a directory, append a file name to it
+            if (Path.GetFileName(outputPath) is null)
+            {
+                outputPath = Path.Combine(outputPath, "dir.proj");
+            }
+
+            using var outputFile = new StreamWriter(outputPath);
+            outputFile.Write(xml);
+            return outputPath;
         }
 
         private Project CreateTraversalProjectForTree(
