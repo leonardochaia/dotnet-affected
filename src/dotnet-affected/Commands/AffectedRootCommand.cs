@@ -1,4 +1,4 @@
-﻿using Affected.Cli.Views;
+using Affected.Cli.Views;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
@@ -18,6 +18,7 @@ namespace Affected.Cli.Commands
             this.AddCommand(new ChangesCommand());
 
             this.AddGlobalOption(new RepositoryPathOptions());
+            this.AddGlobalOption(new SolutionPathOption());
             this.AddGlobalOption(new VerboseOption());
             this.AddGlobalOption(new AssumeChangesOption());
 
@@ -60,6 +61,15 @@ namespace Affected.Cli.Commands
                 this.Description = "Path to the root of the repository, where the .git directory is." +
                     Environment.NewLine +
                     "[default: current directory]";
+            }
+        }
+
+        private class SolutionPathOption : Option<string>
+        {
+            public SolutionPathOption()
+                : base(new [] { "--solution-path" })
+            {
+                this.Description = "The path to the solution to resolve project files from. When omitted scans all directories in repository for project files instead.";
             }
         }
 

@@ -6,6 +6,7 @@ using System.CommandLine;
 using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
+using Microsoft.Build.Construction;
 
 namespace Affected.Cli.Commands
 {
@@ -61,7 +62,7 @@ namespace Affected.Cli.Commands
 
         /// <summary>
         /// Builds a <see cref="ProjectGraph"/> from all found project files
-        /// inside the <see cref="CommandExecutionData.RepositoryPath"/>.
+        /// inside the <see cref="CommandExecutionData.SolutionPath"/> or <see cref="CommandExecutionData.RepositoryPath"/>.
         /// </summary>
         /// <returns>A new Project Graph.</returns>
         private ProjectGraph BuildProjectGraph()
@@ -69,11 +70,9 @@ namespace Affected.Cli.Commands
             // Find all csproj and build the dependency tree
             this.WriteLine($"Finding all csproj at {this.executionData.RepositoryPath}");
 
-            // TODO: Find *.*proj ?
-            var allProjects = Directory.GetFiles(
-                this.executionData.RepositoryPath,
-                "*.csproj",
-                SearchOption.AllDirectories);
+            var allProjects = !string.IsNullOrWhiteSpace(this.executionData.SolutionPath) 
+                ? FindProjectsInSolution() 
+                : FindProjectsInDirectory();
 
             this.WriteLine($"Building Dependency Graph");
 
@@ -82,6 +81,24 @@ namespace Affected.Cli.Commands
             this.WriteLine($"Found {graph.ConstructionMetrics.NodeCount} projects");
 
             return graph;
+        }
+
+        private IEnumerable<string> FindProjectsInSolution()
+        {
+            var solution = SolutionFile.Parse(this.executionData.SolutionPath);
+
+            return solution.ProjectsInOrder
+                .Where(x => x.ProjectType != SolutionProjectType.SolutionFolder)
+                .Select(x => x.AbsolutePath);
+        }
+
+        private IEnumerable<string> FindProjectsInDirectory()
+        {
+            // TODO: Find *.*proj ?
+            return Directory.GetFiles(
+                this.executionData.RepositoryPath,
+                "*.csproj",
+                SearchOption.AllDirectories);
         }
 
         private IEnumerable<ProjectGraphNode> FindNodesThatChangedUsingGit()
