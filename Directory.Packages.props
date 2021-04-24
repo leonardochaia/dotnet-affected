@@ -15,5 +15,7 @@
         <PackageVersion Include="System.CommandLine" Version="2.0.0-beta1.20574.7" />
         <PackageVersion Include="System.CommandLine.Rendering" Version="0.3.0-alpha.20574.7" />
         <PackageVersion Include="LibGit2Sharp" Version="0.27.0-preview-0096" />
+
+        <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
     </ItemGroup>
 </Project>
