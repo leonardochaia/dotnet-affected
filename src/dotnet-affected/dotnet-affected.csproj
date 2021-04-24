@@ -28,6 +28,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Microsoft.Win32.Registry" />
         <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
         <PackageReference Include="Microsoft.Build.Locator" />
         <PackageReference Include="System.CommandLine" />
