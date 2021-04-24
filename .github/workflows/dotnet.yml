@@ -9,16 +9,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dotnet: [ '5.0.x' ]
-    name: Build Dotnet ${{ matrix.dotnet }}
     steps:
     - uses: actions/checkout@v2
-    - name: Setup .NET
+    - name: Setup dotnet 3.1
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: ${{ matrix.dotnet }}
+        dotnet-version: '3.1.x'
+    - name: Setup dotnet 5.0
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '5.0.x'
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
