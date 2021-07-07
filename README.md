@@ -14,7 +14,7 @@ graph.
 
 ## Caveats
 
-1. It currently works for .csproj only, however, changing to support *proj should be trivial
+1. It currently works for .csproj only, however, changing to support \*proj should be trivial
 1. SDK projects only. Previous csproj format is not supported.
 
 ## Installation
@@ -129,4 +129,34 @@ release to the current one.
 
 ```bash
 dotnet affected --from releases/v1.0.0 --to releases/v2.0.0
+```
+
+## Contributing
+
+We accept PRs! Feel free to file issues if you encounter any problem.
+
+If you wanna build the solution, these are the steps:
+
+Note: our build infra supports UNIX only, that being said,
+if you install the proper SDK and just build the solution it should work
+
+First run this script to locally install the proper version of the .NET SDK we are using.
+This won't affect other .NET projects that you have.
+
+```bash
+./eng/install-sdk.sh
+```
+
+It will install the SDK at `eng/.dotnet`.
+
+To build use the SDK you first need to activate it, by running:
+
+```bash
+source ./eng/activate.sh
+```
+
+You can then build using
+
+```bash
+dotnet build
 ```
