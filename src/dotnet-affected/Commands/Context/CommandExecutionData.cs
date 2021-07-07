@@ -16,6 +16,7 @@ namespace Affected.Cli.Commands
 
         public CommandExecutionData(
            string? repositoryPath,
+           string? solutionPath,
            string? from,
            string to,
            bool verbose,
@@ -23,6 +24,7 @@ namespace Affected.Cli.Commands
            IConsole console)
         {
             this.RepositoryPath = repositoryPath ?? Environment.CurrentDirectory;
+            this.SolutionPath = solutionPath;
             this.To = to;
             this.From = from;
             this.Verbose = verbose;
@@ -31,12 +33,14 @@ namespace Affected.Cli.Commands
         }
 
         public string RepositoryPath { get; }
-
+        public string? SolutionPath { get; set; }
+        
         public string? From { get; }
 
         public string To { get; }
 
         public bool Verbose { get; }
+
 
         public IEnumerable<string> AssumeChanges { get; }
 
