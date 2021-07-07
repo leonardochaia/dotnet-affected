@@ -14,3 +14,4 @@ global_json_file="$(dirname "$0")/../global.json"
 dotnet_install_dir="$(dirname "$0")/.dotnet"
 
 "$install_script" --install-dir "$dotnet_install_dir" --jsonfile "$global_json_file"
+"$install_script" --install-dir "$dotnet_install_dir" --channel 3.0
