@@ -69,7 +69,7 @@ namespace Affected.Cli.Commands
             public SolutionPathOption()
                 : base(new [] { "--solution-path" })
             {
-                this.Description = "The path to the solution to resolve project files from. When omitted scans all directories in repository for project files instead.";
+                this.Description = "Path to a Solution file (.sln) used to find all projects that may be affected. When omitted, will search for project files inside --repository-path.";
             }
         }
 
