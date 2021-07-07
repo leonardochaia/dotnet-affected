@@ -18,7 +18,7 @@ jobs:
     - name: Setup dotnet 5.0
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '5.0.x'
+        dotnet-version: '5.0.201'
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
