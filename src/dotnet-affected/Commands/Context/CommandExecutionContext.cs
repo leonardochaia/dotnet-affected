@@ -68,8 +68,6 @@ namespace Affected.Cli.Commands
         private ProjectGraph BuildProjectGraph()
         {
             // Find all csproj and build the dependency tree
-            this.WriteLine($"Finding all csproj at {this.executionData.RepositoryPath}");
-
             var allProjects = !string.IsNullOrWhiteSpace(this.executionData.SolutionPath) 
                 ? FindProjectsInSolution() 
                 : FindProjectsInDirectory();
@@ -85,6 +83,8 @@ namespace Affected.Cli.Commands
 
         private IEnumerable<string> FindProjectsInSolution()
         {
+            this.WriteLine($"Finding all projects from Solution {this.executionData.SolutionPath}");
+
             var solution = SolutionFile.Parse(this.executionData.SolutionPath);
 
             return solution.ProjectsInOrder
@@ -94,6 +94,8 @@ namespace Affected.Cli.Commands
 
         private IEnumerable<string> FindProjectsInDirectory()
         {
+            this.WriteLine($"Finding all csproj at {this.executionData.RepositoryPath}");
+
             // TODO: Find *.*proj ?
             return Directory.GetFiles(
                 this.executionData.RepositoryPath,
