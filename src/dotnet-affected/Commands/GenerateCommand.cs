@@ -25,21 +25,31 @@ namespace Affected.Cli.Commands
             this.Handler = CommandHandler.Create<IConsole, string, CommandExecutionData, ViewRenderingContext>(this.GenTraversalHandler);
         }
 
-        private void GenTraversalHandler(
+        private int GenTraversalHandler(
             IConsole console,
             string output,
             CommandExecutionData data,
             ViewRenderingContext renderingContext)
         {
             using var context = data.BuildExecutionContext();
-            var affectedNodes = context.FindAffectedProjects();
+            var affectedNodes = context.FindAffectedProjects().ToList();
+            var rootView = new StackLayoutView();
+
+            if (!affectedNodes.Any())
+            {
+                if (data.Verbose)
+                {
+                    rootView.Add(new NoChangesView());
+                }
+
+                renderingContext.Render(rootView);
+                return AffectedExitCodes.NothingAffected;
+            }
 
             var project = this.CreateTraversalProjectForTree(
                 affectedNodes,
                 context.NodesWithChanges);
             var projectXml = project.Xml.RawXml;
-
-            var rootView = new StackLayoutView();
 
             if (data.Verbose)
             {
@@ -69,6 +79,8 @@ namespace Affected.Cli.Commands
 
             rootView.Add(new ContentView(string.Empty));
             renderingContext.Render(rootView);
+
+            return 0;
         }
 
         private string WriteProjectFileToDisk(string xml, string outputPath)

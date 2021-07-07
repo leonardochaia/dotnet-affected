@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.Rendering.Views;
 using System.Linq;
 
 namespace Affected.Cli.Commands
@@ -28,18 +29,32 @@ namespace Affected.Cli.Commands
             this.Handler = CommandHandler.Create<CommandExecutionData, ViewRenderingContext>(this.AffectedHandler);
         }
 
-        private void AffectedHandler(
+        private int AffectedHandler(
             CommandExecutionData data,
             ViewRenderingContext renderingContext)
         {
             using var context = data.BuildExecutionContext();
-            var affectedNodes = context.FindAffectedProjects();
+            var affectedNodes = context.FindAffectedProjects().ToList();
 
-            var rootView = new WithChangesAndAffectedView(
+            var rootView = new StackLayoutView();
+
+            if (!affectedNodes.Any())
+            {
+                if (data.Verbose)
+                {
+                    rootView.Add(new NoChangesView());
+                }
+
+                renderingContext.Render(rootView);
+                return AffectedExitCodes.NothingAffected;
+            }
+
+            rootView.Add(new WithChangesAndAffectedView(
                 context.NodesWithChanges,
-                affectedNodes);
+                affectedNodes));
 
             renderingContext.Render(rootView);
+            return 0;
         }
 
         private class AssumeChangesOption : Option<IEnumerable<string>>
