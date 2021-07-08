@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Credits to https://github.com/dotnet/efcore/blob/main/activate.sh
 # This file must be used by invoking "source activate.sh" from the command line.
 # You cannot run it directly.
