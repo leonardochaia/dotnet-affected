@@ -28,6 +28,8 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore --output $GITHUB_WORKSPACE/dotnet-output
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test $GITHUB_WORKSPACE/dotnet-output --no-build --verbosity normal
+    - name: Run Tool
+      run: $GITHUB_WORKSPACE/dotnet-output/dotnet-affected --assume-changes dotnet-affected --verbose
