@@ -3,6 +3,7 @@ using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using Xunit;
 using Xunit.Abstractions;
+using System.Threading.Tasks;
 
 namespace Affected.Cli.Tests
 {
@@ -16,14 +17,14 @@ namespace Affected.Cli.Tests
             _helper = helper;
         }
 
-        private (string Output, int ExitCode) Invoke(string args)
+        private async Task<(string Output, int ExitCode)> InvokeAsync(string args)
         {
             var parser = CommandLineBuilderUtils
                 .CreateCommandLineBuilder()
                 .Build();
 
             var console = new TestConsole();
-            var exitCode = parser.Invoke(args, console);
+            var exitCode = await parser.InvokeAsync(args, console);
             var output = console.Out.ToString();
 
             this._helper.WriteLine(output);
@@ -50,7 +51,7 @@ namespace Affected.Cli.Tests
         }
 
         [Fact]
-        public void RootCommand_WithAffected_ShouldExitCode_AndPrint()
+        public async Task RootCommand_WithAffected_ShouldExitCode_AndPrint()
         {
             // Create a project
             var projectName = "InventoryManagement";
@@ -68,7 +69,7 @@ namespace Affected.Cli.Tests
             imTestProject.AddItemGroup().AddItem("ProjectReference", imPath);
             imProject.Save();
 
-            var (output, exitCode) = this.Invoke($"-v --assume-changes {projectName} -p {directory.Path}");
+            var (output, exitCode) = await this.InvokeAsync($"-v --assume-changes {projectName} -p {directory.Path}");
 
             Assert.Equal(0, exitCode);
             Assert.Contains("These projects are affected by those changes", output);
@@ -76,12 +77,12 @@ namespace Affected.Cli.Tests
         }
 
         [Fact]
-        public void RootCommand_WithoutAffected_ShouldExitCode_AndPrint()
+        public async Task RootCommand_WithoutAffected_ShouldExitCode_AndPrint()
         {
             var projectName = "InventoryManagement";
             using var directory = CreateSingleProject(projectName);
 
-            var (output, exitCode) = this.Invoke($"-v --assume-changes {projectName} -p {directory.Path}");
+            var (output, exitCode) = await this.InvokeAsync($"-v --assume-changes {projectName} -p {directory.Path}");
 
             Assert.Equal(AffectedExitCodes.NothingAffected, exitCode);
 
@@ -89,12 +90,12 @@ namespace Affected.Cli.Tests
         }
 
         [Fact]
-        public void ChangesCommand_ShouldPrint_ProjectsWithChanges()
+        public async Task ChangesCommand_ShouldPrint_ProjectsWithChanges()
         {
             var projectName = "InventoryManagement";
             using var directory = CreateSingleProject(projectName);
 
-            var (output, exitCode) = this.Invoke($"changes -v --assume-changes {projectName} -p {directory.Path}");
+            var (output, exitCode) = await this.InvokeAsync($"changes -v --assume-changes {projectName} -p {directory.Path}");
 
             Assert.Equal(0, exitCode);
             Assert.Contains("Files inside these projects have changed", output);

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Affected.Cli.Commands
 {
-    public interface ICommandExecutionContext
+    internal interface ICommandExecutionContext
     {
         IEnumerable<ProjectGraphNode> NodesWithChanges { get; }
 
