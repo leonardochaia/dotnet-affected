@@ -24,9 +24,7 @@ namespace Affected.Cli.Views
 
         public void Render(View rootView)
         {
-            var screen = new ScreenView(renderer: this.ConsoleRenderer, this.Console);
-            screen.Child = rootView;
-            screen.Render(Region.EntireTerminal);
+            rootView.Render(this.ConsoleRenderer, Region.EntireTerminal);
         }
     }
 }
