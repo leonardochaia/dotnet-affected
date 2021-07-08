@@ -8,7 +8,11 @@ source $(dirname "$0")/activate.sh
 
 PATH_TO_SOURCE=$(dirname "$0")/../src/dotnet-affected
 
+# Clean so that we don't try to push old packages!
+rm -rf $PATH_TO_SOURCE/bin/
+
 CI_BUILD=true
 dotnet pack $PATH_TO_SOURCE/dotnet-affected.csproj
 
-dotnet nuget push $PATH_TO_SOURCE/bin/Debug/*.nupkg -s nuget.org "${@:1}"
+echo "Pushing. This takes A LONG TIME"
+dotnet nuget push $PATH_TO_SOURCE/bin/Debug/*.nupkg -s nuget.org -t 3600 "${@:1}"
