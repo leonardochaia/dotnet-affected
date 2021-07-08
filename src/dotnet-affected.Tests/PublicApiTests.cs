@@ -1,5 +1,4 @@
 ﻿using Microsoft.Build.Construction;
-using Microsoft.Build.Locator;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using Xunit;
@@ -8,14 +7,9 @@ using Xunit.Abstractions;
 namespace Affected.Cli.Tests
 {
     public class PublicApiTests
+        : BaseMSBuildTest
     {
         private readonly ITestOutputHelper _helper;
-
-        static PublicApiTests()
-        {
-            // This is required for MSBuild stuff to function properly.
-            MSBuildLocator.RegisterDefaults();
-        }
 
         public PublicApiTests(ITestOutputHelper helper)
         {
@@ -54,7 +48,7 @@ namespace Affected.Cli.Tests
             projectRoot.AddProperty("ProjectName", projectName);
             return projectRoot;
         }
-        
+
         [Fact]
         public void RootCommand_WithAffected_ShouldExitCode_AndPrint()
         {
@@ -80,7 +74,7 @@ namespace Affected.Cli.Tests
             Assert.Contains("These projects are affected by those changes", output);
             Assert.Contains(testProjectName, output);
         }
-        
+
         [Fact]
         public void RootCommand_WithoutAffected_ShouldExitCode_AndPrint()
         {
