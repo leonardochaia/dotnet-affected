@@ -9,16 +9,22 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # https://www.donovanbrown.com/post/Stop-wasting-time-during-NET-Core-builds
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
+      DOTNET_NOLOGO: '1'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      # See more here: https://docs.microsoft.com/en-us/dotnet/core/dependency-loading/default-probing#how-do-i-debug-the-probing-properties-construction.
+      COREHOST_TRACE: '0'
+      # See more here: https://docs.microsoft.com/en-us/nuget/reference/cli-reference/cli-ref-environment-variables.
+      NUGET_XMLDOC_MODE: 'skip'
+      DOTNET_MULTILEVEL_LOOKUP: 0
     steps:
     - uses: actions/checkout@v2
-    - name: Setup dotnet 3.1
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '3.1.x'
-    - name: Setup dotnet 5.0
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '5.0.201'
+    - name: Install .NET
+      run: |
+        ./eng/install-sdk.sh
+        echo "DOTNET_ROOT=$GITHUB_WORKSPACE/eng/.dotnet" >> $GITHUB_ENV
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
