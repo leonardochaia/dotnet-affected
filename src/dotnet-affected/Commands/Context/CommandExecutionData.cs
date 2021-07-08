@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.CommandLine;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace Affected.Cli.Commands
@@ -12,41 +10,32 @@ namespace Affected.Cli.Commands
     /// </summary>
     internal class CommandExecutionData
     {
-        private readonly IConsole console;
-
         public CommandExecutionData(
-           string? repositoryPath,
-           string? solutionPath,
-           string? from,
+           string repositoryPath,
+           string solutionPath,
+           string from,
            string to,
            bool verbose,
-           IEnumerable<string>? assumeChanges,
-           IConsole console)
+           IEnumerable<string>? assumeChanges)
         {
-            this.RepositoryPath = repositoryPath ?? Environment.CurrentDirectory;
+            this.RepositoryPath = repositoryPath;
             this.SolutionPath = solutionPath;
             this.To = to;
             this.From = from;
             this.Verbose = verbose;
             this.AssumeChanges = assumeChanges ?? Enumerable.Empty<string>();
-            this.console = console;
         }
 
         public string RepositoryPath { get; }
-        public string? SolutionPath { get; set; }
+
+        public string SolutionPath { get; }
         
-        public string? From { get; }
+        public string From { get; }
 
         public string To { get; }
 
         public bool Verbose { get; }
 
-
         public IEnumerable<string> AssumeChanges { get; }
-
-        public CommandExecutionContext BuildExecutionContext()
-        {
-            return new CommandExecutionContext(this, this.console);
-        }
     }
 }

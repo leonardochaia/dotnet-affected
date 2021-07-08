@@ -2,6 +2,7 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Rendering.Views;
+using System.Threading.Tasks;
 
 namespace Affected.Cli.Commands
 {
@@ -11,19 +12,27 @@ namespace Affected.Cli.Commands
             : base("changes")
         {
             this.Description = "Finds projects that have any changes in any of its files using Git";
-
-            this.Handler = CommandHandler.Create<CommandExecutionData, ViewRenderingContext>(this.ChangesHandler);
         }
 
-        private void ChangesHandler(
-            CommandExecutionData data,
-            ViewRenderingContext renderingContext)
+        public class CommandHandler : ICommandHandler
         {
-            using var context = data.BuildExecutionContext();
+            private readonly CommandExecutionContext _context;
+            private readonly ViewRenderingContext _renderingContext;
 
-            var rootView = new NodesWithChangesView(context.NodesWithChanges);
-            rootView.Add(new ContentView(string.Empty));
-            renderingContext.Render(rootView);
+            public CommandHandler(CommandExecutionContext context, ViewRenderingContext renderingContext)
+            {
+                _context = context;
+                _renderingContext = renderingContext;
+            }
+
+            public Task<int> InvokeAsync(InvocationContext ic)
+            {
+                var rootView = new NodesWithChangesView(_context.NodesWithChanges);
+                rootView.Add(new ContentView(string.Empty));
+                _renderingContext.Render(rootView);
+
+                return Task.FromResult(0);
+            }
         }
     }
 }

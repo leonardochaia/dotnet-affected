@@ -1,10 +1,13 @@
 using Affected.Cli.Views;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.CommandLine.Hosting;
 using System.CommandLine.Invocation;
 using System.CommandLine.Rendering.Views;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Affected.Cli.Commands
 {
@@ -27,35 +30,42 @@ namespace Affected.Cli.Commands
             this.AddGlobalOption(fromOption);
             this.AddGlobalOption(new ToOption(fromOption));
 
-            this.Handler = CommandHandler.Create<CommandExecutionData, ViewRenderingContext>(this.AffectedHandler);
+            this.Handler = new CommandHandler();
         }
 
-        private int AffectedHandler(
-            CommandExecutionData data,
-            ViewRenderingContext renderingContext)
+        public class CommandHandler : ICommandHandler
         {
-            using var context = data.BuildExecutionContext();
-            var affectedNodes = context.FindAffectedProjects().ToList();
-
-            var rootView = new StackLayoutView();
-
-            if (!affectedNodes.Any())
+            public Task<int> InvokeAsync(InvocationContext ic)
             {
-                if (data.Verbose)
+                // TODO: Use constructor DI when command-line-api #1344 is fixed
+                // https://github.com/dotnet/command-line-api/issues/1344
+                var services = ic.GetHost().Services;
+                var data = services.GetRequiredService<CommandExecutionData>();
+                var renderingContext = services.GetRequiredService<ViewRenderingContext>();
+                var context = services.GetRequiredService<CommandExecutionContext>();
+                
+                var affectedNodes = context.FindAffectedProjects().ToList();
+
+                var rootView = new StackLayoutView();
+
+                if (!affectedNodes.Any())
                 {
-                    rootView.Add(new NoChangesView());
+                    if (data.Verbose)
+                    {
+                        rootView.Add(new NoChangesView());
+                    }
+
+                    renderingContext.Render(rootView);
+                    return Task.FromResult(AffectedExitCodes.NothingAffected);
                 }
 
+                rootView.Add(new WithChangesAndAffectedView(
+                    context.NodesWithChanges,
+                    affectedNodes));
+
                 renderingContext.Render(rootView);
-                return AffectedExitCodes.NothingAffected;
+                return Task.FromResult(0);
             }
-
-            rootView.Add(new WithChangesAndAffectedView(
-                context.NodesWithChanges,
-                affectedNodes));
-
-            renderingContext.Render(rootView);
-            return 0;
         }
 
         private class AssumeChangesOption : Option<IEnumerable<string>>
@@ -73,9 +83,8 @@ namespace Affected.Cli.Commands
                 : base(
                       aliases: new[] { "--repository-path", "-p" })
             {
-                this.Description = "Path to the root of the repository, where the .git directory is." +
-                    Environment.NewLine +
-                    "[default: current directory]";
+                this.Description = "Path to the root of the repository, where the .git directory is.";
+                this.SetDefaultValueFactory(()=> Environment.CurrentDirectory);
             }
         }
 

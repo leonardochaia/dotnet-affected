@@ -1,6 +1,11 @@
 ﻿using Affected.Cli.Commands;
+using Affected.Cli.Views;
 using Microsoft.Build.Locator;
-using System.CommandLine;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.CommandLine.Builder;
+using System.CommandLine.Hosting;
+using System.CommandLine.Parsing;
 using System.Threading.Tasks;
 
 namespace Affected.Cli
@@ -15,8 +20,30 @@ namespace Affected.Cli
 
         public static Task<int> Main(string[] args)
         {
-            var command = new AffectedRootCommand();
-            return command.InvokeAsync(args);
+            return CreateCommandLineBuilder()
+                .Build()
+                .InvokeAsync(args);
+        }
+
+        public static CommandLineBuilder CreateCommandLineBuilder(Action<IServiceCollection>? configureServices = null)
+        {
+            return new CommandLineBuilder(new AffectedRootCommand())
+                .UseHost(host =>
+                {
+                    host.ConfigureServices((_, services) =>
+                    {
+                        services.AddTransient<CommandExecutionContext>();
+                        services.AddFromModelBinder<CommandExecutionData>();
+                        services.AddFromModelBinder<ViewRenderingContext>();
+                        configureServices?.Invoke(services);
+                    });
+
+                    // All commands and their corresponding handlers need to be added here
+                    // for constructor DI to work.
+                    host.UseCommandHandler<ChangesCommand, ChangesCommand.CommandHandler>()
+                        .UseCommandHandler<GenerateCommand, GenerateCommand.CommandHandler>();
+                })
+                .UseDefaults();
         }
     }
 }

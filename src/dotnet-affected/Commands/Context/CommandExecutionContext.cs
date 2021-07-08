@@ -10,11 +10,14 @@ using Microsoft.Build.Construction;
 
 namespace Affected.Cli.Commands
 {
-    internal class CommandExecutionContext : IDisposable
+    internal class CommandExecutionContext
     {
         private readonly CommandExecutionData executionData;
         private readonly IConsole console;
-        private readonly Repository repository;
+
+        private readonly Lazy<IEnumerable<ProjectGraphNode>> nodesWithChanges;
+
+        private readonly Lazy<ProjectGraph> graph;
 
         public CommandExecutionContext(
             CommandExecutionData executionData,
@@ -22,42 +25,31 @@ namespace Affected.Cli.Commands
         {
             this.executionData = executionData;
             this.console = console;
-            this.repository = new Repository(this.executionData.RepositoryPath);
-            this.Graph = this.BuildProjectGraph();
 
-            if (this.executionData.AssumeChanges?.Any() == true)
+            // Discovering projects, and finding affected may throw
+            // so that error handling is managed properly at the handler level,
+            // we use Lazy so that its done on demand when its actually needed.
+            this.graph = new Lazy<ProjectGraph>(this.BuildProjectGraph);
+
+            this.nodesWithChanges = new Lazy<IEnumerable<ProjectGraphNode>>(() =>
             {
+                if (this.executionData.AssumeChanges?.Any() != true)
+                {
+                    return this.FindNodesThatChangedUsingGit();
+                }
+
                 this.WriteLine($"Assuming hypothetical project changes, won't use Git diff");
 
-                this.NodesWithChanges = this.Graph
+                return this.graph.Value
                     .FindNodesByName(this.executionData.AssumeChanges);
-            }
-            else
-            {
-                this.NodesWithChanges = this.FindNodesThatChangedUsingGit();
-            }
-
-            this.WriteLine();
+            });
         }
 
-        public ProjectGraph Graph { get; private set; }
-
-        public IEnumerable<ProjectGraphNode> NodesWithChanges { get; private set; }
+        public IEnumerable<ProjectGraphNode> NodesWithChanges => this.nodesWithChanges.Value;
 
         public IEnumerable<ProjectGraphNode> FindAffectedProjects()
         {
-            return this.Graph.FindNodesThatDependOn(this.NodesWithChanges);
-        }
-
-        public void Dispose()
-        {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            this.repository?.Dispose();
+            return this.graph.Value.FindNodesThatDependOn(this.NodesWithChanges);
         }
 
         /// <summary>
@@ -105,30 +97,32 @@ namespace Affected.Cli.Commands
 
         private IEnumerable<ProjectGraphNode> FindNodesThatChangedUsingGit()
         {
+            using var repository = new Repository(this.executionData.RepositoryPath);
+
             // Determine the git diff strategy
             IEnumerable<string> filesWithChanges;
-            var to = GitUtils.GetCommitOrHead(this.repository, this.executionData.To);
+            var to = GitUtils.GetCommitOrHead(repository, this.executionData.To);
 
-            if (this.executionData.From == null)
+            if (string.IsNullOrWhiteSpace(this.executionData.From))
             {
                 this.WriteLine($"Finding changes from working directory against {to}");
 
                 filesWithChanges = GitUtils.GetChangesAgainstWorkingDirectory(
-                    this.repository,
+                    repository,
                     to.Tree);
             }
             else
             {
-                var from = GitUtils.GetCommitOrThrow(this.repository, this.executionData.From);
+                var from = GitUtils.GetCommitOrThrow(repository, this.executionData.From);
                 this.WriteLine($"Finding changes from {from} against {to}");
 
                 filesWithChanges = GitUtils.GetChangesBetweenTrees(
-                    this.repository,
+                    repository,
                     from.Tree,
                     to.Tree);
             }
 
-            var nodesWithChanges = this.Graph
+            var nodesWithChanges = this.graph.Value
                 .FindNodesContainingFiles(filesWithChanges)
                 .ToList();
 
@@ -140,16 +134,18 @@ namespace Affected.Cli.Commands
 
         private void WriteLine(string? message = null)
         {
-            if (this.executionData.Verbose)
+            if (!this.executionData.Verbose)
             {
-                if (message == null)
-                {
-                    this.console.Out.WriteLine();
-                }
-                else
-                {
-                    this.console.Out.WriteLine(message);
-                }
+                return;
+            }
+
+            if (message == null)
+            {
+                this.console.Out.WriteLine();
+            }
+            else
+            {
+                this.console.Out.WriteLine(message);
             }
         }
     }

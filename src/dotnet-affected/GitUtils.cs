@@ -32,14 +32,7 @@ namespace Affected.Cli
 
         public static Commit GetCommitOrHead(Repository repository, string name)
         {
-            if (name is null)
-            {
-                return repository.Head.Tip;
-            }
-            else
-            {
-                return GetCommitOrThrow(repository, name);
-            }
+            return string.IsNullOrWhiteSpace(name) ? repository.Head.Tip : GetCommitOrThrow(repository, name);
         }
 
         public static Commit GetCommitOrThrow(Repository repo, string name)
