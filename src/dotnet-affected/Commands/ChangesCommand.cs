@@ -16,10 +16,10 @@ namespace Affected.Cli.Commands
 
         public class CommandHandler : ICommandHandler
         {
-            private readonly CommandExecutionContext _context;
+            private readonly ICommandExecutionContext _context;
             private readonly ViewRenderingContext _renderingContext;
 
-            public CommandHandler(CommandExecutionContext context, ViewRenderingContext renderingContext)
+            public CommandHandler(ICommandExecutionContext context, ViewRenderingContext renderingContext)
             {
                 _context = context;
                 _renderingContext = renderingContext;

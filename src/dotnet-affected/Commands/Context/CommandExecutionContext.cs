@@ -10,7 +10,7 @@ using Microsoft.Build.Construction;
 
 namespace Affected.Cli.Commands
 {
-    internal class CommandExecutionContext
+    internal class CommandExecutionContext : ICommandExecutionContext
     {
         private readonly CommandExecutionData executionData;
         private readonly IConsole console;
@@ -66,11 +66,11 @@ namespace Affected.Cli.Commands
 
             this.WriteLine($"Building Dependency Graph");
 
-            var graph = new ProjectGraph(allProjects);
+            var output = new ProjectGraph(allProjects);
 
-            this.WriteLine($"Found {graph.ConstructionMetrics.NodeCount} projects");
+            this.WriteLine($"Found {output.ConstructionMetrics.NodeCount} projects");
 
-            return graph;
+            return output;
         }
 
         private IEnumerable<string> FindProjectsInSolution()
@@ -122,14 +122,14 @@ namespace Affected.Cli.Commands
                     to.Tree);
             }
 
-            var nodesWithChanges = this.graph.Value
+            var output = this.graph.Value
                 .FindNodesContainingFiles(filesWithChanges)
                 .ToList();
 
             this.WriteLine($"Found {filesWithChanges.Count()} changed files" +
-                $" inside {nodesWithChanges.Count} projects.");
+                $" inside {output.Count} projects.");
 
-            return nodesWithChanges;
+            return output;
         }
 
         private void WriteLine(string? message = null)

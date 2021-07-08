@@ -42,7 +42,7 @@ namespace Affected.Cli.Commands
                 var services = ic.GetHost().Services;
                 var data = services.GetRequiredService<CommandExecutionData>();
                 var renderingContext = services.GetRequiredService<ViewRenderingContext>();
-                var context = services.GetRequiredService<CommandExecutionContext>();
+                var context = services.GetRequiredService<ICommandExecutionContext>();
                 
                 var affectedNodes = context.FindAffectedProjects().ToList();
 

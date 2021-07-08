@@ -36,14 +36,14 @@ namespace Affected.Cli.Commands
         public class CommandHandler : ICommandHandler
         {
             private readonly CommandExecutionData _data;
-            private readonly CommandExecutionContext _context;
+            private readonly ICommandExecutionContext _context;
             private readonly ViewRenderingContext _renderingContext;
 
             public string? Output { get; set; }
 
             public CommandHandler(
                 CommandExecutionData data,
-                CommandExecutionContext context,
+                ICommandExecutionContext context,
                 ViewRenderingContext renderingContext)
             {
                 _data = data;
