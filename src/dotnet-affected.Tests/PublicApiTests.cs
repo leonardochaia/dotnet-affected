@@ -24,10 +24,11 @@ namespace Affected.Cli.Tests
                 .Build();
 
             var console = new TestConsole();
-            var exitCode = await parser.InvokeAsync(args, console);
+            var exitCode = await parser.InvokeAsync("[output:PlainText] "+args, console);
             var output = console.Out.ToString();
 
             this._helper.WriteLine(output);
+            this._helper.WriteLine(console.Error.ToString());
 
             return (output, exitCode);
         }
