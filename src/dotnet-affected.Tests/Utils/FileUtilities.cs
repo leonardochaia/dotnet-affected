@@ -7,7 +7,7 @@ namespace Affected.Cli.Tests
     /// This class contains utility methods for file IO.
     /// Credits to: https://github.com/dotnet/msbuild/blob/9bcc06cbe19ae2482ab18eab90a82fd079b26897/src/Shared/TempFileUtilities.cs
     /// </summary>
-    internal static class FileUtilities
+    public static class FileUtilities
     {
         /// <summary>
         /// Generates a unique directory name in the temporary folder.
@@ -87,6 +87,16 @@ namespace Affected.Cli.Tests
             {
                 Directory.Delete(Path, true);
             }
+            
+            /// <summary>
+            /// Generates a unique temporary file name with the .csproj extension name this directory.
+            /// </summary>
+            /// <returns>The path to a csproj file</returns>
+            public string GetTemporaryCsProjFile()
+            {
+                return GetTemporaryFile(Path, ".csproj");
+            }
+
         }
     }
 }
