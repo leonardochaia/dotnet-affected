@@ -51,32 +51,32 @@ namespace Affected.Cli.Tests
             projectRoot.AddProperty("ProjectName", projectName);
             return projectRoot;
         }
-
-        [Fact]
-        public async Task RootCommand_WithAffected_ShouldExitCode_AndPrint()
-        {
-            // Create a project
-            var projectName = "InventoryManagement";
-            using var directory = new FileUtilities.TempWorkingDirectory();
-            var imPath = FileUtilities.GetTemporaryFile(directory.Path, ".csproj");
-
-            var imProject = CreateProject(imPath, projectName);
-            imProject.Save();
-
-            // Test project for our project
-            var testProjectName = "InventoryManagement.Tests";
-            var imTestPath = FileUtilities.GetTemporaryFile(directory.Path, ".csproj");
-
-            var imTestProject = CreateProject(imTestPath, testProjectName);
-            imTestProject.AddItemGroup().AddItem("ProjectReference", imPath);
-            imProject.Save();
-
-            var (output, exitCode) = await this.InvokeAsync($"-v --assume-changes {projectName} -p {directory.Path}");
-
-            Assert.Equal(0, exitCode);
-            Assert.Contains("These projects are affected by those changes", output);
-            Assert.Contains(testProjectName, output);
-        }
+        //
+        // [Fact]
+        // public async Task RootCommand_WithAffected_ShouldExitCode_AndPrint()
+        // {
+        //     // Create a project
+        //     var projectName = "InventoryManagement";
+        //     using var directory = new FileUtilities.TempWorkingDirectory();
+        //     var imPath = FileUtilities.GetTemporaryFile(directory.Path, ".csproj");
+        //
+        //     var imProject = CreateProject(imPath, projectName);
+        //     imProject.Save();
+        //
+        //     // Test project for our project
+        //     var testProjectName = "InventoryManagement.Tests";
+        //     var imTestPath = FileUtilities.GetTemporaryFile(directory.Path, ".csproj");
+        //
+        //     var imTestProject = CreateProject(imTestPath, testProjectName);
+        //     imTestProject.AddItemGroup().AddItem("ProjectReference", imPath);
+        //     imProject.Save();
+        //
+        //     var (output, exitCode) = await this.InvokeAsync($"-v --assume-changes {projectName} -p {directory.Path}");
+        //
+        //     Assert.Equal(0, exitCode);
+        //     Assert.Contains("These projects are affected by those changes", output);
+        //     Assert.Contains(testProjectName, output);
+        // }
 
         [Fact]
         public async Task RootCommand_WithoutAffected_ShouldExitCode_AndPrint()
@@ -86,22 +86,23 @@ namespace Affected.Cli.Tests
 
             var (output, exitCode) = await this.InvokeAsync($"-v --assume-changes {projectName} -p {directory.Path}");
 
+            _helper.WriteLine("FINISHED");
             Assert.Equal(AffectedExitCodes.NothingAffected, exitCode);
 
             Assert.Contains("No affected projects where found for the current changes", output);
         }
-
-        [Fact]
-        public async Task ChangesCommand_ShouldPrint_ProjectsWithChanges()
-        {
-            var projectName = "InventoryManagement";
-            using var directory = CreateSingleProject(projectName);
-
-            var (output, exitCode) = await this.InvokeAsync($"changes -v --assume-changes {projectName} -p {directory.Path}");
-
-            Assert.Equal(0, exitCode);
-            Assert.Contains("Files inside these projects have changed", output);
-            Assert.Contains(projectName, output);
-        }
+        //
+        // [Fact]
+        // public async Task ChangesCommand_ShouldPrint_ProjectsWithChanges()
+        // {
+        //     var projectName = "InventoryManagement";
+        //     using var directory = CreateSingleProject(projectName);
+        //
+        //     var (output, exitCode) = await this.InvokeAsync($"changes -v --assume-changes {projectName} -p {directory.Path}");
+        //
+        //     Assert.Equal(0, exitCode);
+        //     Assert.Contains("Files inside these projects have changed", output);
+        //     Assert.Contains(projectName, output);
+        // }
     }
 }
