@@ -1,6 +1,7 @@
 using Microsoft.Build.Graph;
 using System.Collections.Generic;
 using System.CommandLine.Rendering.Views;
+using System.Linq;
 
 namespace Affected.Cli.Views
 {
@@ -13,11 +14,14 @@ namespace Affected.Cli.Views
         {
             Add(new NodesWithChangesView(nodesWithChanges));
 
-            Add(new ContentView(string.Empty));
-
-            Add(new AffectedProjectsView(affectedNodes));
-
-            Add(new ContentView(string.Empty));
+            if (affectedNodes.Any())
+            {
+                Add(new AffectedProjectsView(affectedNodes));
+            }
+            else
+            {
+                Add(new NoChangesView());
+            }
         }
     }
 }

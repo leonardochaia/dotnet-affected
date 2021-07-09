@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -9,6 +10,22 @@ namespace Affected.Cli.Tests
     {
         public ChangesCommandTests(ITestOutputHelper helper) : base(helper)
         {
+        }
+
+        [Fact]
+        public async Task When_nothing_has_changed_should_exit_with_NothingChanged_status_code()
+        {
+            var projectName = "InventoryManagement";
+            using var directory = CreateSingleProject(projectName);
+
+            SetupChanges(directory.Path, Enumerable.Empty<string>());
+
+            var (output, exitCode) = await this.InvokeAsync($"changes -p {directory.Path}");
+
+            Assert.Equal(AffectedExitCodes.NothingChanged, exitCode);
+
+            RenderingAssertions.LineSequenceEquals(output,
+                l => Assert.Contains("No affected projects where found for the current changes", l));
         }
 
         [Fact]

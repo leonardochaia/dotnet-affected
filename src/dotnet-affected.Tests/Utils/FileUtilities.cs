@@ -92,11 +92,10 @@ namespace Affected.Cli.Tests
             /// Generates a unique temporary file name with the .csproj extension name this directory.
             /// </summary>
             /// <returns>The path to a csproj file</returns>
-            public string GetTemporaryCsProjFile()
+            public string CreateTemporaryCsProjFile(string key = "")
             {
-                return GetTemporaryFile(Path, ".csproj");
+                return GetTemporaryFile(Path, $"{key}.csproj");
             }
-
         }
     }
 }

@@ -41,25 +41,17 @@ namespace Affected.Cli.Commands
                 // TODO: Use constructor DI when command-line-api #1344 is fixed
                 // https://github.com/dotnet/command-line-api/issues/1344
                 var services = ic.GetHost().Services;
-                var data = services.GetRequiredService<CommandExecutionData>();
                 var context = services.GetRequiredService<ICommandExecutionContext>();
                 var console = services.GetRequiredService<IConsole>();
 
-                var affectedNodes = context.FindAffectedProjects().ToList();
-
                 var rootView = new StackLayoutView();
 
-                if (!affectedNodes.Any())
+                if (!context.NodesWithChanges.Any())
                 {
-                    if (data.Verbose)
-                    {
-                        rootView.Add(new NoChangesView());
-                    }
-                    
-                    console.Append(rootView);
-                    return Task.FromResult(AffectedExitCodes.NothingAffected);
+                    throw new NoChangesException();
                 }
 
+                var affectedNodes = context.FindAffectedProjects().ToList();
                 rootView.Add(new WithChangesAndAffectedView(
                     context.NodesWithChanges,
                     affectedNodes));
@@ -74,7 +66,8 @@ namespace Affected.Cli.Commands
             public AssumeChangesOption()
                 : base("--assume-changes")
             {
-                this.Description = "Hypothetically assume that given projects have changed instead of using Git diff to determine them.";
+                this.Description =
+                    "Hypothetically assume that given projects have changed instead of using Git diff to determine them.";
             }
         }
 
@@ -82,19 +75,26 @@ namespace Affected.Cli.Commands
         {
             public RepositoryPathOptions()
                 : base(
-                      aliases: new[] { "--repository-path", "-p" })
+                    aliases: new[]
+                    {
+                        "--repository-path", "-p"
+                    })
             {
                 this.Description = "Path to the root of the repository, where the .git directory is.";
-                this.SetDefaultValueFactory(()=> Environment.CurrentDirectory);
+                this.SetDefaultValueFactory(() => Environment.CurrentDirectory);
             }
         }
 
         private class SolutionPathOption : Option<string>
         {
             public SolutionPathOption()
-                : base(new [] { "--solution-path" })
+                : base(new[]
+                {
+                    "--solution-path"
+                })
             {
-                this.Description = "Path to a Solution file (.sln) used to find all projects that may be affected. When omitted, will search for project files inside --repository-path.";
+                this.Description =
+                    "Path to a Solution file (.sln) used to find all projects that may be affected. When omitted, will search for project files inside --repository-path.";
             }
         }
 
@@ -102,8 +102,11 @@ namespace Affected.Cli.Commands
         {
             public VerboseOption()
                 : base(
-                      aliases: new[] { "--verbose", "-v" },
-                      getDefaultValue: () => false)
+                    aliases: new[]
+                    {
+                        "--verbose", "-v"
+                    },
+                    getDefaultValue: () => false)
             {
                 this.Description = "Write useful messages or just the desired output.";
             }
@@ -112,7 +115,10 @@ namespace Affected.Cli.Commands
         private class FromOption : Option<string>
         {
             public FromOption()
-            : base(new[] { "--from" })
+                : base(new[]
+                {
+                    "--from"
+                })
             {
                 this.Description = "A branch or commit to compare against --to.";
             }
@@ -121,7 +127,10 @@ namespace Affected.Cli.Commands
         private class ToOption : Option<string>
         {
             public ToOption(FromOption fromOption)
-                : base(new[] { "--to" })
+                : base(new[]
+                {
+                    "--to"
+                })
             {
                 this.Description = "A branch or commit to compare against --from";
 

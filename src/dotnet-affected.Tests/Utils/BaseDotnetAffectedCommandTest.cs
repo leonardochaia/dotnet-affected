@@ -1,4 +1,8 @@
 ﻿using Microsoft.Build.Construction;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Moq;
+using System.Collections.Generic;
 using System.CommandLine.Parsing;
 using System.CommandLine.Rendering;
 using System.Threading.Tasks;
@@ -9,32 +13,45 @@ namespace Affected.Cli.Tests
     public class BaseDotnetAffectedCommandTest
         : BaseMSBuildTest
     {
-        private readonly ITestOutputHelper _helper;
+        protected ITestOutputHelper Helper { get; }
 
-        private readonly ITerminal _terminal = new TestTerminal()
+        protected ITerminal Terminal { get; } = new TestTerminal()
         {
             OutputMode = OutputMode.PlainText
         };
 
+        protected Mock<IChangesProvider> ChangesProviderMock { get; } = new Mock<IChangesProvider>();
+
         protected BaseDotnetAffectedCommandTest(ITestOutputHelper helper)
         {
-            _helper = helper;
+            Helper = helper;
         }
 
         protected async Task<(string Output, int ExitCode)> InvokeAsync(string args)
         {
             // Create the parser just as we do at Program.cs
             var parser = CommandLineBuilderUtils
-                .CreateCommandLineBuilder()
+                .CreateCommandLineBuilder(services =>
+                {
+                    services.Replace(ServiceDescriptor.Singleton(ChangesProviderMock.Object));
+                })
                 .Build();
 
             // Execute against the testing infra
-            var exitCode = await parser.InvokeAsync(args, _terminal);
-            var output = _terminal.Out.ToString();
+            var exitCode = await parser.InvokeAsync(args, Terminal);
+            var output = Terminal.Out.ToString();
 
             // Log stuff for troubleshooting
-            this._helper.WriteLine(output);
-            this._helper.WriteLine(_terminal.Error.ToString());
+            this.Helper.WriteLine(string.IsNullOrWhiteSpace(output)
+                ? "WARNING: Command Produced No Output! (This is shown by testing infra only)"
+                : output);
+
+            // Log stderr
+            var stderr = Terminal.Error.ToString();
+            if (!string.IsNullOrWhiteSpace(stderr))
+            {
+                this.Helper.WriteLine(Terminal.Error.ToString());
+            }
 
             // Return for assertions
             return (output, exitCode);
@@ -49,7 +66,7 @@ namespace Affected.Cli.Tests
         protected FileUtilities.TempWorkingDirectory CreateSingleProject(string projectName)
         {
             var directory = new FileUtilities.TempWorkingDirectory();
-            var csprojPath = directory.GetTemporaryCsProjFile();
+            var csprojPath = directory.CreateTemporaryCsProjFile();
 
             CreateProject(csprojPath, projectName)
                 .Save();
@@ -69,6 +86,20 @@ namespace Affected.Cli.Tests
             return ProjectRootElement
                 .Create(csprojPath)
                 .SetName(projectName);
+        }
+
+        protected void SetupChanges(string directory, IEnumerable<string> output)
+        {
+            ChangesProviderMock.Setup(
+                    cp => cp.GetChangedFiles(directory, It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(output);
+        }
+
+        protected void SetupChanges(string directory, string from, string to, IEnumerable<string> output)
+        {
+            ChangesProviderMock.Setup(
+                    cp => cp.GetChangedFiles(directory, from, to))
+                .Returns(output);
         }
     }
 }

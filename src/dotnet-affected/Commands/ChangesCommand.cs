@@ -3,6 +3,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Affected.Cli.Commands
@@ -28,6 +29,11 @@ namespace Affected.Cli.Commands
 
             public Task<int> InvokeAsync(InvocationContext ic)
             {
+                if (!_context.NodesWithChanges.Any())
+                {
+                    throw new NoChangesException();
+                }
+
                 var rootView = new NodesWithChangesView(_context.NodesWithChanges);
                 rootView.Add(new ContentView(string.Empty));
                 _console.Append(rootView);

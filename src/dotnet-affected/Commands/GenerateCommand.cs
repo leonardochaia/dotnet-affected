@@ -57,20 +57,14 @@ namespace Affected.Cli.Commands
 
             public Task<int> InvokeAsync(InvocationContext ic)
             {
-                var affectedNodes = _context.FindAffectedProjects().ToList();
                 var rootView = new StackLayoutView();
 
-                if (!affectedNodes.Any())
+                if (!_context.NodesWithChanges.Any())
                 {
-                    if (_data.Verbose)
-                    {
-                        rootView.Add(new NoChangesView());
-                    }
-
-                    _console.Append(rootView);
-                    return Task.FromResult(AffectedExitCodes.NothingAffected);
+                    throw new NoChangesException();
                 }
 
+                var affectedNodes = _context.FindAffectedProjects().ToList();
                 var project = this.CreateTraversalProjectForTree(
                     affectedNodes,
                     _context.NodesWithChanges);
@@ -96,29 +90,16 @@ namespace Affected.Cli.Commands
                 }
                 else
                 {
-                    // If we have an output path, we'll create a file with the contents.
-                    var filePath = this.WriteProjectFileToDisk(projectXml, Output);
+                    // If we have an output path, we'll save the project to disk.
+                    project.Save(Output);
 
-                    rootView.Add(new ContentView($"Generated Project file at {filePath}"));
+                    rootView.Add(new ContentView($"Generated Project file at {Output}"));
                 }
 
                 rootView.Add(new ContentView(string.Empty));
                 _console.Append(rootView);
 
                 return Task.FromResult(0);
-            }
-
-            private string WriteProjectFileToDisk(string xml, string outputPath)
-            {
-                // If it's a directory, append a file name to it
-                if (Path.GetFileName(outputPath) is null)
-                {
-                    outputPath = Path.Combine(outputPath, "dir.proj");
-                }
-
-                using var outputFile = new StreamWriter(outputPath);
-                outputFile.Write(xml);
-                return outputPath;
             }
 
             private Project CreateTraversalProjectForTree(

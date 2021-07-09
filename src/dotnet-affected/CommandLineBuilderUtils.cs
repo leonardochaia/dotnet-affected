@@ -2,8 +2,10 @@
 using Affected.Cli.Views;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
+using System.CommandLine.Invocation;
 
 namespace Affected.Cli
 {
@@ -25,6 +27,10 @@ namespace Affected.Cli
                     // for constructor DI to work.
                     host.UseCommandHandler<ChangesCommand, ChangesCommand.CommandHandler>()
                         .UseCommandHandler<GenerateCommand, GenerateCommand.CommandHandler>();
+                })
+                .UseRenderingErrorHandler(new Dictionary<Type, RenderingErrorConfig>()
+                {
+                    [typeof(NoChangesException)] = new(AffectedExitCodes.NothingChanged, new NoChangesView()),
                 })
                 .UseDefaults();
         }
