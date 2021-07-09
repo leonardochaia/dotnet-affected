@@ -19,6 +19,7 @@ namespace Affected.Cli
                     host.ConfigureServices((_, services) =>
                     {
                         services.AddTransient<ICommandExecutionContext, CommandExecutionContext>();
+                        services.AddTransient<IChangesProvider, GitChangesProvider>();
                         services.AddFromModelBinder<CommandExecutionData>();
                         configureServices?.Invoke(services);
                     });
