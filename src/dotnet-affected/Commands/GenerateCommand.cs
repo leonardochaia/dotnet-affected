@@ -28,7 +28,10 @@ namespace Affected.Cli.Commands
         private class OutputOptions : Option<string>
         {
             public OutputOptions()
-                : base(new[] {"--output", "-o"})
+                : base(new[]
+                {
+                    "--output", "-o"
+                })
             {
                 this.Description = "Location of the output file. Will output to stdout if not present";
             }
@@ -127,26 +130,29 @@ namespace Affected.Cli.Commands
                 var xmlReader = new XmlTextReader(stringReader);
                 var root = ProjectRootElement.Create(xmlReader);
 
-                void AddProjectReference(Project project, ProjectGraphNode node)
+                var project = new Project(root);
+
+                void AddProjectReference(ProjectGraphNode current)
                 {
-                    var path = node.ProjectInstance.FullPath;
-                    if (!project.Items.Any(i => i.EvaluatedInclude == path))
+                    var currentProjectPath = current.ProjectInstance.FullPath;
+
+                    // Ignore the current project
+                    if (project.Items.All(i => i.EvaluatedInclude != currentProjectPath))
                     {
-                        project.AddItem("ProjectReference", path);
+                        project.AddItem("ProjectReference", currentProjectPath);
                     }
                 }
-
-                var project = new Project(root);
 
                 // Find all affected and add them as project references
                 foreach (var node in affectedNodes)
                 {
-                    AddProjectReference(project, node);
+                    AddProjectReference(node);
                 }
 
+                // We also want to build everything that changed.
                 foreach (var node in nodesWithChanges)
                 {
-                    AddProjectReference(project, node);
+                    AddProjectReference(node);
                 }
 
                 return project;

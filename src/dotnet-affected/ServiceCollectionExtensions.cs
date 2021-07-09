@@ -6,6 +6,14 @@ namespace Affected.Cli
 {
     internal static class ServiceCollectionExtensions
     {
+        /// <summary>
+        /// Registers <typeparamref name="T"/> as Transient, to be resolved using CommandLine's Invocation API.
+        /// This means the type can "inject" arguments and Options and that kind of stuff.
+        /// </summary>
+        /// <param name="services">The Service collection.</param>
+        /// <typeparam name="T">Type to register.</typeparam>
+        /// <returns>For chaining.</returns>
+        /// <exception cref="InvalidOperationException">When T cannot be activated.</exception>
         public static IServiceCollection AddFromModelBinder<T>(this IServiceCollection services) where T : class
         {
             services.AddTransient(sp =>

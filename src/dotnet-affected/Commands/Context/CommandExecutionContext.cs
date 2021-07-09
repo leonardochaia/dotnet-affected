@@ -33,7 +33,7 @@ namespace Affected.Cli.Commands
 
             this.nodesWithChanges = new Lazy<IEnumerable<ProjectGraphNode>>(() =>
             {
-                if (this.executionData.AssumeChanges?.Any() != true)
+                if (!this.executionData.AssumeChanges.Any())
                 {
                     return this.FindNodesThatChangedUsingGit();
                 }
