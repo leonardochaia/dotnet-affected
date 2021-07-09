@@ -5,6 +5,7 @@ using Microsoft.Build.Graph;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
 using System.IO;
 using System.Linq;
@@ -37,18 +38,18 @@ namespace Affected.Cli.Commands
         {
             private readonly CommandExecutionData _data;
             private readonly ICommandExecutionContext _context;
-            private readonly ViewRenderingContext _renderingContext;
+            private readonly IConsole _console;
 
             public string? Output { get; set; }
 
             public CommandHandler(
                 CommandExecutionData data,
                 ICommandExecutionContext context,
-                ViewRenderingContext renderingContext)
+                IConsole console)
             {
                 _data = data;
                 _context = context;
-                _renderingContext = renderingContext;
+                _console = console;
             }
 
             public Task<int> InvokeAsync(InvocationContext ic)
@@ -63,7 +64,7 @@ namespace Affected.Cli.Commands
                         rootView.Add(new NoChangesView());
                     }
 
-                    _renderingContext.Render(rootView);
+                    _console.Append(rootView);
                     return Task.FromResult(AffectedExitCodes.NothingAffected);
                 }
 
@@ -99,7 +100,7 @@ namespace Affected.Cli.Commands
                 }
 
                 rootView.Add(new ContentView(string.Empty));
-                _renderingContext.Render(rootView);
+                _console.Append(rootView);
 
                 return Task.FromResult(0);
             }

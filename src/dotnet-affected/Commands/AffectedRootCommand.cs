@@ -42,9 +42,9 @@ namespace Affected.Cli.Commands
                 // https://github.com/dotnet/command-line-api/issues/1344
                 var services = ic.GetHost().Services;
                 var data = services.GetRequiredService<CommandExecutionData>();
-                var renderingContext = services.GetRequiredService<ViewRenderingContext>();
                 var context = services.GetRequiredService<ICommandExecutionContext>();
-                
+                var console = services.GetRequiredService<IConsole>();
+
                 var affectedNodes = context.FindAffectedProjects().ToList();
 
                 var rootView = new StackLayoutView();
@@ -56,9 +56,7 @@ namespace Affected.Cli.Commands
                         rootView.Add(new NoChangesView());
                     }
                     
-                    var console = services.GetRequiredService<IConsole>();
                     console.Append(rootView);
-                    // renderingContext.Render(rootView);
                     return Task.FromResult(AffectedExitCodes.NothingAffected);
                 }
 
@@ -66,7 +64,7 @@ namespace Affected.Cli.Commands
                     context.NodesWithChanges,
                     affectedNodes));
 
-                renderingContext.Render(rootView);
+                console.Append(rootView);
                 return Task.FromResult(0);
             }
         }

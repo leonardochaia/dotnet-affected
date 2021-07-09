@@ -1,6 +1,7 @@
 ﻿using Affected.Cli.Views;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
 using System.Threading.Tasks;
 
@@ -17,19 +18,19 @@ namespace Affected.Cli.Commands
         public class CommandHandler : ICommandHandler
         {
             private readonly ICommandExecutionContext _context;
-            private readonly ViewRenderingContext _renderingContext;
+            private readonly IConsole _console;
 
-            public CommandHandler(ICommandExecutionContext context, ViewRenderingContext renderingContext)
+            public CommandHandler(ICommandExecutionContext context, IConsole console)
             {
                 _context = context;
-                _renderingContext = renderingContext;
+                _console = console;
             }
 
             public Task<int> InvokeAsync(InvocationContext ic)
             {
                 var rootView = new NodesWithChangesView(_context.NodesWithChanges);
                 rootView.Add(new ContentView(string.Empty));
-                _renderingContext.Render(rootView);
+                _console.Append(rootView);
 
                 return Task.FromResult(0);
             }

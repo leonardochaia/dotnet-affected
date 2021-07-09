@@ -18,7 +18,6 @@ namespace Affected.Cli
                     {
                         services.AddTransient<ICommandExecutionContext, CommandExecutionContext>();
                         services.AddFromModelBinder<CommandExecutionData>();
-                        services.AddFromModelBinder<ViewRenderingContext>();
                         configureServices?.Invoke(services);
                     });
 
