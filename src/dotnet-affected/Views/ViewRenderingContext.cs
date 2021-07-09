@@ -1,5 +1,4 @@
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
 
@@ -7,14 +6,12 @@ namespace Affected.Cli.Views
 {
     internal class ViewRenderingContext
     {
-        public ViewRenderingContext(
-            IConsole console,
-            InvocationContext invocationContext)
+        public ViewRenderingContext(IConsole console)
         {
             this.Console = console;
             this.ConsoleRenderer = new ConsoleRenderer(
                 this.Console,
-                mode: invocationContext.BindingContext.OutputMode(),
+                mode: OutputMode.PlainText,
                 resetAfterRender: true);
         }
 
