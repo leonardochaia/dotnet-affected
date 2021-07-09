@@ -14,7 +14,7 @@ namespace Affected.Cli
         /// <typeparam name="T">Type to register.</typeparam>
         /// <returns>For chaining.</returns>
         /// <exception cref="InvalidOperationException">When T cannot be activated.</exception>
-        public static IServiceCollection AddFromModelBinder<T>(this IServiceCollection services) where T : class
+        public static IServiceCollection AddFromBindingContext<T>(this IServiceCollection services) where T : class
         {
             services.AddTransient(sp =>
                 (T)(new ModelBinder(typeof(T)).CreateInstance(

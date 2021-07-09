@@ -14,9 +14,9 @@
         <PackageVersion Include="Microsoft.Build.Locator" Version="1.4.1" />
         <PackageVersion Include="System.CommandLine" Version="2.0.0-beta1.21308.1" />
         <PackageVersion Include="System.CommandLine.Rendering" Version="0.3.0-alpha.21216.1" />
-        <PackageVersion Include="System.CommandLine.Hosting" Version="0.3.0-alpha.21216.1" />
         <PackageVersion Include="LibGit2Sharp" Version="0.27.0-preview-0102" />
 
         <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
+        <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
     </ItemGroup>
 </Project>

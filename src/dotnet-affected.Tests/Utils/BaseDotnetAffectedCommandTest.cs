@@ -30,8 +30,9 @@ namespace Affected.Cli.Tests
         protected async Task<(string Output, int ExitCode)> InvokeAsync(string args)
         {
             // Create the parser just as we do at Program.cs
-            var parser = CommandLineBuilderUtils
-                .CreateCommandLineBuilder(services =>
+            var parser = AffectedCli
+                .CreateAffectedCommandLineBuilder()
+                .ConfigureServices(services =>
                 {
                     services.Replace(ServiceDescriptor.Singleton(ChangesProviderMock.Object));
                 })

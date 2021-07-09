@@ -1,9 +1,7 @@
 using Affected.Cli.Views;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Hosting;
 using System.CommandLine.Invocation;
 using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
@@ -31,32 +29,39 @@ namespace Affected.Cli.Commands
             this.AddGlobalOption(fromOption);
             this.AddGlobalOption(new ToOption(fromOption));
 
-            this.Handler = new CommandHandler();
+            // TODO: We need to specify the handler manually ONLY for the RootCommand
+            this.Handler = CommandHandler.Create(
+                typeof(AffectedCommandHandler).GetMethod(nameof(ICommandHandler.InvokeAsync))!);
         }
 
-        public class CommandHandler : ICommandHandler
+        public class AffectedCommandHandler : ICommandHandler
         {
+            private readonly ICommandExecutionContext _context;
+            private readonly IConsole _console;
+
+            public AffectedCommandHandler(
+                ICommandExecutionContext context,
+                IConsole console)
+            {
+                _context = context;
+                _console = console;
+            }
+
             public Task<int> InvokeAsync(InvocationContext ic)
             {
-                // TODO: Use constructor DI when command-line-api #1344 is fixed
-                // https://github.com/dotnet/command-line-api/issues/1344
-                var services = ic.GetHost().Services;
-                var context = services.GetRequiredService<ICommandExecutionContext>();
-                var console = services.GetRequiredService<IConsole>();
-
                 var rootView = new StackLayoutView();
 
-                if (!context.NodesWithChanges.Any())
+                if (!_context.NodesWithChanges.Any())
                 {
                     throw new NoChangesException();
                 }
 
-                var affectedNodes = context.FindAffectedProjects().ToList();
+                var affectedNodes = _context.FindAffectedProjects().ToList();
                 rootView.Add(new WithChangesAndAffectedView(
-                    context.NodesWithChanges,
+                    _context.NodesWithChanges,
                     affectedNodes));
 
-                console.Append(rootView);
+                _console.Append(rootView);
                 return Task.FromResult(0);
             }
         }
