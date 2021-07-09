@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Hosting;
 using System.CommandLine.Invocation;
+using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
 using System.Linq;
 using System.Threading.Tasks;
@@ -54,8 +55,10 @@ namespace Affected.Cli.Commands
                     {
                         rootView.Add(new NoChangesView());
                     }
-
-                    renderingContext.Render(rootView);
+                    
+                    var console = services.GetRequiredService<IConsole>();
+                    console.Append(rootView);
+                    // renderingContext.Render(rootView);
                     return Task.FromResult(AffectedExitCodes.NothingAffected);
                 }
 
