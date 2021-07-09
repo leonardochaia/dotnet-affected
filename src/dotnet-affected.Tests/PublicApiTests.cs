@@ -12,7 +12,10 @@ namespace Affected.Cli.Tests
     {
         private readonly ITestOutputHelper _helper;
 
-        private readonly ITerminal _terminal = new TestTerminal();
+        private readonly ITerminal _terminal = new TestTerminal()
+        {
+            OutputMode = OutputMode.PlainText,
+        };
 
         public PublicApiTests(ITestOutputHelper helper)
         {

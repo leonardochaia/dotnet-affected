@@ -14,8 +14,7 @@ namespace Affected.Cli.Views
             this.Console = console;
             this.ConsoleRenderer = new ConsoleRenderer(
                 this.Console,
-                mode: invocationContext.BindingContext.OutputMode(),
-                resetAfterRender: true);
+                mode: invocationContext.BindingContext.OutputMode());
         }
 
         public ConsoleRenderer ConsoleRenderer { get; }
