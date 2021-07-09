@@ -1,6 +1,6 @@
 ﻿using Microsoft.Build.Construction;
-using System.CommandLine.IO;
 using System.CommandLine.Parsing;
+using System.CommandLine.Rendering;
 using Xunit;
 using Xunit.Abstractions;
 using System.Threading.Tasks;
@@ -11,6 +11,8 @@ namespace Affected.Cli.Tests
         : BaseMSBuildTest
     {
         private readonly ITestOutputHelper _helper;
+
+        private readonly ITerminal _terminal = new TestTerminal();
 
         public PublicApiTests(ITestOutputHelper helper)
         {
@@ -23,12 +25,11 @@ namespace Affected.Cli.Tests
                 .CreateCommandLineBuilder()
                 .Build();
 
-            var console = new TestConsole();
-            var exitCode = await parser.InvokeAsync("[output:PlainText] "+args, console);
-            var output = console.Out.ToString();
+            var exitCode = await parser.InvokeAsync("[output:PlainText] "+args, _terminal);
+            var output = _terminal.Out.ToString();
 
             this._helper.WriteLine(output);
-            this._helper.WriteLine(console.Error.ToString());
+            this._helper.WriteLine(_terminal.Error.ToString());
 
             return (output, exitCode);
         }
