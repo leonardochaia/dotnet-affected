@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.IO;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -26,6 +27,33 @@ namespace Affected.Cli.Tests
 
             // Fake changes on the project's file
             SetupChanges(directory.Path, projectPath);
+
+            var (output, exitCode) =
+                await this.InvokeAsync($"{command} -p {directory.Path}");
+
+            Assert.Equal(0, exitCode);
+            Assert.Contains("Files inside these projects have changed", output);
+            Assert.Contains(projectName, output);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("changes")]
+        public async Task
+            Using_change_provider_when_has_changes_to_file_inside_project_directory_should_print_and_exit_successfully(
+                string command)
+        {
+            // Create a project
+            var projectName = "InventoryManagement";
+            using var directory = new TempWorkingDirectory();
+            var projectPath = directory.MakePathForCsProj(projectName);
+
+            CreateProject(projectPath, projectName)
+                .Save();
+
+            // Fake changes on the project's file
+            var projectDirectory = Path.GetDirectoryName(projectPath);
+            SetupChanges(directory.Path, Path.Combine(projectDirectory!, "some/random/file.cs"));
 
             var (output, exitCode) =
                 await this.InvokeAsync($"{command} -p {directory.Path}");
