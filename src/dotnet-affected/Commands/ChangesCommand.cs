@@ -2,7 +2,6 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Rendering;
-using System.CommandLine.Rendering.Views;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -34,9 +33,8 @@ namespace Affected.Cli.Commands
                     throw new NoChangesException();
                 }
 
-                var rootView = new NodesWithChangesView(_context.NodesWithChanges);
-                rootView.Add(new ContentView(string.Empty));
-                _console.Append(rootView);
+                var view = new NodesWithChangesView(_context.NodesWithChanges);
+                _console.Append(view);
 
                 return Task.FromResult(0);
             }

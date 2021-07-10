@@ -5,8 +5,8 @@ using Microsoft.Build.Graph;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.IO;
 using System.CommandLine.Rendering;
-using System.CommandLine.Rendering.Views;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -57,8 +57,6 @@ namespace Affected.Cli.Commands
 
             public Task<int> InvokeAsync(InvocationContext ic)
             {
-                var rootView = new StackLayoutView();
-
                 if (!_context.NodesWithChanges.Any())
                 {
                     throw new NoChangesException();
@@ -77,27 +75,23 @@ namespace Affected.Cli.Commands
                         affectedNodes
                     );
 
-                    rootView.Add(changesAndAffectedView);
+                    _console.Append(changesAndAffectedView);
 
-                    rootView.Add(new ContentView("Generating Traversal SDK Project"));
-                    rootView.Add(new ContentView(string.Empty));
+                    _console.Out.WriteLine("Generating Traversal SDK Project");
                 }
 
                 // If no output path, print the XML
                 if (string.IsNullOrWhiteSpace(Output))
                 {
-                    rootView.Add(new ContentView(projectXml));
+                    _console.Out.Write(projectXml);
                 }
                 else
                 {
                     // If we have an output path, we'll save the project to disk.
                     project.Save(Output);
 
-                    rootView.Add(new ContentView($"Generated Project file at {Output}"));
+                    _console.Out.WriteLine($"Generated Project file at {Output}");
                 }
-
-                rootView.Add(new ContentView(string.Empty));
-                _console.Append(rootView);
 
                 return Task.FromResult(0);
             }

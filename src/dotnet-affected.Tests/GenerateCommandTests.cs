@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -20,9 +19,6 @@ namespace Affected.Cli.Tests
             var projectName = "InventoryManagement";
             using var directory = CreateSingleProject(projectName);
 
-            // Fake No changes
-            SetupChanges(directory.Path, Enumerable.Empty<string>());
-
             var (output, exitCode) = await this.InvokeAsync($"generate -p {directory.Path}");
 
             Assert.Equal(AffectedExitCodes.NothingChanged, exitCode);
@@ -32,43 +28,34 @@ namespace Affected.Cli.Tests
         }
 
         [Fact]
-        public async Task When_any_changes_should_generate_traversal_sdk()
+        public async Task When_any_changes_should_output_traversal_sdk()
         {
+            // Create a project
             var projectName = "InventoryManagement";
-            using var directory = new FileUtilities.TempWorkingDirectory();
-            var projectPath = directory.CreateTemporaryCsProjFile();
+            using var directory = new TempWorkingDirectory();
+            var projectPath = directory.MakePathForCsProj(projectName);
 
             CreateProject(projectPath, projectName)
                 .Save();
 
-            // Fake changes on the project
-            SetupChanges(directory.Path, new[]
-            {
-                projectPath
-            });
+            // Fake changes to it's project's csproj file.
+            SetupChanges(directory.Path, projectPath);
 
             var (output, exitCode) =
                 await this.InvokeAsync($"generate -p {directory.Path}");
 
             Assert.Equal(0, exitCode);
 
-            RenderingAssertions.LineSequenceEquals(output,
-                l => Assert.Contains("Microsoft.Build.Traversal/3.0.3", l),
-                l => Assert.Contains("ItemGroup", l),
-                l => Assert.Contains("ProjectReference", l),
-                l => Assert.Contains($"Include=\"{projectPath}\"", l),
-                l => Assert.Contains("/>", l),
-                l => Assert.Contains("/ItemGroup", l),
-                l => Assert.Contains("/Project", l)
-            );
+            Assert.Contains($"Include=\"{projectPath}\"", output);
         }
 
         [Fact]
-        public async Task When_affected_should_generate_traversal_sdk()
+        public async Task When_any_affected_should_output_traversal_sdk()
         {
+            // Create a project
             var projectName = "InventoryManagement";
-            using var directory = new FileUtilities.TempWorkingDirectory();
-            var projectPath = directory.CreateTemporaryCsProjFile();
+            using var directory = new TempWorkingDirectory();
+            var projectPath = directory.MakePathForCsProj(projectName);
 
             CreateProject(projectPath, projectName)
                 .Save();
@@ -81,7 +68,7 @@ namespace Affected.Cli.Tests
 
             // Create another project that depends on the first one
             var dependantProjectName = "InventoryManagement.Tests";
-            var dependantProjectPath = directory.CreateTemporaryCsProjFile();
+            var dependantProjectPath = directory.MakePathForCsProj(dependantProjectName);
 
             CreateProject(dependantProjectPath, dependantProjectName)
                 .AddDependency(projectPath)
@@ -100,34 +87,35 @@ namespace Affected.Cli.Tests
         [Fact]
         public async Task When_affected_and_output_should_generate_traversal_sdk_at_destination()
         {
+            // Create a project
             var projectName = "InventoryManagement";
-            using var directory = new FileUtilities.TempWorkingDirectory();
-            var projectPath = directory.CreateTemporaryCsProjFile(projectName);
-
-            var destination = Path.Combine(directory.Path, $"{Guid.NewGuid():N}-generate-output.txt");
+            using var directory = new TempWorkingDirectory();
+            var projectPath = directory.MakePathForCsProj(projectName);
 
             CreateProject(projectPath, projectName)
                 .Save();
 
             // Fake changes on the project
-            SetupChanges(directory.Path, new[]
-            {
-                projectPath
-            });
+            SetupChanges(directory.Path, projectPath);
 
             // Create another project that depends on the first one
             var dependantProjectName = "InventoryManagement.Tests";
-            var dependantProjectPath = directory.CreateTemporaryCsProjFile(dependantProjectName);
+            var dependantProjectPath = directory.MakePathForCsProj(dependantProjectName);
 
             CreateProject(dependantProjectPath, dependantProjectName)
                 .AddDependency(projectPath)
                 .Save();
 
+            // Generate a path for the traversal sdk destination file
+            var destination = Path.Combine(directory.Path, $"{Guid.NewGuid():N}-generate-output.txt");
+
             var (output, exitCode) =
                 await this.InvokeAsync($"generate -p {directory.Path} --output {destination}");
 
             Assert.Equal(0, exitCode);
+            Assert.Contains(destination, output);
 
+            // Read the output file for assertions
             var outputContents = await File.ReadAllTextAsync(destination);
 
             Helper.WriteLine($"TestInfra: Contents of generated output file at {destination}");

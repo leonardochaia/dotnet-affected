@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
-using System.Collections.Generic;
 using System.CommandLine.Parsing;
 using System.CommandLine.Rendering;
 using System.Threading.Tasks;
@@ -60,14 +59,14 @@ namespace Affected.Cli.Tests
 
         /// <summary>
         /// Creates an MSBuild <see cref="ProjectRootElement"/> inside a see
-        /// <see cref="FileUtilities.TempWorkingDirectory"/> and returns that.
+        /// <see cref="TempWorkingDirectory"/> and returns that.
         /// </summary>
         /// <param name="projectName">New project's name.</param>
         /// <returns>The directory where the project is deleted. Remember to dispose it.</returns>
-        protected FileUtilities.TempWorkingDirectory CreateSingleProject(string projectName)
+        protected TempWorkingDirectory CreateSingleProject(string projectName)
         {
-            var directory = new FileUtilities.TempWorkingDirectory();
-            var csprojPath = directory.CreateTemporaryCsProjFile();
+            var directory = new TempWorkingDirectory();
+            var csprojPath = directory.MakePathForCsProj(projectName);
 
             CreateProject(csprojPath, projectName)
                 .Save();
@@ -89,14 +88,14 @@ namespace Affected.Cli.Tests
                 .SetName(projectName);
         }
 
-        protected void SetupChanges(string directory, IEnumerable<string> output)
+        protected void SetupChanges(string directory, params string[] output)
         {
             ChangesProviderMock.Setup(
                     cp => cp.GetChangedFiles(directory, It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(output);
         }
 
-        protected void SetupChanges(string directory, string from, string to, IEnumerable<string> output)
+        protected void SetupChanges(string directory, string from, string to, params string[] output)
         {
             ChangesProviderMock.Setup(
                     cp => cp.GetChangedFiles(directory, from, to))
