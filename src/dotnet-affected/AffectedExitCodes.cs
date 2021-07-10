@@ -3,8 +3,8 @@
     internal static class AffectedExitCodes
     {
         /// <summary>
-        /// Exit code returned when there are no affected projects.
+        /// Exit code returned when there are no changed projects.
         /// </summary>
-        public static readonly int NothingAffected = 130;
+        public const int NothingChanged = 166;
     }
 }

@@ -29,6 +29,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Win32.Registry" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
         <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
         <PackageReference Include="Microsoft.Build.Locator" />
         <PackageReference Include="System.CommandLine" />
@@ -37,7 +38,7 @@
     </ItemGroup>
 
     <ItemGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true'">
-        <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All"/>
+        <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
     </ItemGroup>
     
     <ItemGroup>

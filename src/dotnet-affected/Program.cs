@@ -1,6 +1,5 @@
-﻿using Affected.Cli.Commands;
-using Microsoft.Build.Locator;
-using System.CommandLine;
+﻿using Microsoft.Build.Locator;
+using System.CommandLine.Parsing;
 using System.Threading.Tasks;
 
 namespace Affected.Cli
@@ -15,8 +14,10 @@ namespace Affected.Cli
 
         public static Task<int> Main(string[] args)
         {
-            var command = new AffectedRootCommand();
-            return command.InvokeAsync(args);
+            return AffectedCli
+                .CreateAffectedCommandLineBuilder()
+                .Build()
+                .InvokeAsync(args);
         }
     }
 }

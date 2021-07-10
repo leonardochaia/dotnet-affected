@@ -5,6 +5,7 @@
             This may be Overridden per project if needed, however pleas don't.
         -->
         <TargetFrameworks>net5.0;netcoreapp3.1</TargetFrameworks>
+        <LangVersion>9.0</LangVersion>
 
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 

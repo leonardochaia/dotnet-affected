@@ -5,7 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
         <PackageReference Include="xunit" />
         <PackageReference Include="xunit.runner.visualstudio">
             <PrivateAssets>all</PrivateAssets>
@@ -18,9 +18,10 @@
 
         <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
         <PackageReference Include="Microsoft.Build.Locator" />
+        <PackageReference Include="Moq" />
 
         <!--Required for CI-->
-        <PackageReference Include="XunitXml.TestLogger"/>
+        <PackageReference Include="XunitXml.TestLogger" />
     </ItemGroup>
 
     <ItemGroup>

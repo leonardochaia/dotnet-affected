@@ -2,7 +2,7 @@
     "profiles": {
         "Help": {
             "commandName": "Project",
-            "commandLineArgs": "--help",
+            "commandLineArgs": "-p $(pwd) --help",
             "environmentVariables": {
                 "DOTNET_ENVIRONMENT": "Development"
             }

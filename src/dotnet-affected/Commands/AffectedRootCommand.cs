@@ -3,8 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.CommandLine.Rendering.Views;
+using System.CommandLine.Rendering;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Affected.Cli.Commands
 {
@@ -27,35 +28,38 @@ namespace Affected.Cli.Commands
             this.AddGlobalOption(fromOption);
             this.AddGlobalOption(new ToOption(fromOption));
 
-            this.Handler = CommandHandler.Create<CommandExecutionData, ViewRenderingContext>(this.AffectedHandler);
+            // TODO: We need to specify the handler manually ONLY for the RootCommand
+            this.Handler = CommandHandler.Create(
+                typeof(AffectedCommandHandler).GetMethod(nameof(ICommandHandler.InvokeAsync))!);
         }
 
-        private int AffectedHandler(
-            CommandExecutionData data,
-            ViewRenderingContext renderingContext)
+        public class AffectedCommandHandler : ICommandHandler
         {
-            using var context = data.BuildExecutionContext();
-            var affectedNodes = context.FindAffectedProjects().ToList();
+            private readonly ICommandExecutionContext _context;
+            private readonly IConsole _console;
 
-            var rootView = new StackLayoutView();
-
-            if (!affectedNodes.Any())
+            public AffectedCommandHandler(
+                ICommandExecutionContext context,
+                IConsole console)
             {
-                if (data.Verbose)
-                {
-                    rootView.Add(new NoChangesView());
-                }
-
-                renderingContext.Render(rootView);
-                return AffectedExitCodes.NothingAffected;
+                _context = context;
+                _console = console;
             }
 
-            rootView.Add(new WithChangesAndAffectedView(
-                context.NodesWithChanges,
-                affectedNodes));
+            public Task<int> InvokeAsync(InvocationContext ic)
+            {
+                if (!_context.ChangedProjects.Any())
+                {
+                    throw new NoChangesException();
+                }
 
-            renderingContext.Render(rootView);
-            return 0;
+                var affectedNodes = _context.AffectedProjects.ToList();
+                _console.Append(new WithChangesAndAffectedView(
+                    _context.ChangedProjects,
+                    affectedNodes));
+
+                return Task.FromResult(0);
+            }
         }
 
         private class AssumeChangesOption : Option<IEnumerable<string>>
@@ -63,7 +67,8 @@ namespace Affected.Cli.Commands
             public AssumeChangesOption()
                 : base("--assume-changes")
             {
-                this.Description = "Hypothetically assume that given projects have changed instead of using Git diff to determine them.";
+                this.Description =
+                    "Hypothetically assume that given projects have changed instead of using Git diff to determine them.";
             }
         }
 
@@ -71,20 +76,25 @@ namespace Affected.Cli.Commands
         {
             public RepositoryPathOptions()
                 : base(
-                      aliases: new[] { "--repository-path", "-p" })
+                    aliases: new[]
+                    {
+                        "--repository-path", "-p"
+                    })
             {
-                this.Description = "Path to the root of the repository, where the .git directory is." +
-                    Environment.NewLine +
-                    "[default: current directory]";
+                this.Description = "Path to the root of the repository, where the .git directory is.";
             }
         }
 
         private class SolutionPathOption : Option<string>
         {
             public SolutionPathOption()
-                : base(new [] { "--solution-path" })
+                : base(new[]
+                {
+                    "--solution-path"
+                })
             {
-                this.Description = "Path to a Solution file (.sln) used to find all projects that may be affected. When omitted, will search for project files inside --repository-path.";
+                this.Description =
+                    "Path to a Solution file (.sln) used to find all projects that may be affected. When omitted, will search for project files inside --repository-path.";
             }
         }
 
@@ -92,8 +102,11 @@ namespace Affected.Cli.Commands
         {
             public VerboseOption()
                 : base(
-                      aliases: new[] { "--verbose", "-v" },
-                      getDefaultValue: () => false)
+                    aliases: new[]
+                    {
+                        "--verbose", "-v"
+                    },
+                    getDefaultValue: () => false)
             {
                 this.Description = "Write useful messages or just the desired output.";
             }
@@ -102,7 +115,10 @@ namespace Affected.Cli.Commands
         private class FromOption : Option<string>
         {
             public FromOption()
-            : base(new[] { "--from" })
+                : base(new[]
+                {
+                    "--from"
+                })
             {
                 this.Description = "A branch or commit to compare against --to.";
             }
@@ -111,7 +127,10 @@ namespace Affected.Cli.Commands
         private class ToOption : Option<string>
         {
             public ToOption(FromOption fromOption)
-                : base(new[] { "--to" })
+                : base(new[]
+                {
+                    "--to"
+                })
             {
                 this.Description = "A branch or commit to compare against --from";
 

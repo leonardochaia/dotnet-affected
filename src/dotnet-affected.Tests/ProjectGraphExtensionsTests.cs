@@ -1,6 +1,5 @@
 ﻿using Microsoft.Build.Construction;
 using Microsoft.Build.Graph;
-using Microsoft.Build.Locator;
 using System;
 using System.IO;
 using System.Linq;
@@ -9,12 +8,8 @@ using Xunit;
 namespace Affected.Cli.Tests
 {
     public class ProjectGraphExtensionsTests
+        : BaseMSBuildTest
     {
-        static ProjectGraphExtensionsTests()
-        {
-            MSBuildLocator.RegisterDefaults();
-        }
-
         [Fact]
         public void FindNodesThatDependOn_ShouldFindFirstLevelDependency()
         {

@@ -30,6 +30,6 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --no-build
     - name: Run Tool
       run: ./src/dotnet-affected/bin/Debug/net5.0/dotnet-affected generate -p $GITHUB_WORKSPACE --assume-changes dotnet-affected -v
