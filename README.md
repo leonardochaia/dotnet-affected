@@ -187,8 +187,8 @@ Note that dotnet affected returns `166` when nothing has changed, not to be conf
 If projects have changed, but nothing is affected by those changes, we still need to build those that changed.
 
 ```bash
-shouldBuild=$(dotnet affected --generate build.proj)
-if $shouldBuild ; then
+dotnet affected --generate build.proj # [..] other args
+if $? ; then
     dotnet build build.proj
 fi
 ```

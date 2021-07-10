@@ -6,7 +6,7 @@
         <OutputType>Exe</OutputType>
         <ToolCommandName>dotnet-affected</ToolCommandName>
         
-        <Version>1.0.0-preview-4</Version>
+        <Version>1.0.0-preview-5</Version>
         <IsPackable>true</IsPackable>
         <PackAsTool>true</PackAsTool>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
