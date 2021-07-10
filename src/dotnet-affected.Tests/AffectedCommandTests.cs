@@ -67,20 +67,5 @@ namespace Affected.Cli.Tests
                 l => Assert.Contains(projectName, l),
                 l => Assert.Contains("No affected projects where found for the current changes", l));
         }
-
-        [Fact]
-        public async Task When_nothing_has_changed_should_exit_with_NothingChanged_status_code()
-        {
-            // Create a project.
-            var projectName = "InventoryManagement";
-            using var directory = CreateSingleProject(projectName);
-
-            var (output, exitCode) = await this.InvokeAsync($"-p {directory.Path}");
-
-            Assert.Equal(AffectedExitCodes.NothingChanged, exitCode);
-
-            RenderingAssertions.LineSequenceEquals(output,
-                l => Assert.Contains("No affected projects where found for the current changes", l));
-        }
     }
 }

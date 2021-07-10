@@ -8,7 +8,7 @@ namespace Affected.Cli.Tests
     public class BaseMSBuildTest
     {
         static BaseMSBuildTest()
-        { 
+        {
             MSBuildLocator.RegisterDefaults();
         }
     }

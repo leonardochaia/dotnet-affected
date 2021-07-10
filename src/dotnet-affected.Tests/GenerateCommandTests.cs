@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -11,20 +10,6 @@ namespace Affected.Cli.Tests
     {
         public GenerateCommandTests(ITestOutputHelper helper) : base(helper)
         {
-        }
-
-        [Fact]
-        public async Task When_nothing_has_changed_should_exit_with_NothingChanged_status_code()
-        {
-            var projectName = "InventoryManagement";
-            using var directory = CreateSingleProject(projectName);
-
-            var (output, exitCode) = await this.InvokeAsync($"generate -p {directory.Path}");
-
-            Assert.Equal(AffectedExitCodes.NothingChanged, exitCode);
-
-            RenderingAssertions.LineSequenceEquals(output,
-                l => Assert.Contains("No affected projects where found for the current changes", l));
         }
 
         [Fact]
@@ -107,7 +92,7 @@ namespace Affected.Cli.Tests
                 .Save();
 
             // Generate a path for the traversal sdk destination file
-            var destination = Path.Combine(directory.Path, $"{Guid.NewGuid():N}-generate-output.txt");
+            var destination = directory.MakePathFor("generate-output.txt");
 
             var (output, exitCode) =
                 await this.InvokeAsync($"generate -p {directory.Path} --output {destination}");

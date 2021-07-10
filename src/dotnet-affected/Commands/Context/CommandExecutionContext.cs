@@ -16,6 +16,7 @@ namespace Affected.Cli.Commands
         private readonly IChangesProvider _changesProvider;
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _changedProjects;
         private readonly Lazy<ProjectGraph> _graph;
+        private readonly Lazy<string> _repositoryPath;
 
         public CommandExecutionContext(
             CommandExecutionData executionData,
@@ -25,6 +26,32 @@ namespace Affected.Cli.Commands
             _executionData = executionData;
             _console = console;
             _changesProvider = changesProvider;
+
+            // Figure out the repository path
+            _repositoryPath = new Lazy<string>(() =>
+            {
+                // the argument takes precedence.
+                if (!string.IsNullOrWhiteSpace(_executionData.RepositoryPath))
+                {
+                    return _executionData.RepositoryPath;
+                }
+
+                // if no arguments, then use current directory
+                if (string.IsNullOrWhiteSpace(_executionData.SolutionPath))
+                {
+                    return Environment.CurrentDirectory;
+                }
+
+                // When using solution, and no path specified, assume the solution's directory
+                var solutionDirectory = Path.GetDirectoryName(_executionData.SolutionPath);
+                if (string.IsNullOrWhiteSpace(solutionDirectory))
+                {
+                    throw new InvalidOperationException(
+                        $"Failed to determine directory from solution path {_executionData.SolutionPath}");
+                }
+
+                return solutionDirectory;
+            });
 
             // Discovering projects, and finding affected may throw
             // For error handling to be managed properly at the handler level,
@@ -51,8 +78,7 @@ namespace Affected.Cli.Commands
         public IEnumerable<ProjectGraphNode> AffectedProjects => _graph.Value.FindNodesThatDependOn(ChangedProjects);
 
         /// <summary>
-        /// Builds a <see cref="ProjectGraph"/> from all found project files
-        /// inside the <see cref="CommandExecutionData.SolutionPath"/> or <see cref="CommandExecutionData.RepositoryPath"/>.
+        /// Builds a <see cref="ProjectGraph"/> from all discovered projects.
         /// </summary>
         /// <returns>A new Project Graph.</returns>
         private ProjectGraph BuildProjectGraph()
@@ -79,24 +105,23 @@ namespace Affected.Cli.Commands
 
             return solution.ProjectsInOrder
                 .Where(x => x.ProjectType != SolutionProjectType.SolutionFolder)
-                .Select(x => x.AbsolutePath);
+                .Select(x => x.AbsolutePath)
+                .ToArray();
         }
 
         private IEnumerable<string> FindProjectsInDirectory()
         {
-            WriteLine($"Finding all csproj at {_executionData.RepositoryPath}");
+            WriteLine($"Finding all csproj at {_repositoryPath.Value}");
 
             // TODO: Find *.*proj ?
-            return Directory.GetFiles(
-                _executionData.RepositoryPath,
-                "*.csproj",
-                SearchOption.AllDirectories);
+            return Directory.GetFiles(_repositoryPath.Value, "*.csproj", SearchOption.AllDirectories)
+                .ToArray();
         }
 
         private IEnumerable<ProjectGraphNode> FindNodesThatChangedUsingGit()
         {
             var filesWithChanges = this._changesProvider
-                .GetChangedFiles(this._executionData.RepositoryPath,
+                .GetChangedFiles(_repositoryPath.Value,
                     this._executionData.From,
                     this._executionData.To)
                 .ToList();

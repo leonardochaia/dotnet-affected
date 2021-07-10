@@ -94,12 +94,5 @@ namespace Affected.Cli.Tests
                     cp => cp.GetChangedFiles(directory, It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(output);
         }
-
-        protected void SetupChanges(string directory, string from, string to, params string[] output)
-        {
-            ChangesProviderMock.Setup(
-                    cp => cp.GetChangedFiles(directory, from, to))
-                .Returns(output);
-        }
     }
 }

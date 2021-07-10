@@ -82,7 +82,6 @@ namespace Affected.Cli.Commands
                     })
             {
                 this.Description = "Path to the root of the repository, where the .git directory is.";
-                this.SetDefaultValueFactory(() => Environment.CurrentDirectory);
             }
         }
 
