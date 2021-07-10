@@ -1,5 +1,4 @@
-﻿using LibGit2Sharp;
-using Microsoft.Build.Graph;
+﻿using Microsoft.Build.Graph;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
@@ -15,7 +14,7 @@ namespace Affected.Cli.Commands
         private readonly CommandExecutionData _executionData;
         private readonly IConsole _console;
         private readonly IChangesProvider _changesProvider;
-        private readonly Lazy<IEnumerable<ProjectGraphNode>> _nodesWithChanges;
+        private readonly Lazy<IEnumerable<ProjectGraphNode>> _changedProjects;
         private readonly Lazy<ProjectGraph> _graph;
 
         public CommandExecutionContext(
@@ -28,11 +27,12 @@ namespace Affected.Cli.Commands
             _changesProvider = changesProvider;
 
             // Discovering projects, and finding affected may throw
-            // so that error handling is managed properly at the handler level,
-            // we use Lazy so that its done on demand when its actually needed.
+            // For error handling to be managed properly at the handler level,
+            // we use Lazies so that its done on demand when its actually needed
+            // instead of happening here on the constructor
             _graph = new Lazy<ProjectGraph>(BuildProjectGraph);
 
-            _nodesWithChanges = new Lazy<IEnumerable<ProjectGraphNode>>(() =>
+            _changedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(() =>
             {
                 if (!_executionData.AssumeChanges.Any())
                 {
@@ -46,12 +46,9 @@ namespace Affected.Cli.Commands
             });
         }
 
-        public IEnumerable<ProjectGraphNode> NodesWithChanges => _nodesWithChanges.Value;
+        public IEnumerable<ProjectGraphNode> ChangedProjects => _changedProjects.Value;
 
-        public IEnumerable<ProjectGraphNode> FindAffectedProjects()
-        {
-            return _graph.Value.FindNodesThatDependOn(NodesWithChanges);
-        }
+        public IEnumerable<ProjectGraphNode> AffectedProjects => _graph.Value.FindNodesThatDependOn(ChangedProjects);
 
         /// <summary>
         /// Builds a <see cref="ProjectGraph"/> from all found project files

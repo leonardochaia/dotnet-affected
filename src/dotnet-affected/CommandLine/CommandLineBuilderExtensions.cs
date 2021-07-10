@@ -48,6 +48,7 @@ namespace Affected.Cli
 
                 // If the command has already specified a handler no need to override it.
                 // TODO: for some reason this is not applying to the RootCommand even when it does get executed for it.
+                // Having it hard-codded on the RootCommand impl itself does work tho, so that's what we are doing for now.
                 command.Handler ??= CommandHandler.Create(handlerType.GetMethod(nameof(ICommandHandler.InvokeAsync))!);
             });
         }

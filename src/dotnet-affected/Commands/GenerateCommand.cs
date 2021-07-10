@@ -57,21 +57,21 @@ namespace Affected.Cli.Commands
 
             public Task<int> InvokeAsync(InvocationContext ic)
             {
-                if (!_context.NodesWithChanges.Any())
+                if (!_context.ChangedProjects.Any())
                 {
                     throw new NoChangesException();
                 }
 
-                var affectedNodes = _context.FindAffectedProjects().ToList();
+                var affectedNodes = _context.AffectedProjects.ToList();
                 var project = this.CreateTraversalProjectForTree(
                     affectedNodes,
-                    _context.NodesWithChanges);
+                    _context.ChangedProjects);
                 var projectXml = project.Xml.RawXml;
 
                 if (_data.Verbose)
                 {
                     var changesAndAffectedView = new WithChangesAndAffectedView(
-                        _context.NodesWithChanges,
+                        _context.ChangedProjects,
                         affectedNodes
                     );
 

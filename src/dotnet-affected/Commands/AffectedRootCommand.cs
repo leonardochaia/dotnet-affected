@@ -48,14 +48,14 @@ namespace Affected.Cli.Commands
 
             public Task<int> InvokeAsync(InvocationContext ic)
             {
-                if (!_context.NodesWithChanges.Any())
+                if (!_context.ChangedProjects.Any())
                 {
                     throw new NoChangesException();
                 }
 
-                var affectedNodes = _context.FindAffectedProjects().ToList();
+                var affectedNodes = _context.AffectedProjects.ToList();
                 _console.Append(new WithChangesAndAffectedView(
-                    _context.NodesWithChanges,
+                    _context.ChangedProjects,
                     affectedNodes));
 
                 return Task.FromResult(0);
