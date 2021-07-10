@@ -81,7 +81,8 @@ namespace Affected.Cli.Commands
                         "--repository-path", "-p"
                     })
             {
-                this.Description = "Path to the root of the repository, where the .git directory is.";
+                this.Description = "Path to the root of the repository, where the .git directory is.\n" +
+                                   "[Defaults to current directory, or solution's directory when using --solution-path]";
             }
         }
 
@@ -94,7 +95,8 @@ namespace Affected.Cli.Commands
                 })
             {
                 this.Description =
-                    "Path to a Solution file (.sln) used to find all projects that may be affected. When omitted, will search for project files inside --repository-path.";
+                    "Path to a Solution file (.sln) used to discover projects that may be affected. " +
+                    "When omitted, will search for project files inside --repository-path.";
             }
         }
 

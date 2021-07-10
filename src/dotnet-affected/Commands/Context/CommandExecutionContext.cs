@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.IO;
-using System.IO;
 using System.Linq;
 
 namespace Affected.Cli.Commands
@@ -16,7 +15,6 @@ namespace Affected.Cli.Commands
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _changedProjects;
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _affectedProjects;
         private readonly Lazy<ProjectGraph> _graph;
-        private readonly Lazy<string> _repositoryPath;
 
         public CommandExecutionContext(
             CommandExecutionData executionData,
@@ -31,7 +29,6 @@ namespace Affected.Cli.Commands
             // For error handling to be managed properly at the handler level,
             // we use Lazies so that its done on demand when its actually needed
             // instead of happening here on the constructor
-            _repositoryPath = new Lazy<string>(DetermineRepositoryPath);
             _graph = new Lazy<ProjectGraph>(BuildProjectGraph);
             _changedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(DetermineChangedProjects);
             _affectedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(
@@ -63,31 +60,6 @@ namespace Affected.Cli.Commands
             return output;
         }
 
-        private string DetermineRepositoryPath()
-        {
-            // the argument takes precedence.
-            if (!string.IsNullOrWhiteSpace(_executionData.RepositoryPath))
-            {
-                return _executionData.RepositoryPath;
-            }
-
-            // if no arguments, then use current directory
-            if (string.IsNullOrWhiteSpace(_executionData.SolutionPath))
-            {
-                return Environment.CurrentDirectory;
-            }
-
-            // When using solution, and no path specified, assume the solution's directory
-            var solutionDirectory = Path.GetDirectoryName(_executionData.SolutionPath);
-            if (string.IsNullOrWhiteSpace(solutionDirectory))
-            {
-                throw new InvalidOperationException(
-                    $"Failed to determine directory from solution path {_executionData.SolutionPath}");
-            }
-
-            return solutionDirectory;
-        }
-
         private IEnumerable<ProjectGraphNode> DetermineChangedProjects()
         {
             if (!_executionData.AssumeChanges.Any())
@@ -105,7 +77,7 @@ namespace Affected.Cli.Commands
         {
             if (string.IsNullOrWhiteSpace(_executionData.SolutionPath))
             {
-                WriteLine($"Discovering projects from {_repositoryPath.Value}");
+                WriteLine($"Discovering projects from {_executionData.RepositoryPath}");
                 return new DirectoryProjectDiscoverer();
             }
 
@@ -118,9 +90,9 @@ namespace Affected.Cli.Commands
             // Get all files that have changed
             var filesWithChanges = this._changesProvider
                 .GetChangedFiles(
-                    _repositoryPath.Value,
-                    this._executionData.From,
-                    this._executionData.To)
+                    _executionData.RepositoryPath,
+                    _executionData.From,
+                    _executionData.To)
                 .ToList();
 
             // Match which files belong to which of our known projects
