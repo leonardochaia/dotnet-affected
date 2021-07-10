@@ -5,7 +5,6 @@ using System.CommandLine;
 using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
-using Microsoft.Build.Construction;
 
 namespace Affected.Cli.Commands
 {
@@ -15,6 +14,7 @@ namespace Affected.Cli.Commands
         private readonly IConsole _console;
         private readonly IChangesProvider _changesProvider;
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _changedProjects;
+        private readonly Lazy<IEnumerable<ProjectGraphNode>> _affectedProjects;
         private readonly Lazy<ProjectGraph> _graph;
         private readonly Lazy<string> _repositoryPath;
 
@@ -27,55 +27,20 @@ namespace Affected.Cli.Commands
             _console = console;
             _changesProvider = changesProvider;
 
-            // Figure out the repository path
-            _repositoryPath = new Lazy<string>(() =>
-            {
-                // the argument takes precedence.
-                if (!string.IsNullOrWhiteSpace(_executionData.RepositoryPath))
-                {
-                    return _executionData.RepositoryPath;
-                }
-
-                // if no arguments, then use current directory
-                if (string.IsNullOrWhiteSpace(_executionData.SolutionPath))
-                {
-                    return Environment.CurrentDirectory;
-                }
-
-                // When using solution, and no path specified, assume the solution's directory
-                var solutionDirectory = Path.GetDirectoryName(_executionData.SolutionPath);
-                if (string.IsNullOrWhiteSpace(solutionDirectory))
-                {
-                    throw new InvalidOperationException(
-                        $"Failed to determine directory from solution path {_executionData.SolutionPath}");
-                }
-
-                return solutionDirectory;
-            });
-
             // Discovering projects, and finding affected may throw
             // For error handling to be managed properly at the handler level,
             // we use Lazies so that its done on demand when its actually needed
             // instead of happening here on the constructor
+            _repositoryPath = new Lazy<string>(DetermineRepositoryPath);
             _graph = new Lazy<ProjectGraph>(BuildProjectGraph);
-
-            _changedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(() =>
-            {
-                if (!_executionData.AssumeChanges.Any())
-                {
-                    return FindNodesThatChangedUsingGit();
-                }
-
-                WriteLine($"Assuming hypothetical project changes, won't use Git diff");
-
-                return _graph.Value
-                    .FindNodesByName(_executionData.AssumeChanges);
-            });
+            _changedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(DetermineChangedProjects);
+            _affectedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(
+                () => _graph.Value.FindNodesThatDependOn(ChangedProjects));
         }
 
         public IEnumerable<ProjectGraphNode> ChangedProjects => _changedProjects.Value;
 
-        public IEnumerable<ProjectGraphNode> AffectedProjects => _graph.Value.FindNodesThatDependOn(ChangedProjects);
+        public IEnumerable<ProjectGraphNode> AffectedProjects => _affectedProjects.Value;
 
         /// <summary>
         /// Builds a <see cref="ProjectGraph"/> from all discovered projects.
@@ -83,54 +48,87 @@ namespace Affected.Cli.Commands
         /// <returns>A new Project Graph.</returns>
         private ProjectGraph BuildProjectGraph()
         {
-            // Find all csproj and build the dependency tree
-            var allProjects = !string.IsNullOrWhiteSpace(_executionData.SolutionPath)
-                ? FindProjectsInSolution()
-                : FindProjectsInDirectory();
+            // Discover all projects and build the graph
+            var allProjects = BuildProjectDiscoverer()
+                .DiscoverProjects(_executionData);
 
             WriteLine($"Building Dependency Graph");
 
             var output = new ProjectGraph(allProjects);
 
-            WriteLine($"Found {output.ConstructionMetrics.NodeCount} projects");
+            WriteLine(
+                $"Built Graph with {output.ConstructionMetrics.NodeCount} Projects " +
+                $"in {output.ConstructionMetrics.ConstructionTime:s\\.ff}s");
 
             return output;
         }
 
-        private IEnumerable<string> FindProjectsInSolution()
+        private string DetermineRepositoryPath()
         {
-            WriteLine($"Finding all projects from Solution {_executionData.SolutionPath}");
+            // the argument takes precedence.
+            if (!string.IsNullOrWhiteSpace(_executionData.RepositoryPath))
+            {
+                return _executionData.RepositoryPath;
+            }
 
-            var solution = SolutionFile.Parse(_executionData.SolutionPath);
+            // if no arguments, then use current directory
+            if (string.IsNullOrWhiteSpace(_executionData.SolutionPath))
+            {
+                return Environment.CurrentDirectory;
+            }
 
-            return solution.ProjectsInOrder
-                .Where(x => x.ProjectType != SolutionProjectType.SolutionFolder)
-                .Select(x => x.AbsolutePath)
-                .ToArray();
+            // When using solution, and no path specified, assume the solution's directory
+            var solutionDirectory = Path.GetDirectoryName(_executionData.SolutionPath);
+            if (string.IsNullOrWhiteSpace(solutionDirectory))
+            {
+                throw new InvalidOperationException(
+                    $"Failed to determine directory from solution path {_executionData.SolutionPath}");
+            }
+
+            return solutionDirectory;
         }
 
-        private IEnumerable<string> FindProjectsInDirectory()
+        private IEnumerable<ProjectGraphNode> DetermineChangedProjects()
         {
-            WriteLine($"Finding all csproj at {_repositoryPath.Value}");
+            if (!_executionData.AssumeChanges.Any())
+            {
+                return FindNodesThatChangedUsingChangesProvider();
+            }
 
-            // TODO: Find *.*proj ?
-            return Directory.GetFiles(_repositoryPath.Value, "*.csproj", SearchOption.AllDirectories)
-                .ToArray();
+            WriteLine($"Assuming hypothetical project changes, won't use Git diff");
+
+            return _graph.Value
+                .FindNodesByName(_executionData.AssumeChanges);
         }
 
-        private IEnumerable<ProjectGraphNode> FindNodesThatChangedUsingGit()
+        private IProjectDiscoverer BuildProjectDiscoverer()
         {
+            if (string.IsNullOrWhiteSpace(_executionData.SolutionPath))
+            {
+                WriteLine($"Discovering projects from {_repositoryPath.Value}");
+                return new DirectoryProjectDiscoverer();
+            }
+
+            WriteLine($"Discovering projects from Solution {_executionData.SolutionPath}");
+            return new SolutionFileProjectDiscoverer();
+        }
+
+        private IEnumerable<ProjectGraphNode> FindNodesThatChangedUsingChangesProvider()
+        {
+            // Get all files that have changed
             var filesWithChanges = this._changesProvider
-                .GetChangedFiles(_repositoryPath.Value,
+                .GetChangedFiles(
+                    _repositoryPath.Value,
                     this._executionData.From,
                     this._executionData.To)
                 .ToList();
 
+            // Match which files belong to which of our known projects
             var output = _graph.Value
                 .FindNodesContainingFiles(filesWithChanges)
                 .ToList();
 
-            WriteLine($"Found {filesWithChanges.Count()} changed files" +
+            WriteLine($"Found {filesWithChanges.Count} changed files" +
                       $" inside {output.Count} projects.");
 
             return output;
