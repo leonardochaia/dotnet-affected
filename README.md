@@ -188,7 +188,7 @@ If projects have changed, but nothing is affected by those changes, we still nee
 
 ```bash
 dotnet affected --generate build.proj # [..] other args
-if $? ; then
+if [ "$?" -eq 0 ]; then
     dotnet build build.proj
 fi
 ```
