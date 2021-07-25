@@ -32,12 +32,14 @@ namespace Affected.Cli.Commands
             _graph = new Lazy<ProjectGraph>(BuildProjectGraph);
             _changedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(DetermineChangedProjects);
             _affectedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(
-                () => _graph.Value.FindNodesThatDependOn(ChangedProjects));
+                () => _graph.Value.FindNodesThatDependOn(_changedProjects.Value));
         }
 
-        public IEnumerable<ProjectGraphNode> ChangedProjects => _changedProjects.Value;
+        public IEnumerable<IProjectInfo> ChangedProjects => _changedProjects.Value
+            .Select(p => new ProjectInfo(p)).ToList();
 
-        public IEnumerable<ProjectGraphNode> AffectedProjects => _affectedProjects.Value;
+        public IEnumerable<IProjectInfo> AffectedProjects => _affectedProjects.Value
+            .Select(p => new ProjectInfo(p)).ToList();
 
         /// <summary>
         /// Builds a <see cref="ProjectGraph"/> from all discovered projects.

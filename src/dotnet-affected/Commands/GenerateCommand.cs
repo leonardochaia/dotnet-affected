@@ -1,7 +1,6 @@
 ﻿using Affected.Cli.Views;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
-using Microsoft.Build.Graph;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -97,8 +96,8 @@ namespace Affected.Cli.Commands
             }
 
             private Project CreateTraversalProjectForTree(
-                IEnumerable<ProjectGraphNode> affectedNodes,
-                IEnumerable<ProjectGraphNode> nodesWithChanges)
+                IEnumerable<IProjectInfo> affectedNodes,
+                IEnumerable<IProjectInfo> nodesWithChanges)
             {
                 var projectRootElement = @"<Project Sdk=""Microsoft.Build.Traversal/3.0.3""></Project>";
                 var stringReader = new StringReader(projectRootElement);
@@ -107,27 +106,16 @@ namespace Affected.Cli.Commands
 
                 var project = new Project(root);
 
-                void AddProjectReference(ProjectGraphNode current)
+                // Find all affected and add them as project references
+                foreach (var node in affectedNodes.Concat(nodesWithChanges))
                 {
-                    var currentProjectPath = current.ProjectInstance.FullPath;
+                    var currentProjectPath = node.FilePath;
 
                     // Ignore the current project
                     if (project.Items.All(i => i.EvaluatedInclude != currentProjectPath))
                     {
                         project.AddItem("ProjectReference", currentProjectPath);
                     }
-                }
-
-                // Find all affected and add them as project references
-                foreach (var node in affectedNodes)
-                {
-                    AddProjectReference(node);
-                }
-
-                // We also want to build everything that changed.
-                foreach (var node in nodesWithChanges)
-                {
-                    AddProjectReference(node);
                 }
 
                 return project;

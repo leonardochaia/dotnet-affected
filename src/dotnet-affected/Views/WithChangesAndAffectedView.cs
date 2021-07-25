@@ -1,4 +1,3 @@
-using Microsoft.Build.Graph;
 using System.Collections.Generic;
 using System.CommandLine.Rendering.Views;
 using System.Linq;
@@ -8,15 +7,15 @@ namespace Affected.Cli.Views
     internal class WithChangesAndAffectedView : StackLayoutView
     {
         public WithChangesAndAffectedView(
-            IEnumerable<ProjectGraphNode> nodesWithChanges,
-            IEnumerable<ProjectGraphNode> affectedNodes
+            IEnumerable<IProjectInfo> changedProjects,
+            IEnumerable<IProjectInfo> affectedProjects
         )
         {
-            Add(new NodesWithChangesView(nodesWithChanges));
+            Add(new ChangedProjectsView(changedProjects));
 
-            if (affectedNodes.Any())
+            if (affectedProjects.Any())
             {
-                Add(new AffectedProjectsView(affectedNodes));
+                Add(new AffectedProjectsView(affectedProjects));
             }
             else
             {

@@ -33,7 +33,7 @@ namespace Affected.Cli.Commands
                     throw new NoChangesException();
                 }
 
-                var view = new NodesWithChangesView(_context.ChangedProjects);
+                var view = new ChangedProjectsView(_context.ChangedProjects);
                 _console.Append(view);
 
                 return Task.FromResult(0);
