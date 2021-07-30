@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Affected.Cli.Commands
+namespace Affected.Cli
 {
     /// <summary>
     /// Keeps compiled information about the current
