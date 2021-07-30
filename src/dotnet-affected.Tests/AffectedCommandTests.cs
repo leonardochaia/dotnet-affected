@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.IO;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -97,6 +98,32 @@ namespace Affected.Cli.Tests
             Assert.Equal(AffectedExitCodes.NothingChanged, exitCode);
 
             Assert.Contains($"No affected projects where found for the current changes", output);
+        }
+
+        [Fact]
+        public async Task Without_dry_run_should_create_file_at_repo_root()
+        {
+            // Create a project
+            var projectName = "InventoryManagement";
+            using var directory = new TempWorkingDirectory();
+            var projectPath = directory.MakePathForCsProj(projectName);
+
+            CreateProject(projectPath, projectName)
+                .Save();
+
+            // Fake changes to it's project's csproj file.
+            SetupChanges(directory.Path, projectPath);
+
+            var (output, exitCode) =
+                await this.InvokeAsync($"-p {directory.Path} -f text");
+
+            var destination = Path.Combine(directory.Path, "affected.txt");
+            var outputContents = await File.ReadAllTextAsync(destination);
+
+            Assert.Equal(0, exitCode);
+
+            Assert.Contains($"WRITE: {destination}", output);
+            Assert.Contains(projectPath, outputContents);
         }
     }
 }
