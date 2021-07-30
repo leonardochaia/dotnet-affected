@@ -1,7 +1,4 @@
-﻿using Affected.Cli.Commands;
-using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -14,20 +11,6 @@ namespace Affected.Cli.Tests
     {
         public ChangeDetectionTests(ITestOutputHelper helper) : base(helper)
         {
-        }
-
-        private ICommandExecutionContext CreateCommandExecutionContext(
-            string directoryPath,
-            IEnumerable<string> assumeChanges = null,
-            string solutionPath = null
-        )
-        {
-            var data = new CommandExecutionData(directoryPath,
-                solutionPath ?? string.Empty, String.Empty,
-                String.Empty, true, assumeChanges);
-
-            var context = new CommandExecutionContext(data, this.Terminal, this.ChangesProviderMock.Object);
-            return context;
         }
 
         [Fact]
