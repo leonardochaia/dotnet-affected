@@ -42,7 +42,7 @@ namespace Affected.Cli.Tests
             Assert.Equal(projectName, changedProject.Name);
             Assert.Equal(projectPath, changedProject.FilePath);
 
-            var affectedProject = context.ChangedProjects.Single();
+            var affectedProject = context.AffectedProjects.Single();
             Assert.Equal(dependantProjectName, affectedProject.Name);
             Assert.Equal(dependantProjectPath, affectedProject.FilePath);
         }

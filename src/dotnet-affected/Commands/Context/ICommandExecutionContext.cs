@@ -2,7 +2,11 @@
 
 namespace Affected.Cli.Commands
 {
-    internal interface ICommandExecutionContext
+    /// <summary>
+    /// Keeps compiled information about the current
+    /// command execution.
+    /// </summary>
+    public interface ICommandExecutionContext
     {
         /// <summary>
         /// Gets the list of projects that have any change in the current context.

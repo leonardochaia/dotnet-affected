@@ -4,6 +4,12 @@ namespace Affected.Cli
 {
     internal class ProjectInfo : IProjectInfo
     {
+        public ProjectInfo(string name, string filePath)
+        {
+            this.Name = name;
+            this.FilePath = filePath;
+        }
+        
         public ProjectInfo(ProjectGraphNode node)
         {
             this.Name = node.GetProjectName();

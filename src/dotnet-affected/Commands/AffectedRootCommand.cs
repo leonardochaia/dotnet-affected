@@ -1,8 +1,6 @@
-using Affected.Cli.Views;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.CommandLine.Rendering;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,14 +12,15 @@ namespace Affected.Cli.Commands
         {
             this.Name = "affected";
             this.Description = "Determines which projects are affected by a set of changes.";
-
-            this.AddCommand(new GenerateCommand());
-            this.AddCommand(new ChangesCommand());
+            
+            this.AddCommand(new DescribeCommand());
 
             this.AddGlobalOption(new RepositoryPathOptions());
             this.AddGlobalOption(new SolutionPathOption());
             this.AddGlobalOption(new VerboseOption());
             this.AddGlobalOption(new AssumeChangesOption());
+            this.AddGlobalOption(new FormatOption());
+            this.AddGlobalOption(new DryRunOption());
 
             var fromOption = new FromOption();
             this.AddGlobalOption(fromOption);
@@ -35,22 +34,27 @@ namespace Affected.Cli.Commands
         public class AffectedCommandHandler : ICommandHandler
         {
             private readonly ICommandExecutionContext _context;
+            private readonly IOutputFormatterExecutor _formatterExecutor;
+            private readonly CommandExecutionData _data;
             private readonly IConsole _console;
 
             public AffectedCommandHandler(
                 ICommandExecutionContext context,
+                IOutputFormatterExecutor formatterExecutor,
+                CommandExecutionData data,
                 IConsole console)
             {
                 _context = context;
+                _formatterExecutor = formatterExecutor;
+                _data = data;
                 _console = console;
             }
 
             public Task<int> InvokeAsync(InvocationContext ic)
             {
-                var affectedNodes = _context.AffectedProjects.ToList();
-                _console.Append(new WithChangesAndAffectedView(
-                    _context.ChangedProjects,
-                    affectedNodes));
+                // TODO: OutputName & OutputDir
+                _formatterExecutor.Execute(_context.ChangedProjects.Concat(_context.AffectedProjects),
+                    _data.Formatters, _data.RepositoryPath, "affected", _data.DryRun, _data.Verbose);
 
                 return Task.FromResult(0);
             }
@@ -139,6 +143,35 @@ namespace Affected.Cli.Commands
 
                     return null;
                 });
+            }
+        }
+
+        private class FormatOption : Option<string[]>
+        {
+            public FormatOption()
+                : base(new[]
+                {
+                    "--format", "-f"
+                })
+            {
+                this.Description = "Space separated list of formatters to write the output.";
+                this.SetDefaultValue(new[]
+                {
+                    "traversal"
+                });
+            }
+        }
+
+        private class DryRunOption : Option<bool>
+        {
+            public DryRunOption()
+                : base(new[]
+                {
+                    "--dry-run"
+                })
+            {
+                this.Description = "Doesn't create files, outputs to stdout instead.";
+                this.SetDefaultValue(false);
             }
         }
     }

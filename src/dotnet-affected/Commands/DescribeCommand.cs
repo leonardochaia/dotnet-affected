@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace Affected.Cli.Commands
 {
-    internal class ChangesCommand : Command
+    internal class DescribeCommand : Command
     {
-        public ChangesCommand()
-            : base("changes")
+        public DescribeCommand()
+            : base("describe")
         {
-            this.Description = "Finds projects that have any changes in any of its files using Git";
+            this.Description = "Prints the current changed and affected projects.";
         }
 
         public class CommandHandler : ICommandHandler
@@ -28,7 +28,7 @@ namespace Affected.Cli.Commands
 
             public Task<int> InvokeAsync(InvocationContext ic)
             {
-                var view = new ChangedProjectsView(_context.ChangedProjects);
+                var view = new WithChangesAndAffectedView(_context.ChangedProjects, _context.AffectedProjects);
                 _console.Append(view);
 
                 return Task.FromResult(0);
