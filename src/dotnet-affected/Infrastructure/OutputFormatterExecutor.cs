@@ -54,7 +54,6 @@ namespace Affected.Cli
 
                 if (dryRun)
                 {
-                    _console.Out.WriteLine();
                     _console.Out.WriteLine($"DRY-RUN: WRITE {outputPath}");
                     _console.Out.WriteLine($"DRY-RUN: CONTENTS:");
                     _console.Out.Write(outputContents);
