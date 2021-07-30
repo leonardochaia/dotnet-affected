@@ -64,15 +64,24 @@ namespace Affected.Cli.Commands
 
         private IEnumerable<ProjectGraphNode> DetermineChangedProjects()
         {
+            IEnumerable<ProjectGraphNode> output;
             if (!_executionData.AssumeChanges.Any())
             {
-                return FindNodesThatChangedUsingChangesProvider();
+                output = FindNodesThatChangedUsingChangesProvider();
+            }
+            else
+            {
+                WriteLine($"Assuming hypothetical project changes, won't use Git diff");
+                output = _graph.Value
+                    .FindNodesByName(_executionData.AssumeChanges);
             }
 
-            WriteLine($"Assuming hypothetical project changes, won't use Git diff");
+            if (!output.Any())
+            {
+                throw new NoChangesException();
+            }
 
-            return _graph.Value
-                .FindNodesByName(_executionData.AssumeChanges);
+            return output;
         }
 
         private IProjectDiscoverer BuildProjectDiscoverer()

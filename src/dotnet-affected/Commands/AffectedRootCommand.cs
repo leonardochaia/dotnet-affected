@@ -47,11 +47,6 @@ namespace Affected.Cli.Commands
 
             public Task<int> InvokeAsync(InvocationContext ic)
             {
-                if (!_context.ChangedProjects.Any())
-                {
-                    throw new NoChangesException();
-                }
-
                 var affectedNodes = _context.AffectedProjects.ToList();
                 _console.Append(new WithChangesAndAffectedView(
                     _context.ChangedProjects,

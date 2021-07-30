@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Affected.Cli.Commands
+namespace Affected.Cli
 {
     internal class NoChangesException : Exception
     {

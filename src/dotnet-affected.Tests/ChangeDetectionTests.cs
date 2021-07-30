@@ -204,5 +204,70 @@ namespace Affected.Cli.Tests
             Assert.Equal(projectName, projectInfo.Name);
             Assert.Equal(projectPath, projectInfo.FilePath);
         }
+
+        [Fact]
+        public void When_nothing_has_changed_should_throw_nothing_has_changed()
+        {
+            var projectName = "InventoryManagement";
+            using var directory = CreateSingleProject(projectName);
+
+            var context = CreateCommandExecutionContext(
+                directory.Path);
+
+            Assert.Throws<NoChangesException>(() => context.ChangedProjects);
+        }
+
+        [Fact]
+        public async Task Using_solution_when_nothing_has_changed_should_throw_nothing_has_changed()
+        {
+            // Create a project
+            var projectName = "InventoryManagement";
+            using var directory = new TempWorkingDirectory();
+            var projectPath = directory.MakePathForCsProj(projectName);
+
+            CreateProject(projectPath, projectName)
+                .Save();
+
+            // Create a solution which includes the project
+            var solutionPath = await directory.CreateSolutionFileForProjects("test-solution.sln", projectPath);
+
+            var context = CreateCommandExecutionContext(
+                directory.Path,
+                solutionPath: solutionPath);
+
+            Assert.Throws<NoChangesException>(() => context.ChangedProjects);
+        }
+
+        [Fact]
+        public async Task
+            Using_solution_when_projects_outside_solution_has_changed_should_throw_nothing_changed()
+        {
+            // Create a project
+            var projectName = "InventoryManagement";
+            using var directory = new TempWorkingDirectory();
+            var projectPath = directory.MakePathForCsProj(projectName);
+
+            CreateProject(projectPath, projectName)
+                .Save();
+
+            // Create a solution which includes the project
+            var solutionPath = await directory.CreateSolutionFileForProjects("test-solution.sln", projectPath);
+
+            // Create a project that is outside the solution
+            var outsiderName = "OutsiderProject";
+            var outsiderPath = directory.MakePathForCsProj(outsiderName);
+
+            CreateProject(outsiderPath, outsiderName)
+                .Save();
+
+            // Fake changes for the outsider
+            SetupChanges(directory.Path, outsiderPath);
+
+            var context = CreateCommandExecutionContext(
+                directory.Path,
+                solutionPath: solutionPath);
+
+            Assert.Throws<NoChangesException>(() => context.ChangedProjects);
+        }
     }
 }

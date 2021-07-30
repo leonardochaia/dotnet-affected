@@ -28,11 +28,6 @@ namespace Affected.Cli.Commands
 
             public Task<int> InvokeAsync(InvocationContext ic)
             {
-                if (!_context.ChangedProjects.Any())
-                {
-                    throw new NoChangesException();
-                }
-
                 var view = new ChangedProjectsView(_context.ChangedProjects);
                 _console.Append(view);
 

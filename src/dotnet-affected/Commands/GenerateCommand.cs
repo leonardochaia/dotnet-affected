@@ -56,11 +56,6 @@ namespace Affected.Cli.Commands
 
             public Task<int> InvokeAsync(InvocationContext ic)
             {
-                if (!_context.ChangedProjects.Any())
-                {
-                    throw new NoChangesException();
-                }
-
                 var affectedNodes = _context.AffectedProjects.ToList();
                 var project = this.CreateTraversalProjectForTree(
                     affectedNodes,
