@@ -1,4 +1,8 @@
-﻿using System.IO;
+﻿using Affected.Cli.Commands;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -12,10 +16,22 @@ namespace Affected.Cli.Tests
         {
         }
 
-        [Theory]
-        [InlineData("")]
-        [InlineData("changes")]
-        public async Task Using_change_provider_when_has_changes_should_print_and_exit_successfully(string command)
+        private ICommandExecutionContext CreateCommandExecutionContext(
+            string directoryPath,
+            IEnumerable<string> assumeChanges = null,
+            string solutionPath = null
+        )
+        {
+            var data = new CommandExecutionData(directoryPath,
+                solutionPath ?? string.Empty, String.Empty,
+                String.Empty, true, assumeChanges);
+
+            var context = new CommandExecutionContext(data, this.Terminal, this.ChangesProviderMock.Object);
+            return context;
+        }
+
+        [Fact]
+        public void Using_changes_provider_when_has_changes_project_should_have_changed()
         {
             // Create a project
             var projectName = "InventoryManagement";
@@ -28,20 +44,19 @@ namespace Affected.Cli.Tests
             // Fake changes on the project's file
             SetupChanges(directory.Path, projectPath);
 
-            var (output, exitCode) =
-                await this.InvokeAsync($"{command} -p {directory.Path}");
+            var context = CreateCommandExecutionContext(directory.Path);
 
-            Assert.Equal(0, exitCode);
-            Assert.Contains("Files inside these projects have changed", output);
-            Assert.Contains(projectName, output);
+            Assert.Single(context.ChangedProjects);
+            Assert.Empty(context.AffectedProjects);
+
+            var projectInfo = context.ChangedProjects.Single();
+            Assert.Equal(projectName, projectInfo.Name);
+            Assert.Equal(projectPath, projectInfo.FilePath);
         }
 
-        [Theory]
-        [InlineData("")]
-        [InlineData("changes")]
-        public async Task
-            Using_change_provider_when_has_changes_to_file_inside_project_directory_should_print_and_exit_successfully(
-                string command)
+        [Fact]
+        public void
+            Using_change_provider_when_has_changes_to_file_inside_project_directory_project_should_have_changes()
         {
             // Create a project
             var projectName = "InventoryManagement";
@@ -55,18 +70,18 @@ namespace Affected.Cli.Tests
             var projectDirectory = Path.GetDirectoryName(projectPath);
             SetupChanges(directory.Path, Path.Combine(projectDirectory!, "some/random/file.cs"));
 
-            var (output, exitCode) =
-                await this.InvokeAsync($"{command} -p {directory.Path}");
+            var context = CreateCommandExecutionContext(directory.Path);
 
-            Assert.Equal(0, exitCode);
-            Assert.Contains("Files inside these projects have changed", output);
-            Assert.Contains(projectName, output);
+            Assert.Single(context.ChangedProjects);
+            Assert.Empty(context.AffectedProjects);
+
+            var projectInfo = context.ChangedProjects.Single();
+            Assert.Equal(projectName, projectInfo.Name);
+            Assert.Equal(projectPath, projectInfo.FilePath);
         }
 
-        [Theory]
-        [InlineData("")]
-        [InlineData("changes")]
-        public async Task Using_assume_changes_when_has_changes_should_print_and_exit_successfully(string command)
+        [Fact]
+        public void Using_assume_changes_when_has_changes_project_should_have_changes()
         {
             // Create a project
             var projectName = "InventoryManagement";
@@ -76,18 +91,22 @@ namespace Affected.Cli.Tests
             CreateProject(projectPath, projectName)
                 .Save();
 
-            var (output, exitCode) =
-                await this.InvokeAsync($"{command} -p {directory.Path} --assume-changes {projectName}");
+            var context = CreateCommandExecutionContext(directory.Path,
+                new[]
+                {
+                    projectName
+                });
 
-            Assert.Equal(0, exitCode);
-            Assert.Contains("Files inside these projects have changed", output);
-            Assert.Contains(projectName, output);
+            Assert.Single(context.ChangedProjects);
+            Assert.Empty(context.AffectedProjects);
+
+            var projectInfo = context.ChangedProjects.Single();
+            Assert.Equal(projectName, projectInfo.Name);
+            Assert.Equal(projectPath, projectInfo.FilePath);
         }
 
-        [Theory]
-        [InlineData("")]
-        [InlineData("changes")]
-        public async Task Using_assume_changes_should_ignore_other_changes_print_and_exit_successfully(string command)
+        [Fact]
+        public void Using_assume_changes_should_ignore_other_changes()
         {
             // Create a project
             var projectName = "InventoryManagement";
@@ -107,19 +126,22 @@ namespace Affected.Cli.Tests
             // Fake changes for the second project
             SetupChanges(directory.Path, otherPath);
 
-            var (output, exitCode) =
-                await this.InvokeAsync($"{command} -p {directory.Path} --assume-changes {projectName}");
+            var context = CreateCommandExecutionContext(directory.Path,
+                new[]
+                {
+                    projectName
+                });
 
-            Assert.Equal(0, exitCode);
-            Assert.Contains("Files inside these projects have changed", output);
-            Assert.Contains(projectName, output);
-            Assert.DoesNotContain(otherName, output);
+            Assert.Single(context.ChangedProjects);
+            Assert.Empty(context.AffectedProjects);
+
+            var projectInfo = context.ChangedProjects.Single();
+            Assert.Equal(projectName, projectInfo.Name);
+            Assert.Equal(projectPath, projectInfo.FilePath);
         }
 
-        [Theory]
-        [InlineData("")]
-        [InlineData("changes")]
-        public async Task Using_solution_when_has_changes_should_print_and_exit_successfully(string command)
+        [Fact]
+        public async Task Using_solution_when_has_changes_should_print_and_exit_successfully()
         {
             // Create a project
             var projectName = "InventoryManagement";
@@ -135,19 +157,20 @@ namespace Affected.Cli.Tests
             // Create a solution which includes the project
             var solutionPath = await directory.CreateSolutionFileForProjects("test-solution.sln", projectPath);
 
-            var (output, exitCode) =
-                await this.InvokeAsync($"{command} --solution-path {solutionPath}");
+            var context = CreateCommandExecutionContext(
+                directory.Path,
+                solutionPath: solutionPath);
 
-            Assert.Equal(0, exitCode);
-            Assert.Contains("Files inside these projects have changed", output);
-            Assert.Contains(projectName, output);
+            Assert.Single(context.ChangedProjects);
+            Assert.Empty(context.AffectedProjects);
+
+            var projectInfo = context.ChangedProjects.Single();
+            Assert.Equal(projectName, projectInfo.Name);
+            Assert.Equal(projectPath, projectInfo.FilePath);
         }
 
-        [Theory]
-        [InlineData("")]
-        [InlineData("changes")]
-        public async Task Using_solution_should_ignore_changes_outside_solution_and_print_and_exit_successfully(
-            string command)
+        [Fact]
+        public async Task Using_solution_should_ignore_changes_outside_solution()
         {
             // Create a project
             var projectName = "InventoryManagement";
@@ -170,13 +193,16 @@ namespace Affected.Cli.Tests
             // Fake changes for the both projects
             SetupChanges(directory.Path, projectPath, otherPath);
 
-            var (output, exitCode) =
-                await this.InvokeAsync($"{command} --solution-path {solutionPath}");
+            var context = CreateCommandExecutionContext(
+                directory.Path,
+                solutionPath: solutionPath);
 
-            Assert.Equal(0, exitCode);
-            Assert.Contains("Files inside these projects have changed", output);
-            Assert.Contains(projectName, output);
-            Assert.DoesNotContain(otherName, output);
+            Assert.Single(context.ChangedProjects);
+            Assert.Empty(context.AffectedProjects);
+
+            var projectInfo = context.ChangedProjects.Single();
+            Assert.Equal(projectName, projectInfo.Name);
+            Assert.Equal(projectPath, projectInfo.FilePath);
         }
     }
 }
