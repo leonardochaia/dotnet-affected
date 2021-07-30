@@ -108,7 +108,8 @@ namespace Affected.Cli.Tests
                 solutionPath ?? string.Empty, String.Empty,
                 String.Empty, true, assumeChanges,
                 new string[0],
-                true);
+                true,
+                string.Empty);
 
             var context = new CommandExecutionContext(data, this.Terminal, this.ChangesProviderMock.Object);
             return context;

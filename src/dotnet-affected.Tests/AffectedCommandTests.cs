@@ -101,7 +101,7 @@ namespace Affected.Cli.Tests
         }
 
         [Fact]
-        public async Task Without_dry_run_should_create_file_at_repo_root()
+        public async Task Should_create_file_at_repo_root()
         {
             // Create a project
             var projectName = "InventoryManagement";
@@ -123,6 +123,34 @@ namespace Affected.Cli.Tests
             Assert.Equal(0, exitCode);
 
             Assert.Contains($"WRITE: {destination}", output);
+            Assert.Contains(projectPath, outputContents);
+        }
+        
+        [Fact]
+        public async Task Using_relative_output_dir_should_create_file_inside_relative_dir()
+        {
+            // Create a project
+            var projectName = "InventoryManagement";
+            using var directory = new TempWorkingDirectory();
+            var projectPath = directory.MakePathForCsProj(projectName);
+
+            CreateProject(projectPath, projectName)
+                .Save();
+
+            // Fake changes to it's project's csproj file.
+            SetupChanges(directory.Path, projectPath);
+
+            var (output, exitCode) =
+                await this.InvokeAsync($"-p {directory.Path} -f text --output-dir relative/");
+
+            var destination = Path.Combine(directory.Path, "relative/affected.txt");
+
+            Assert.Equal(0, exitCode);
+
+            Assert.Contains($"WRITE: {destination}", output);
+
+            Assert.True(File.Exists(destination));
+            var outputContents = await File.ReadAllTextAsync(destination);
             Assert.Contains(projectPath, outputContents);
         }
     }

@@ -26,6 +26,7 @@ namespace Affected.Cli.Commands
 
             this.AddOption(new FormatOption());
             this.AddOption(new DryRunOption());
+            this.AddOption(new OutputDirOption());
 
             // TODO: We need to specify the handler manually ONLY for the RootCommand
             this.Handler = CommandHandler.Create(
@@ -55,7 +56,7 @@ namespace Affected.Cli.Commands
             {
                 // TODO: OutputName & OutputDir
                 _formatterExecutor.Execute(_context.ChangedProjects.Concat(_context.AffectedProjects),
-                    _data.Formatters, _data.RepositoryPath, "affected", _data.DryRun, _data.Verbose);
+                    _data.Formatters, _data.OutputDir, "affected", _data.DryRun, _data.Verbose);
 
                 return Task.FromResult(0);
             }
@@ -173,6 +174,19 @@ namespace Affected.Cli.Commands
             {
                 this.Description = "Doesn't create files, outputs to stdout instead.";
                 this.SetDefaultValue(false);
+            }
+        }
+        
+        private class OutputDirOption : Option<string>
+        {
+            public OutputDirOption()
+                : base(new[]
+                {
+                    "--output-dir"
+                })
+            {
+                this.Description = "The directory where the output file(s) will be generated\n" +
+                                   "If relative, it's relative to the --repository-path";
             }
         }
     }

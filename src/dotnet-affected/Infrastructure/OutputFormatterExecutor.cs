@@ -43,6 +43,12 @@ namespace Affected.Cli
 
                 // Format the projects and calculate output path.
                 var outputContents = await formatter.Format(allProjects);
+
+                if (string.IsNullOrWhiteSpace(outputContents))
+                {
+                    throw new InvalidOperationException($"Formatter {type} returned no output");
+                }
+
                 var outputFileName = outputName + formatter.NewFileExtension;
                 var outputPath = Path.Combine(outputDirectory, outputFileName);
 
@@ -57,6 +63,7 @@ namespace Affected.Cli
                 else
                 {
                     _console.Out.WriteLine($"WRITE: {outputPath}");
+                    Directory.CreateDirectory(outputDirectory);
                     await File.WriteAllTextAsync(outputPath, outputContents);
                 }
             }

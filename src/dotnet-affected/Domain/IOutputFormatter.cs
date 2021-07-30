@@ -7,7 +7,7 @@ namespace Affected.Cli
     /// Receives the list of projects to output and
     /// returns them in a particular format.
     /// </summary>
-    internal interface IOutputFormatter
+    public interface IOutputFormatter
     {
         /// <summary>
         /// Gets the formatter unique type.

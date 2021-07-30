@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Affected.Cli.Tests
 {
-    public class RepositoryPathTests
+    public class OutputDirTests
     {
         private class TestPathsClassData : IEnumerable<object[]>
         {
@@ -19,16 +19,12 @@ namespace Affected.Cli.Tests
                 };
                 yield return new object[]
                 {
-                    "", "/home/lchaia/dotnet-affected/Affected.sln", "/home/lchaia/dotnet-affected"
+                    "/home/lchaia/dotnet-affected", "relative/path",
+                    "/home/lchaia/dotnet-affected/relative/path"
                 };
                 yield return new object[]
                 {
-                    "/home/lchaia/dotnet-affected", "/home/lchaia/dotnet-affected/subdirectory/other/Affected.sln",
-                    "/home/lchaia/dotnet-affected"
-                };
-                yield return new object[]
-                {
-                    "", "", Environment.CurrentDirectory
+                    "/home/lchaia/dotnet-affected", "/some/absolute/path", "/some/absolute/path"
                 };
             }
 
@@ -37,23 +33,23 @@ namespace Affected.Cli.Tests
 
         [Theory]
         [ClassData(typeof(TestPathsClassData))]
-        public void Should_determine_repository_path_correctly(
+        public void Should_determine_output_dir_correctly(
             string repositoryPath,
-            string solutionPath,
+            string outputDir,
             string expected)
         {
             var data = new CommandExecutionData(
                 repositoryPath,
-                solutionPath,
+                String.Empty,
                 string.Empty,
                 string.Empty,
                 false,
                 Enumerable.Empty<string>(),
                 new string[0],
                 false,
-                String.Empty);
+                outputDir);
 
-            Assert.Equal(expected, data.RepositoryPath);
+            Assert.Equal(expected, data.OutputDir);
         }
     }
 }
