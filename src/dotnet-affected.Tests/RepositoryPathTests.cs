@@ -51,7 +51,8 @@ namespace Affected.Cli.Tests
                 Enumerable.Empty<string>(),
                 new string[0],
                 false,
-                String.Empty);
+                string.Empty,
+                string.Empty);
 
             Assert.Equal(expected, data.RepositoryPath);
         }

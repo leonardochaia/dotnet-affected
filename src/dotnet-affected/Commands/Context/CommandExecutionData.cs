@@ -21,7 +21,8 @@ namespace Affected.Cli.Commands
             IEnumerable<string>? assumeChanges,
             string[] format,
             bool dryRun,
-            string outputDir)
+            string outputDir,
+            string outputName)
         {
             this.RepositoryPath = DetermineRepositoryPath(repositoryPath, solutionPath);
             this.SolutionPath = solutionPath;
@@ -32,9 +33,12 @@ namespace Affected.Cli.Commands
             this.Formatters = format;
             this.DryRun = dryRun;
             this.OutputDir = DetermineOutputDir(this.RepositoryPath, outputDir);
+            this.OutputName = outputName;
         }
 
         public bool DryRun { get; }
+
+        public string OutputName { get; }
 
         public string OutputDir { get; }
 

@@ -47,7 +47,8 @@ namespace Affected.Cli.Tests
                 Enumerable.Empty<string>(),
                 new string[0],
                 false,
-                outputDir);
+                outputDir,
+                string.Empty);
 
             Assert.Equal(expected, data.OutputDir);
         }

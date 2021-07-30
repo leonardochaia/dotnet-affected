@@ -153,5 +153,49 @@ namespace Affected.Cli.Tests
             var outputContents = await File.ReadAllTextAsync(destination);
             Assert.Contains(projectPath, outputContents);
         }
+        
+        [Fact]
+        public async Task When_using_output_name_should_create_file()
+        {
+            // Create a project
+            var projectName = "InventoryManagement";
+            using var directory = new TempWorkingDirectory();
+            var projectPath = directory.MakePathForCsProj(projectName);
+
+            CreateProject(projectPath, projectName)
+                .Save();
+
+            // Fake changes to it's project's csproj file.
+            SetupChanges(directory.Path, projectPath);
+
+            var (output, exitCode) =
+                await this.InvokeAsync($"-p {directory.Path} --dry-run --output-name to-build");
+
+            Assert.Equal(0, exitCode);
+
+            Assert.Contains($"WRITE {directory.Path}/to-build.proj", output);
+        }
+        
+        [Fact]
+        public async Task When_using_output_name_should_create_file_with_extension()
+        {
+            // Create a project
+            var projectName = "InventoryManagement";
+            using var directory = new TempWorkingDirectory();
+            var projectPath = directory.MakePathForCsProj(projectName);
+
+            CreateProject(projectPath, projectName)
+                .Save();
+
+            // Fake changes to it's project's csproj file.
+            SetupChanges(directory.Path, projectPath);
+
+            var (output, exitCode) =
+                await this.InvokeAsync($"-p {directory.Path} --dry-run --output-name to-build.whatever");
+
+            Assert.Equal(0, exitCode);
+
+            Assert.Contains($"WRITE {directory.Path}/to-build.whatever.proj", output);
+        }
     }
 }

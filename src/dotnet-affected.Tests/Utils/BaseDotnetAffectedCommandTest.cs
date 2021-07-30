@@ -109,6 +109,7 @@ namespace Affected.Cli.Tests
                 String.Empty, true, assumeChanges,
                 new string[0],
                 true,
+                string.Empty,
                 string.Empty);
 
             var context = new CommandExecutionContext(data, this.Terminal, this.ChangesProviderMock.Object);

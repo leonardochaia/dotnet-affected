@@ -27,6 +27,7 @@ namespace Affected.Cli.Commands
             this.AddOption(new FormatOption());
             this.AddOption(new DryRunOption());
             this.AddOption(new OutputDirOption());
+            this.AddOption(new OutputNameOption());
 
             // TODO: We need to specify the handler manually ONLY for the RootCommand
             this.Handler = CommandHandler.Create(
@@ -56,7 +57,7 @@ namespace Affected.Cli.Commands
             {
                 // TODO: OutputName & OutputDir
                 _formatterExecutor.Execute(_context.ChangedProjects.Concat(_context.AffectedProjects),
-                    _data.Formatters, _data.OutputDir, "affected", _data.DryRun, _data.Verbose);
+                    _data.Formatters, _data.OutputDir, _data.OutputName, _data.DryRun, _data.Verbose);
 
                 return Task.FromResult(0);
             }
@@ -95,7 +96,7 @@ namespace Affected.Cli.Commands
                 })
             {
                 this.Description =
-                    "Path to a Solution file (.sln) used to discover projects that may be affected. " +
+                    "Path to a Solution file (.sln) used to discover projects that may be affected.\n" +
                     "When omitted, will search for project files inside --repository-path.";
             }
         }
@@ -187,6 +188,20 @@ namespace Affected.Cli.Commands
             {
                 this.Description = "The directory where the output file(s) will be generated\n" +
                                    "If relative, it's relative to the --repository-path";
+            }
+        }
+        
+        private class OutputNameOption : Option<string>
+        {
+            public OutputNameOption()
+                : base(new[]
+                {
+                    "--output-name"
+                })
+            {
+                this.Description = "The name for the file to create for each format.\n" +
+                                   "Format extension is appended to this name.";
+                this.SetDefaultValue("affected");
             }
         }
     }
