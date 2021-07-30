@@ -12,19 +12,20 @@ namespace Affected.Cli.Commands
         {
             this.Name = "affected";
             this.Description = "Determines which projects are affected by a set of changes.";
-            
+
             this.AddCommand(new DescribeCommand());
 
             this.AddGlobalOption(new RepositoryPathOptions());
             this.AddGlobalOption(new SolutionPathOption());
             this.AddGlobalOption(new VerboseOption());
             this.AddGlobalOption(new AssumeChangesOption());
-            this.AddGlobalOption(new FormatOption());
-            this.AddGlobalOption(new DryRunOption());
 
             var fromOption = new FromOption();
             this.AddGlobalOption(fromOption);
             this.AddGlobalOption(new ToOption(fromOption));
+
+            this.AddOption(new FormatOption());
+            this.AddOption(new DryRunOption());
 
             // TODO: We need to specify the handler manually ONLY for the RootCommand
             this.Handler = CommandHandler.Create(
