@@ -2,7 +2,14 @@
     "profiles": {
         "Help": {
             "commandName": "Project",
-            "commandLineArgs": "-p $(pwd) --help",
+            "commandLineArgs": "-p $(pwd) describe --assume-changes dotnet-affected",
+            "environmentVariables": {
+                "DOTNET_ENVIRONMENT": "Development"
+            }
+        },
+        "Describe": {
+            "commandName": "Project",
+            "commandLineArgs": "-p $(pwd) describe --assume-changes dotnet-affected",
             "environmentVariables": {
                 "DOTNET_ENVIRONMENT": "Development"
             }

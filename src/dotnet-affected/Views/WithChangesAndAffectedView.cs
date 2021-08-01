@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.CommandLine.Rendering.Views;
-using System.Linq;
 
 namespace Affected.Cli.Views
 {
@@ -11,16 +10,11 @@ namespace Affected.Cli.Views
             IEnumerable<IProjectInfo> affectedProjects
         )
         {
-            Add(new ChangedProjectsView(changedProjects));
+            Add(new ContentView("Changed Projects"));
+            Add(new ProjectInfoTable(changedProjects));
 
-            if (affectedProjects.Any())
-            {
-                Add(new AffectedProjectsView(affectedProjects));
-            }
-            else
-            {
-                Add(new NoChangesView());
-            }
+            Add(new ContentView("\nAffected Projects"));
+            Add(new ProjectInfoTable(affectedProjects));
         }
     }
 }
