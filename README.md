@@ -66,69 +66,11 @@ Commands:
 
 ## Examples
 
-### Build only affected projects
-
-In order to build only what is affected, the tool can generates an
-MSBuild Traversal project that can can then be used with `dotnet build`.
-
-For example, the below command outputs the resulting project file to stdout:
-
-```text
-$ dotnet affected --verbose generate
-Finding all csproj at /home/lchaia/development/dotnet-affected
-Building Dependency Graph
-Found 2 projects
-Finding changes from working directory against 545ee40eb9b99c624f75eb54d2b5a63947ad30b7
-Found 2 changed files inside 1 projects.
-
-Files inside these projects have changed:
-        dotnet-affected
-
-These projects are affected by those changes:
-        dotnet-affected.Tests
-
-Generating Traversal SDK Project
-
-<Project Sdk="Microsoft.Build.Traversal/3.0.3">
-  <ItemGroup>
-    <ProjectReference Include="/home/lchaia/development/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj" />
-    <ProjectReference Include="/home/lchaia/development/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj" />
-  </ItemGroup>
-</Project>
-```
-
-The `dotnet affected generate` command is most useful when using the `--output`
-flag to generate a separate file.
-
-```text
-$ dotnet affected generate --verbose --output build.proj
-Finding all csproj at /home/lchaia/development/dotnet-affected
-Building Dependency Graph
-Found 2 projects
-Finding changes from working directory against 545ee40eb9b99c624f75eb54d2b5a63947ad30b7
-Found 2 changed files inside 1 projects.
-
-Files inside these projects have changed:
-        dotnet-affected
-
-These projects are affected by those changes:
-        dotnet-affected.Tests
-
-Generating Traversal SDK Project
-
-Creating file at build.proj
-```
-
-You can then build / test the affected projects by running the resulting file against
-the `dotnet` CLI:
-
-```bash
-dotnet test build.proj
-```
-
 ### Project Discovery
 
-By default, projects are discovered from the current working directory.
+By default, projects are discovered from from the filesystem, by recursively searching
+the current working directory.
+
 When using `--repository-path`, projects will be discovered from that path.
 
 One can narrow down which projects should be considered by the tool by providing
@@ -148,6 +90,70 @@ For example:
 dotnet affected --repository-path /home/lchaia/monorepo --solution-path /home/lchaia/monorepo/directory/MySolution.sln
 ```
 
+### Build only affected projects
+
+In order to build only what is affected, the tool outputs an
+MSBuild Traversal project that can can then be used with `dotnet build`.
+
+For example, the below command outputs `affected.proj` at the current directory.
+
+```text
+$ dotnet affected --verbose
+Building Dependency Graph
+Built Graph with 6 Projects in 0.36s
+Found 2 changed files inside 1 projects.
+WRITE: /home/lchaia/dev/dotnet-affected/affected.proj
+```
+
+The contents of `affected.proj` are:
+
+```xml
+<Project Sdk="Microsoft.Build.Traversal/3.0.3">
+  <ItemGroup>
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj" />
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj" />
+  </ItemGroup>
+</Project>
+```
+
+You can then use `dotnet test` (or any other dotnet commands) against the resulting `affected.proj` file:
+
+```bash
+dotnet test affected.proj
+```
+
+### Output Formatting
+
+dotnet-affected currently supports outputting Traversal SDK project files
+and plain text list of changed and affected projects.
+
+```text
+dotnet affected --dry-run --format text
+DRY-RUN: WRITE /home/lchaia/dev/dotnet-affected/affected.txt
+DRY-RUN: CONTENTS:
+/home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj
+/home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj
+```
+
+Multiple formats can be outputted at the same time by space separating them:
+
+```text
+dotnet affected --dry-run --format text traversal
+DRY-RUN: WRITE /home/lchaia/dev/dotnet-affected/affected.txt
+DRY-RUN: CONTENTS:
+/home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj
+/home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj
+
+DRY-RUN: WRITE /home/lchaia/dev/dotnet-affected/affected.proj
+DRY-RUN: CONTENTS:
+<Project Sdk="Microsoft.Build.Traversal/3.0.3">
+  <ItemGroup>
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj" />
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj" />
+  </ItemGroup>
+</Project>
+```
+
 ### Continuos Integration
 
 For usage in CI, it's recommended to use the `--from` and `--to` options, which allows
@@ -158,15 +164,17 @@ For example, for building a main branch one may use a setup similar to this:
 
 ```bash
 # Replace env vars with what your CI system gives you
-dotnet affected generate --from $PREVIOUS_COMMIT_HASH --to $CURRENT_COMMIT_HASH --output build.proj
-dotnet test build.proj
+dotnet affected \
+    --from $LAST_SUCCESSFUL_BUILD_COMMIT \
+    --to $CURRENT_COMMIT_HASH
+dotnet test affected.proj
 ```
 
 For building PRs, something like this perhaps:
 
 ```bash
-dotnet affected generate --from $GIT_BRANCH --to origin/main --output build.proj
-dotnet test build.proj
+dotnet affected generate --from $GIT_BRANCH --to origin/main
+dotnet test affected.proj
 ```
 
 It's important to note that CI system usually triggers a build per push, not per commit.
@@ -187,9 +195,9 @@ Note that dotnet affected returns `166` when nothing has changed, not to be conf
 If projects have changed, but nothing is affected by those changes, we still need to build those that changed.
 
 ```bash
-dotnet affected --generate build.proj # [..] other args
+dotnet affected # [..] other args
 if [ "$?" -eq 0 ]; then
-    dotnet build build.proj
+    dotnet build affected.proj
 fi
 ```
 
@@ -208,6 +216,59 @@ For example, if your systems communicate through HTTP and you don't share any as
 this won't work.
 But, if your systems share a common assembly with data transfer objects, or auto-generated HttpClients
 for example, this works wonderful.
+
+### Describe Command
+
+dotnet-affected includes a `describe` command that outputs to stdout in a readable fashion
+which projects have changed and which projects are affected by those changes.
+
+```dotnet affected describe
+Files inside these projects have changed:
+    dotnet-affected
+These projects are affected by those changes:
+    dotnet-affected.Tests
+```
+
+### Troubleshooting
+
+Some useful commands and flags are included for troubleshooting or just
+observing what would be affected by a small change to a system.
+
+#### Dry Running
+
+Sometimes it is useful to see what the tool would do under certain situation.
+
+When adding the `--dry-run` flag, dotnet-affected will write to stdout
+instead of generating output files.
+
+```text
+dotnet affected --dry-run
+DRY-RUN: WRITE /home/lchaia/dev/dotnet-affected/affected.proj
+DRY-RUN: CONTENTS:
+<Project Sdk="Microsoft.Build.Traversal/3.0.3">
+  <ItemGroup>
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj" />
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj" />
+  </ItemGroup>
+</Project>
+```
+
+#### Assume Changes
+
+You can also use `--assume-changes some-project-name` in order to fake changes
+being made to a certain project. This let's you see what would be affected
+if that project changed.
+
+```text
+dotnet-affected --dry-run --assume-changes dotnet-affected.Tests
+DRY-RUN: WRITE /home/lchaia/dev/dotnet-affected/affected.proj
+DRY-RUN: CONTENTS:
+<Project Sdk="Microsoft.Build.Traversal/3.0.3">
+  <ItemGroup>
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj" />
+  </ItemGroup>
+</Project>
+```
 
 ## Contributing
 
