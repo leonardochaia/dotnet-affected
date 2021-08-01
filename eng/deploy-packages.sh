@@ -2,6 +2,7 @@
 set -e
 
 # Change version in dotnet-affected.csproj first
+# Change version in README.md
 # Run from repo root, i.e ./eng/deploy-packages.sh -k <NUGET_API_KEY>
 
 source $(dirname "$0")/activate.sh
