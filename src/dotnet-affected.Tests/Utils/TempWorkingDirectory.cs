@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Affected.Cli.Tests
 {
-    public class TempWorkingDirectory : IDisposable
+    public sealed class TempWorkingDirectory : IDisposable
     {
         public string Path { get; }
 

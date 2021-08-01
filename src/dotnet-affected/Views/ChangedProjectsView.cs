@@ -1,16 +1,15 @@
-using Microsoft.Build.Graph;
 using System.Collections.Generic;
 using System.CommandLine.Rendering.Views;
 
 namespace Affected.Cli.Views
 {
-    internal class NodesWithChangesView : StackLayoutView
+    internal class ChangedProjectsView : StackLayoutView
     {
-        public NodesWithChangesView(IEnumerable<ProjectGraphNode> nodes)
+        public ChangedProjectsView(IEnumerable<IProjectInfo> projects)
         {
             Add(new ContentView("Files inside these projects have changed:"));
 
-            Add(new ProjectGraphNodeListView(nodes));
+            Add(new ProjectInfoListView(projects));
         }
     }
 }

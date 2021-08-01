@@ -18,7 +18,11 @@ namespace Affected.Cli.Commands
             string from,
             string to,
             bool verbose,
-            IEnumerable<string>? assumeChanges)
+            IEnumerable<string>? assumeChanges,
+            string[] format,
+            bool dryRun,
+            string outputDir,
+            string outputName)
         {
             this.RepositoryPath = DetermineRepositoryPath(repositoryPath, solutionPath);
             this.SolutionPath = solutionPath;
@@ -26,7 +30,17 @@ namespace Affected.Cli.Commands
             this.From = from;
             this.Verbose = verbose;
             this.AssumeChanges = assumeChanges ?? Enumerable.Empty<string>();
+            this.Formatters = format;
+            this.DryRun = dryRun;
+            this.OutputDir = DetermineOutputDir(this.RepositoryPath, outputDir);
+            this.OutputName = outputName;
         }
+
+        public bool DryRun { get; }
+
+        public string OutputName { get; }
+
+        public string OutputDir { get; }
 
         public string RepositoryPath { get; }
 
@@ -39,6 +53,8 @@ namespace Affected.Cli.Commands
         public bool Verbose { get; }
 
         public IEnumerable<string> AssumeChanges { get; }
+
+        public string[] Formatters { get; }
 
         private static string DetermineRepositoryPath(string repositoryPath, string solutionPath)
         {
@@ -63,6 +79,21 @@ namespace Affected.Cli.Commands
             }
 
             return solutionDirectory;
+        }
+
+        private static string DetermineOutputDir(string repositoryPath, string outDir)
+        {
+            if (string.IsNullOrWhiteSpace(outDir))
+            {
+                return repositoryPath;
+            }
+
+            if (Path.IsPathFullyQualified(outDir))
+            {
+                return outDir;
+            }
+
+            return Path.Combine(repositoryPath, outDir);
         }
     }
 }

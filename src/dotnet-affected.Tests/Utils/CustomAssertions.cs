@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Affected.Cli.Tests
 {
-    internal static class RenderingAssertions
+    internal static class CustomAssertions
     {
         public static void LineSequenceEquals(string output, params Action<string>[] callbacks)
         {

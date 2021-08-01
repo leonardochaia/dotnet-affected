@@ -1,9 +1,6 @@
-using Affected.Cli.Views;
-using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.CommandLine.Rendering;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,8 +13,7 @@ namespace Affected.Cli.Commands
             this.Name = "affected";
             this.Description = "Determines which projects are affected by a set of changes.";
 
-            this.AddCommand(new GenerateCommand());
-            this.AddCommand(new ChangesCommand());
+            this.AddCommand(new DescribeCommand());
 
             this.AddGlobalOption(new RepositoryPathOptions());
             this.AddGlobalOption(new SolutionPathOption());
@@ -28,6 +24,11 @@ namespace Affected.Cli.Commands
             this.AddGlobalOption(fromOption);
             this.AddGlobalOption(new ToOption(fromOption));
 
+            this.AddOption(new FormatOption());
+            this.AddOption(new DryRunOption());
+            this.AddOption(new OutputDirOption());
+            this.AddOption(new OutputNameOption());
+
             // TODO: We need to specify the handler manually ONLY for the RootCommand
             this.Handler = CommandHandler.Create(
                 typeof(AffectedCommandHandler).GetMethod(nameof(ICommandHandler.InvokeAsync))!);
@@ -36,27 +37,27 @@ namespace Affected.Cli.Commands
         public class AffectedCommandHandler : ICommandHandler
         {
             private readonly ICommandExecutionContext _context;
+            private readonly IOutputFormatterExecutor _formatterExecutor;
+            private readonly CommandExecutionData _data;
             private readonly IConsole _console;
 
             public AffectedCommandHandler(
                 ICommandExecutionContext context,
+                IOutputFormatterExecutor formatterExecutor,
+                CommandExecutionData data,
                 IConsole console)
             {
                 _context = context;
+                _formatterExecutor = formatterExecutor;
+                _data = data;
                 _console = console;
             }
 
             public Task<int> InvokeAsync(InvocationContext ic)
             {
-                if (!_context.ChangedProjects.Any())
-                {
-                    throw new NoChangesException();
-                }
-
-                var affectedNodes = _context.AffectedProjects.ToList();
-                _console.Append(new WithChangesAndAffectedView(
-                    _context.ChangedProjects,
-                    affectedNodes));
+                // TODO: OutputName & OutputDir
+                _formatterExecutor.Execute(_context.ChangedProjects.Concat(_context.AffectedProjects),
+                    _data.Formatters, _data.OutputDir, _data.OutputName, _data.DryRun, _data.Verbose);
 
                 return Task.FromResult(0);
             }
@@ -95,7 +96,7 @@ namespace Affected.Cli.Commands
                 })
             {
                 this.Description =
-                    "Path to a Solution file (.sln) used to discover projects that may be affected. " +
+                    "Path to a Solution file (.sln) used to discover projects that may be affected.\n" +
                     "When omitted, will search for project files inside --repository-path.";
             }
         }
@@ -145,6 +146,62 @@ namespace Affected.Cli.Commands
 
                     return null;
                 });
+            }
+        }
+
+        private class FormatOption : Option<string[]>
+        {
+            public FormatOption()
+                : base(new[]
+                {
+                    "--format", "-f"
+                })
+            {
+                this.Description = "Space separated list of formatters to write the output.";
+                this.SetDefaultValue(new[]
+                {
+                    "traversal"
+                });
+            }
+        }
+
+        private class DryRunOption : Option<bool>
+        {
+            public DryRunOption()
+                : base(new[]
+                {
+                    "--dry-run"
+                })
+            {
+                this.Description = "Doesn't create files, outputs to stdout instead.";
+                this.SetDefaultValue(false);
+            }
+        }
+        
+        private class OutputDirOption : Option<string>
+        {
+            public OutputDirOption()
+                : base(new[]
+                {
+                    "--output-dir"
+                })
+            {
+                this.Description = "The directory where the output file(s) will be generated\n" +
+                                   "If relative, it's relative to the --repository-path";
+            }
+        }
+        
+        private class OutputNameOption : Option<string>
+        {
+            public OutputNameOption()
+                : base(new[]
+                {
+                    "--output-name"
+                })
+            {
+                this.Description = "The name for the file to create for each format.\n" +
+                                   "Format extension is appended to this name.";
+                this.SetDefaultValue("affected");
             }
         }
     }

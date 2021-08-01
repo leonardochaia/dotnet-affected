@@ -1,4 +1,5 @@
 ﻿using Affected.Cli.Commands;
+using Affected.Cli.Formatters;
 using Affected.Cli.Views;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -21,13 +22,16 @@ namespace Affected.Cli
                     services.AddTransient<ICommandExecutionContext, CommandExecutionContext>();
                     services.AddTransient<IChangesProvider, GitChangesProvider>();
                     services.AddFromBindingContext<CommandExecutionData>();
+
+                    services.AddTransient<IOutputFormatter, TextOutputFormatter>();
+                    services.AddTransient<IOutputFormatter, TraversalProjectOutputFormatter>();
+                    services.AddTransient<IOutputFormatterExecutor, OutputFormatterExecutor>();
                 })
                 .ConfigureCommandLine(builder =>
                 {
                     builder.UseDefaults()
                         .UseCommandHandler<AffectedRootCommand, AffectedRootCommand.AffectedCommandHandler>()
-                        .UseCommandHandler<ChangesCommand, ChangesCommand.CommandHandler>()
-                        .UseCommandHandler<GenerateCommand, GenerateCommand.CommandHandler>();
+                        .UseCommandHandler<DescribeCommand, DescribeCommand.CommandHandler>();
                     builder.UseRenderingErrorHandler(new Dictionary<Type, RenderingErrorConfig>()
                     {
                         [typeof(NoChangesException)] = new(AffectedExitCodes.NothingChanged, new NoChangesView()),

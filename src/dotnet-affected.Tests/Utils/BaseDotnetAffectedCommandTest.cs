@@ -1,7 +1,10 @@
-﻿using Microsoft.Build.Construction;
+﻿using Affected.Cli.Commands;
+using Microsoft.Build.Construction;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
+using System;
+using System.Collections.Generic;
 using System.CommandLine.Parsing;
 using System.CommandLine.Rendering;
 using System.Threading.Tasks;
@@ -93,6 +96,24 @@ namespace Affected.Cli.Tests
             ChangesProviderMock.Setup(
                     cp => cp.GetChangedFiles(directory, It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(output);
+        }
+
+        protected ICommandExecutionContext CreateCommandExecutionContext(
+            string directoryPath,
+            IEnumerable<string> assumeChanges = null,
+            string solutionPath = null
+        )
+        {
+            var data = new CommandExecutionData(directoryPath,
+                solutionPath ?? string.Empty, String.Empty,
+                String.Empty, true, assumeChanges,
+                new string[0],
+                true,
+                string.Empty,
+                string.Empty);
+
+            var context = new CommandExecutionContext(data, this.Terminal, this.ChangesProviderMock.Object);
+            return context;
         }
     }
 }
