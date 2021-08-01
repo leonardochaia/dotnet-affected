@@ -51,17 +51,23 @@ Usage:
 Options:
   -p, --repository-path <repository-path>  Path to the root of the repository, where the .git directory is.
                                            [Defaults to current directory, or solution's directory when using --solution-path]
-  --solution-path <solution-path>          Path to a Solution file (.sln) used to discover projects that may be affected. When omitted, will search for project files inside --repository-path.
+  --solution-path <solution-path>          Path to a Solution file (.sln) used to discover projects that may be affected.
+                                           When omitted, will search for project files inside --repository-path.
   -v, --verbose                            Write useful messages or just the desired output. [default: False]
   --assume-changes <assume-changes>        Hypothetically assume that given projects have changed instead of using Git diff to determine them.
   --from <from>                            A branch or commit to compare against --to.
   --to <to>                                A branch or commit to compare against --from
+  -f, --format <format>                    Space separated list of formatters to write the output. [default: traversal]
+  --dry-run                                Doesn't create files, outputs to stdout instead. [default: False]
+  --output-dir <output-dir>                The directory where the output file(s) will be generated
+                                           If relative, it's relative to the --repository-path
+  --output-name <output-name>              The name for the file to create for each format.
+                                           Format extension is appended to this name. [default: affected]
   --version                                Show version information
   -?, -h, --help                           Show help and usage information
 
 Commands:
-  generate  Generates a Microsoft.Sdk.Traversal project which includes all affected projects as build targets.
-  changes   Finds projects that have any changes in any of its files using Git
+  describe  Prints the current changed and affected projects.
 ```
 
 ## Examples
