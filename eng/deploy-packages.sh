@@ -17,3 +17,5 @@ dotnet pack $PATH_TO_SOURCE/dotnet-affected.csproj
 
 echo "Pushing. This takes A LONG TIME"
 dotnet nuget push $PATH_TO_SOURCE/bin/Debug/*.nupkg -s nuget.org -t 3600 "${@:1}"
+
+echo "Finish. Remember to deploy docker image!"
