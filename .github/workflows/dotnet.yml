@@ -25,6 +25,8 @@ jobs:
       run: |
         ./eng/install-sdk.sh
         echo "DOTNET_ROOT=$GITHUB_WORKSPACE/eng/.dotnet" >> $GITHUB_ENV
+        echo $DOTNET_ROOT >> $GITHUB_PATH
+        dotnet --info
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
