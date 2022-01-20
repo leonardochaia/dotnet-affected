@@ -12,6 +12,7 @@ namespace Affected.Cli.Commands
         private readonly CommandExecutionData _executionData;
         private readonly IConsole _console;
         private readonly IChangesProvider _changesProvider;
+        private readonly Lazy<ProjectDiscoveryResult> _projectDiscoveryResult;
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _changedProjects;
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _affectedProjects;
         private readonly Lazy<ProjectGraph> _graph;
@@ -29,6 +30,7 @@ namespace Affected.Cli.Commands
             // For error handling to be managed properly at the handler level,
             // we use Lazies so that its done on demand when its actually needed
             // instead of happening here on the constructor
+            _projectDiscoveryResult = new Lazy<ProjectDiscoveryResult>(DiscoverProjects);
             _graph = new Lazy<ProjectGraph>(BuildProjectGraph);
             _changedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(DetermineChangedProjects);
             _affectedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(
@@ -47,13 +49,9 @@ namespace Affected.Cli.Commands
         /// <returns>A new Project Graph.</returns>
         private ProjectGraph BuildProjectGraph()
         {
-            // Discover all projects and build the graph
-            var allProjects = BuildProjectDiscoverer()
-                .DiscoverProjects(_executionData);
-
+            // Build project graph based on all discovered projects
             WriteLine($"Building Dependency Graph");
-
-            var output = new ProjectGraph(allProjects);
+            var output = new ProjectGraph(_projectDiscoveryResult.Value.Projects);
 
             WriteLine(
                 $"Built Graph with {output.ConstructionMetrics.NodeCount} Projects " +
@@ -84,6 +82,17 @@ namespace Affected.Cli.Commands
             return output;
         }
 
+        /// <summary>
+        /// Discovers projects 
+        /// </summary>
+        /// <returns>A discovery result containing projects and path to the Directory.Packages.props file if exists</returns>
+        private ProjectDiscoveryResult DiscoverProjects()
+        {
+            var projectDiscoveryResult = BuildProjectDiscoverer()
+                .DiscoverProjects(_executionData);
+            return projectDiscoveryResult;
+        }
+
         private IProjectDiscoverer BuildProjectDiscoverer()
         {
             if (string.IsNullOrWhiteSpace(_executionData.SolutionPath))
@@ -105,13 +114,30 @@ namespace Affected.Cli.Commands
                     _executionData.From,
                     _executionData.To)
                 .ToList();
-
+            
             // Match which files belong to which of our known projects
-            var output = _graph.Value
-                .FindNodesContainingFiles(filesWithChanges)
+            var nodesContainingFiles = _graph.Value.FindNodesContainingFiles(filesWithChanges);
+
+            // Get all centrally managed NuGet packages that have changed
+            var changedNuGets = this._changesProvider
+                .GetChangedCentrallyManagedNuGetPackages(
+                    _executionData.RepositoryPath,
+                    _projectDiscoveryResult.Value.DirectoryPackagesPropsFile,
+                    _executionData.From,
+                    _executionData.To)
+                .ToList();
+            
+            // Find the projects referencing those NuGet packages
+            var nodesReferencingNuGets = _graph.Value.FindNodesReferencingNuGetPackages(changedNuGets);
+            
+            // Prepare the output
+            var output = nodesContainingFiles
+                .Concat(nodesReferencingNuGets)
+                .Deduplicate()
                 .ToList();
 
             WriteLine($"Found {filesWithChanges.Count} changed files" +
+                      $" and {changedNuGets.Count} changed NuGet packages" +
                       $" inside {output.Count} projects.");
 
             return output;

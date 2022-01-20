@@ -7,11 +7,21 @@ namespace Affected.Cli
 {
     internal class DirectoryProjectDiscoverer : IProjectDiscoverer
     {
-        public IEnumerable<string> DiscoverProjects(CommandExecutionData data)
+        public ProjectDiscoveryResult DiscoverProjects(CommandExecutionData data)
         {
             // TODO: Find *.*proj ?
-            return Directory.GetFiles(data.RepositoryPath, "*.csproj", SearchOption.AllDirectories)
+            var projects = Directory.GetFiles(data.RepositoryPath, "*.csproj", SearchOption.AllDirectories)
                 .ToArray();
+            
+            // TODO Log a not supported message if we find multiple Directory.Package.props files?
+            var directoryPackagesPropsFilePath = Directory.GetFiles(data.RepositoryPath, "Directory.Packages.props", SearchOption.AllDirectories)
+                .SingleOrDefault();
+
+            return new ProjectDiscoveryResult()
+            {
+                Projects = projects, 
+                DirectoryPackagesPropsFile = directoryPackagesPropsFilePath
+            };
         }
     }
 }
