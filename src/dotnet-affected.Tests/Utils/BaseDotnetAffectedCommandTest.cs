@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine.Parsing;
 using System.CommandLine.Rendering;
+using System.IO;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
 
@@ -90,12 +91,32 @@ namespace Affected.Cli.Tests
                 .Create(csprojPath)
                 .SetName(projectName);
         }
+        
+        /// <summary>
+        /// Creates an MSBuild <see cref="ProjectRootElement"/> at the provided
+        /// <paramref name="csprojPath"/> with the corresponding <paramref name="projectName"/>.
+        /// </summary>
+        /// <param name="csprojPath">Path for new csproj.</param>
+        /// <param name="projectName">Project name.</param>
+        /// <returns></returns>
+        protected ProjectRootElement CreateDirectoryPackageProps(string path)
+        {
+            return ProjectRootElement
+                .Create(Path.Combine(path, "Directory.Packages.props"));
+        }
 
-        protected void SetupChanges(string directory, params string[] output)
+        protected void SetupFileChanges(string directory, params string[] output)
         {
             ChangesProviderMock.Setup(
                     cp => cp.GetChangedFiles(directory, It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(output);
+        }
+        
+        protected void SetupNuGetChanges(params string[] packageNames)
+        {
+            ChangesProviderMock.Setup(
+                    cp => cp.GetChangedCentrallyManagedNuGetPackages(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(packageNames);
         }
 
         protected ICommandExecutionContext CreateCommandExecutionContext(

@@ -25,7 +25,7 @@ namespace Affected.Cli.Tests
                 .Save();
 
             // Fake changes on the project's file
-            SetupChanges(directory.Path, projectPath);
+            SetupFileChanges(directory.Path, projectPath);
 
             var context = CreateCommandExecutionContext(directory.Path);
 
@@ -51,7 +51,7 @@ namespace Affected.Cli.Tests
 
             // Fake changes on the project's file
             var projectDirectory = Path.GetDirectoryName(projectPath);
-            SetupChanges(directory.Path, Path.Combine(projectDirectory!, "some/random/file.cs"));
+            SetupFileChanges(directory.Path, Path.Combine(projectDirectory!, "some/random/file.cs"));
 
             var context = CreateCommandExecutionContext(directory.Path);
 
@@ -104,10 +104,12 @@ namespace Affected.Cli.Tests
             var otherPath = directory.MakePathForCsProj(otherName);
 
             CreateProject(otherPath, otherName)
+                .AddNuGetDependency("Some.Library")
                 .Save();
 
             // Fake changes for the second project
-            SetupChanges(directory.Path, otherPath);
+            SetupFileChanges(directory.Path, otherPath);
+            SetupNuGetChanges("Some.Library");
 
             var context = CreateCommandExecutionContext(directory.Path,
                 new[]
@@ -135,7 +137,7 @@ namespace Affected.Cli.Tests
                 .Save();
 
             // Fake changes on the project's file
-            SetupChanges(directory.Path, projectPath);
+            SetupFileChanges(directory.Path, projectPath);
 
             // Create a solution which includes the project
             var solutionPath = await directory.CreateSolutionFileForProjects("test-solution.sln", projectPath);
@@ -174,7 +176,7 @@ namespace Affected.Cli.Tests
                 .Save();
 
             // Fake changes for the both projects
-            SetupChanges(directory.Path, projectPath, otherPath);
+            SetupFileChanges(directory.Path, projectPath, otherPath);
 
             var context = CreateCommandExecutionContext(
                 directory.Path,
@@ -244,11 +246,94 @@ namespace Affected.Cli.Tests
                 .Save();
 
             // Fake changes for the outsider
-            SetupChanges(directory.Path, outsiderPath);
+            SetupFileChanges(directory.Path, outsiderPath);
 
             var context = CreateCommandExecutionContext(
                 directory.Path,
                 solutionPath: solutionPath);
+
+            Assert.Throws<NoChangesException>(() => context.ChangedProjects);
+        }
+        
+        [Fact]
+        public void Using_changes_provider_when_central_nuget_changes_project_that_uses_nuget_should_have_changed()
+        {
+            // Create a project
+            var projectName = "InventoryManagement";
+            using var directory = new TempWorkingDirectory();
+            var projectPath = directory.MakePathForCsProj(projectName);
+
+            var packageName = "Some.Library";
+
+            CreateProject(projectPath, projectName)
+                .AddNuGetDependency(packageName)
+                .Save();
+            
+            CreateDirectoryPackageProps(directory.Path)
+                .AddPackageVersion(packageName, "1.0.0")
+                .Save();
+
+            // Fake changes on the project's file
+            SetupNuGetChanges(packageName);
+
+            var context = CreateCommandExecutionContext(directory.Path);
+
+            Assert.Single(context.ChangedProjects);
+            Assert.Empty(context.AffectedProjects);
+
+            var projectInfo = context.ChangedProjects.Single();
+            Assert.Equal(projectName, projectInfo.Name);
+            Assert.Equal(projectPath, projectInfo.FilePath);
+        }
+        
+        [Fact]
+        public void Using_changes_provider_when_central_nuget_changes_project_that_does_not_use_nuget_should_throw_nothing_changed()
+        {
+            // Create a project
+            var projectName = "InventoryManagement";
+            using var directory = new TempWorkingDirectory();
+            var projectPath = directory.MakePathForCsProj(projectName);
+
+            CreateProject(projectPath, projectName)
+                .AddNuGetDependency("Library.A")
+                .Save();
+            
+            CreateDirectoryPackageProps(directory.Path)
+                .AddPackageVersion("Library.A", "1.0.0")
+                .AddPackageVersion("Library.B", "1.0.0")
+                .Save();
+
+            // Fake changes on the project's file
+            SetupNuGetChanges("Library.B");
+
+            var context = CreateCommandExecutionContext(directory.Path);
+
+            Assert.Throws<NoChangesException>(() => context.ChangedProjects);
+        }
+        
+        [Fact]
+        public void Using_changes_provider_when_central_nuget_changes_project_that_uses_nuget_but_is_opted_out_of_central_management_should_throw_nothing_changed()
+        {
+            // Create a project
+            var projectName = "InventoryManagement";
+            using var directory = new TempWorkingDirectory();
+            var projectPath = directory.MakePathForCsProj(projectName);
+            
+            var packageName = "Some.Library";
+
+            CreateProject(projectPath, projectName)
+                .AddNuGetDependency(packageName)
+                .OptOutFromCentrallyManagedNuGetPackageVersions()
+                .Save();
+            
+            CreateDirectoryPackageProps(directory.Path)
+                .AddPackageVersion(packageName, "1.0.0")
+                .Save();
+
+            // Fake changes on the project's file
+            SetupNuGetChanges(packageName);
+
+            var context = CreateCommandExecutionContext(directory.Path);
 
             Assert.Throws<NoChangesException>(() => context.ChangedProjects);
         }

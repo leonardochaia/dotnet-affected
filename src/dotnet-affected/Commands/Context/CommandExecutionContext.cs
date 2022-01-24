@@ -119,14 +119,22 @@ namespace Affected.Cli.Commands
             var nodesContainingFiles = _graph.Value.FindNodesContainingFiles(filesWithChanges);
 
             // Get all centrally managed NuGet packages that have changed
-            var changedNuGets = this._changesProvider
-                .GetChangedCentrallyManagedNuGetPackages(
-                    _executionData.RepositoryPath,
-                    _projectDiscoveryResult.Value.DirectoryPackagesPropsFile,
-                    _executionData.From,
-                    _executionData.To)
-                .ToList();
-            
+            List<string> changedNuGets;
+            if (_projectDiscoveryResult.Value.DirectoryPackagesPropsFile != null)
+            {
+                changedNuGets = this._changesProvider
+                    .GetChangedCentrallyManagedNuGetPackages(
+                        _executionData.RepositoryPath,
+                        _projectDiscoveryResult.Value.DirectoryPackagesPropsFile,
+                        _executionData.From,
+                        _executionData.To)
+                    .ToList();
+            }
+            else
+            {
+                changedNuGets = new List<string>();
+            }
+
             // Find the projects referencing those NuGet packages
             var nodesReferencingNuGets = _graph.Value.FindNodesReferencingNuGetPackages(changedNuGets);
             
