@@ -84,27 +84,31 @@ namespace Affected.Cli.Tests
         /// </summary>
         /// <param name="csprojPath">Path for new csproj.</param>
         /// <param name="projectName">Project name.</param>
-        /// <returns></returns>
+        /// <returns>The root element reference.</returns>
         protected ProjectRootElement CreateProject(string csprojPath, string projectName)
         {
             return ProjectRootElement
                 .Create(csprojPath)
                 .SetName(projectName);
         }
-        
+       
         /// <summary>
-        /// Creates an MSBuild <see cref="ProjectRootElement"/> at the provided
-        /// <paramref name="csprojPath"/> with the corresponding <paramref name="projectName"/>.
+        /// Creates a Directory.Packages.props file at the provided <paramref name="path"/>.
+        /// Used for Nuget's Central Package Management.
         /// </summary>
-        /// <param name="csprojPath">Path for new csproj.</param>
-        /// <param name="projectName">Project name.</param>
-        /// <returns></returns>
+        /// <param name="path">Path where to create the props file.</param>
+        /// <returns>The root element reference.</returns>
         protected ProjectRootElement CreateDirectoryPackageProps(string path)
         {
             return ProjectRootElement
                 .Create(Path.Combine(path, "Directory.Packages.props"));
         }
 
+        /// <summary>
+        /// Mock changes for the <paramref name="output"/> files in the provided <paramref name="directory"/>.
+        /// </summary>
+        /// <param name="directory">Directory where output is located.</param>
+        /// <param name="output">List of output files.</param>
         protected void SetupFileChanges(string directory, params string[] output)
         {
             ChangesProviderMock.Setup(
@@ -112,6 +116,10 @@ namespace Affected.Cli.Tests
                 .Returns(output);
         }
         
+        /// <summary>
+        /// Mock changes to the versions of the provided <paramref name="packageNames"/>.
+        /// </summary>
+        /// <param name="packageNames">List of package names to mock as changed.</param>
         protected void SetupNuGetChanges(params string[] packageNames)
         {
             ChangesProviderMock.Setup(

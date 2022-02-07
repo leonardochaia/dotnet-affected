@@ -83,9 +83,9 @@ namespace Affected.Cli.Commands
         }
 
         /// <summary>
-        /// Discovers projects 
+        /// Recursively discovers all projects according to the solution or repository path.
         /// </summary>
-        /// <returns>A discovery result containing projects and path to the Directory.Packages.props file if exists</returns>
+        /// <returns>A discovery result containing projects and path to the Directory.Packages.props file if exists.</returns>
         private ProjectDiscoveryResult DiscoverProjects()
         {
             var projectDiscoveryResult = BuildProjectDiscoverer()
@@ -114,18 +114,19 @@ namespace Affected.Cli.Commands
                     _executionData.From,
                     _executionData.To)
                 .ToList();
-            
+
             // Match which files belong to which of our known projects
-            var nodesContainingFiles = _graph.Value.FindNodesContainingFiles(filesWithChanges);
+            var nodesContainingFiles = _graph.Value
+                .FindNodesContainingFiles(filesWithChanges);
 
             // Get all centrally managed NuGet packages that have changed
             List<string> changedNuGets;
-            if (_projectDiscoveryResult.Value.DirectoryPackagesPropsFile != null)
+            if (_projectDiscoveryResult.Value.UsesCentralPackageManagement)
             {
                 changedNuGets = this._changesProvider
                     .GetChangedCentrallyManagedNuGetPackages(
                         _executionData.RepositoryPath,
-                        _projectDiscoveryResult.Value.DirectoryPackagesPropsFile,
+                        _projectDiscoveryResult.Value.DirectoryPackagesPropsFile!,
                         _executionData.From,
                         _executionData.To)
                     .ToList();
@@ -136,7 +137,8 @@ namespace Affected.Cli.Commands
             }
 
             // Find the projects referencing those NuGet packages
-            var nodesReferencingNuGets = _graph.Value.FindNodesReferencingNuGetPackages(changedNuGets);
+            var nodesReferencingNuGets = _graph.Value
+                .FindNodesReferencingNuGetPackages(changedNuGets);
             
             // Prepare the output
             var output = nodesContainingFiles

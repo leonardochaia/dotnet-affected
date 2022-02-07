@@ -5,12 +5,10 @@ namespace Affected.Cli
 {
     internal class ProjectDiscoveryResult
     {
-        public ProjectDiscoveryResult()
-        {
-            Projects = Enumerable.Empty<string>();
-        }
-        
         public string? DirectoryPackagesPropsFile { get; set; }
-        public IEnumerable<string> Projects { get; set; }
+
+        public bool UsesCentralPackageManagement => DirectoryPackagesPropsFile != null;
+
+        public IEnumerable<string> Projects { get; set; } = Enumerable.Empty<string>();
     }
 }
