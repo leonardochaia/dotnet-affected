@@ -15,7 +15,7 @@ namespace Affected.Cli.Formatters
 
         public Task<string> Format(IEnumerable<IProjectInfo> projects)
         {
-            var projectRootElement = @"<Project Sdk=""Microsoft.Build.Traversal/3.0.54""></Project>";
+            var projectRootElement = @"<Project Sdk=""Microsoft.Build.Traversal/3.0.3""></Project>";
             var stringReader = new StringReader(projectRootElement);
             var xmlReader = new XmlTextReader(stringReader);
             var root = ProjectRootElement.Create(xmlReader);

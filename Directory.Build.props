@@ -5,6 +5,10 @@
             This may be Overridden per project if needed, however pleas don't.
         -->
         <TargetFrameworks>net6.0;net5.0;netcoreapp3.1</TargetFrameworks>
+
+        <!-- REMARKS: This seems to be needed when using dotnet 6.0.200 -->
+        <RuntimeFrameworkVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.13</RuntimeFrameworkVersion>
+
         <LangVersion>9.0</LangVersion>
 
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
