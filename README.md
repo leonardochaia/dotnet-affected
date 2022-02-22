@@ -35,7 +35,7 @@ There's no need to build and test .4 since .1 has not changed.
 The tool can be installed using `dotnet install`:
 
 ```bash
-dotnet tool install --global dotnet-affected --version 2.0.0-preview-1
+dotnet tool install --global dotnet-affected --version 2.1.0
 ```
 
 You can then run the tool using `dotnet affected` in the root of your repository.
