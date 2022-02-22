@@ -10,4 +10,5 @@ $globalJsonFile = "$PSScriptRoot\..\global.json"
 $dotnetInstallDir = "$PSScriptRoot\.dotnet"
 
 . $installScript  -InstallDir $dotnetInstallDir -JSonFile $globalJsonFile
+. $installScript  -InstallDir $dotnetInstallDir -Channel 5.0
 . $installScript  -InstallDir $dotnetInstallDir -Channel 3.1
