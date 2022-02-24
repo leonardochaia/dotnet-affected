@@ -1,6 +1,7 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0.301-buster-slim
+ARG DOTNET_VERSION=5.0.301-buster-slim
+FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}
 
-RUN dotnet tool install --global dotnet-affected --version 2.0.0-preview-1
+RUN dotnet tool install --global dotnet-affected
 ENV PATH="${PATH}:~/.dotnet/tools"
 
 WORKDIR /workspace

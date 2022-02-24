@@ -4,7 +4,8 @@
             We can set the target of all projects here.
             This may be Overridden per project if needed, however pleas don't.
         -->
-        <TargetFrameworks>net5.0;netcoreapp3.1</TargetFrameworks>
+        <TargetFrameworks>net6.0;net5.0;netcoreapp3.1</TargetFrameworks>
+
         <LangVersion>9.0</LangVersion>
 
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
