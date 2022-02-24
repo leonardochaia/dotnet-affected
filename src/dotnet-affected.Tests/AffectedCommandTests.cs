@@ -30,7 +30,7 @@ namespace Affected.Cli.Tests
 
             Assert.Equal(0, exitCode);
 
-            Assert.Contains($"WRITE {directory.Path}/affected.proj", output);
+            Assert.Contains($"WRITE " + Path.Combine(directory.Path, "affected.proj"), output);
             Assert.Contains($"Microsoft.Build.Traversal", output);
             Assert.Contains($"Include=\"{projectPath}\"", output);
         }
@@ -54,7 +54,7 @@ namespace Affected.Cli.Tests
 
             Assert.Equal(0, exitCode);
 
-            Assert.Contains($"WRITE {directory.Path}/affected.txt", output);
+            Assert.Contains($"WRITE " + Path.Combine(directory.Path, "affected.txt"), output);
             Assert.Contains(projectPath, output);
         }
 
@@ -77,8 +77,8 @@ namespace Affected.Cli.Tests
 
             Assert.Equal(0, exitCode);
 
-            Assert.Contains($"WRITE {directory.Path}/affected.txt", output);
-            Assert.Contains($"WRITE {directory.Path}/affected.proj", output);
+            Assert.Contains($"WRITE " + Path.Combine(directory.Path, "affected.txt"), output);
+            Assert.Contains($"WRITE " + Path.Combine(directory.Path, "affected.proj"), output);
         }
 
         [Fact]
@@ -173,7 +173,7 @@ namespace Affected.Cli.Tests
 
             Assert.Equal(0, exitCode);
 
-            Assert.Contains($"WRITE {directory.Path}/to-build.proj", output);
+            Assert.Contains($"WRITE " + Path.Combine(directory.Path, "to-build.proj"), output);
         }
         
         [Fact]
@@ -195,7 +195,7 @@ namespace Affected.Cli.Tests
 
             Assert.Equal(0, exitCode);
 
-            Assert.Contains($"WRITE {directory.Path}/to-build.whatever.proj", output);
+            Assert.Contains($"WRITE " + Path.Combine(directory.Path, "to-build.whatever.proj"), output);
         }
     }
 }

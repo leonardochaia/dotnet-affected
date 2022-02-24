@@ -11,20 +11,22 @@ namespace Affected.Cli.Tests
     {
         private class TestPathsClassData : IEnumerable<object[]>
         {
+            private static readonly char S = System.IO.Path.DirectorySeparatorChar;
+
             public IEnumerator<object[]> GetEnumerator()
             {
                 yield return new object[]
                 {
-                    "/home/lchaia/dotnet-affected", "", "/home/lchaia/dotnet-affected"
+                    $"{S}home{S}lchaia{S}dotnet-affected", "", $"{S}home{S}lchaia{S}dotnet-affected"
                 };
                 yield return new object[]
                 {
-                    "/home/lchaia/dotnet-affected", "relative/path",
-                    "/home/lchaia/dotnet-affected/relative/path"
+                    $"{S}home{S}lchaia{S}dotnet-affected", $"relative{S}path",
+                    $"{S}home{S}lchaia{S}dotnet-affected{S}relative{S}path"
                 };
                 yield return new object[]
                 {
-                    "/home/lchaia/dotnet-affected", "/some/absolute/path", "/some/absolute/path"
+                    $"{S}home{S}lchaia{S}dotnet-affected", $"{S}some{S}absolute{S}path", $"{S}some{S}absolute{S}path"
                 };
             }
 
