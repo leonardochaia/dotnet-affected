@@ -1,8 +1,5 @@
-﻿using Affected.Cli.Views;
-using System.CommandLine;
+﻿using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.CommandLine.Rendering;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Affected.Cli.Commands
@@ -19,17 +16,18 @@ namespace Affected.Cli.Commands
         {
             private readonly ICommandExecutionContext _context;
             private readonly IConsole _console;
+            private readonly CommandExecutionData _data;
 
-            public CommandHandler(ICommandExecutionContext context, IConsole console)
+            public CommandHandler(ICommandExecutionContext context, IConsole console, CommandExecutionData data)
             {
                 _context = context;
                 _console = console;
+                _data = data;
             }
 
             public Task<int> InvokeAsync(InvocationContext ic)
             {
-                var view = new WithChangesAndAffectedView(_context.ChangedProjects, _context.AffectedProjects);
-                _console.Append(view);
+                _console.WriteChangedAndAffectedProjects(_context, _data.Verbose);
 
                 return Task.FromResult(0);
             }

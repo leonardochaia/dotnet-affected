@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Linq;
@@ -58,6 +58,11 @@ namespace Affected.Cli.Commands
                 // TODO: OutputName & OutputDir
                 _formatterExecutor.Execute(_context.ChangedProjects.Concat(_context.AffectedProjects),
                     _data.Formatters, _data.OutputDir, _data.OutputName, _data.DryRun, _data.Verbose);
+
+                if (_data.Verbose)
+                {
+                    _console.WriteChangedAndAffectedProjects(_context, _data.Verbose);
+                }
 
                 return Task.FromResult(0);
             }
@@ -177,7 +182,7 @@ namespace Affected.Cli.Commands
                 this.SetDefaultValue(false);
             }
         }
-        
+
         private class OutputDirOption : Option<string>
         {
             public OutputDirOption()
@@ -190,7 +195,7 @@ namespace Affected.Cli.Commands
                                    "If relative, it's relative to the --repository-path";
             }
         }
-        
+
         private class OutputNameOption : Option<string>
         {
             public OutputNameOption()
