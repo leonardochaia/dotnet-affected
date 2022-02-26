@@ -1,6 +1,8 @@
+﻿using Affected.Cli.Views;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.Rendering;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -53,13 +55,19 @@ namespace Affected.Cli.Commands
                 _console = console;
             }
 
-            public Task<int> InvokeAsync(InvocationContext ic)
+            public async Task<int> InvokeAsync(InvocationContext ic)
             {
+                if (_data.Verbose)
+                {
+                    var view = new WithChangesAndAffectedView(_context.ChangedProjects, _context.AffectedProjects);
+                    _console.Append(view);
+                }
+
                 // TODO: OutputName & OutputDir
-                _formatterExecutor.Execute(_context.ChangedProjects.Concat(_context.AffectedProjects),
+                await _formatterExecutor.Execute(_context.ChangedProjects.Concat(_context.AffectedProjects),
                     _data.Formatters, _data.OutputDir, _data.OutputName, _data.DryRun, _data.Verbose);
 
-                return Task.FromResult(0);
+                return 0;
             }
         }
 

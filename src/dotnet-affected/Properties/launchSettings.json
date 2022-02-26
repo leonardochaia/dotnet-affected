@@ -2,14 +2,35 @@
     "profiles": {
         "Help": {
             "commandName": "Project",
-            "commandLineArgs": "-p $(pwd) describe --assume-changes dotnet-affected",
+            "commandLineArgs": "-p $(pwd) --help",
+            "environmentVariables": {
+                "DOTNET_ENVIRONMENT": "Development"
+            }
+        },
+        "RunNormal": {
+            "commandName": "Project",
+            "commandLineArgs": "-p $(pwd) --assume-changes dotnet-affected",
+            "environmentVariables": {
+                "DOTNET_ENVIRONMENT": "Development"
+            }
+        },
+        "RunVerbose": {
+            "commandName": "Project",
+            "commandLineArgs": "-p $(pwd) --assume-changes dotnet-affected --verbose",
             "environmentVariables": {
                 "DOTNET_ENVIRONMENT": "Development"
             }
         },
         "Describe": {
             "commandName": "Project",
-            "commandLineArgs": "-p $(pwd) describe --assume-changes dotnet-affected",
+            "commandLineArgs": "-p $(pwd) --assume-changes dotnet-affected describe",
+            "environmentVariables": {
+                "DOTNET_ENVIRONMENT": "Development"
+            }
+        },
+        "DescribeVerbose": {
+            "commandName": "Project",
+            "commandLineArgs": "-p $(pwd) --assume-changes dotnet-affected --verbose describe",
             "environmentVariables": {
                 "DOTNET_ENVIRONMENT": "Development"
             }

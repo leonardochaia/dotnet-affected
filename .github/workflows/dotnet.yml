@@ -8,7 +8,10 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
     env:
       # https://www.donovanbrown.com/post/Stop-wasting-time-during-NET-Core-builds
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
@@ -22,10 +25,17 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install .NET
+      if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
       run: |
         ./eng/install-sdk.sh
         echo "DOTNET_ROOT=$GITHUB_WORKSPACE/eng/.dotnet" >> $GITHUB_ENV
-        echo $GITHUB_WORKSPACE/eng/.dotnet >> $GITHUB_PATH
+        echo "$GITHUB_WORKSPACE/eng/.dotnet" >> $GITHUB_PATH
+    - name: Install .NET
+      if: matrix.os == 'windows-latest'
+      run: |
+        ./eng/install-sdk.ps1
+        echo "DOTNET_ROOT=$GITHUB_WORKSPACE/eng/.dotnet" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+        echo "$GITHUB_WORKSPACE/eng/.dotnet" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf-8 -Append
     - name: Print host info
       run: printenv && dotnet --info
     - name: Restore dependencies
@@ -34,5 +44,11 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build
-    - name: Run Tool
+    - name: Run Tool PowerShell
+      if: matrix.os == 'windows-latest'
+      shell: pwsh
+      run: ./src/dotnet-affected/bin/Debug/net5.0/dotnet-affected -p $Env:GITHUB_WORKSPACE --assume-changes dotnet-affected -v
+    - name: Run Tool Bash
+      if: matrix.os == 'ubuntu-latest'
+      shell: bash
       run: ./src/dotnet-affected/bin/Debug/net5.0/dotnet-affected -p $GITHUB_WORKSPACE --assume-changes dotnet-affected -v
