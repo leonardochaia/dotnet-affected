@@ -23,14 +23,14 @@ namespace Affected.Cli.Tests
                 .Save();
 
             // Fake changes to it's project's csproj file.
-            SetupChanges(directory.Path, projectPath);
+            SetupFileChanges(directory.Path, projectPath);
 
             var (output, exitCode) =
                 await this.InvokeAsync($"-p {directory.Path} --dry-run");
 
             Assert.Equal(0, exitCode);
-
-            Assert.Contains($"WRITE {directory.Path}/affected.proj", output);
+            
+            Assert.Contains($"WRITE {Path.Combine(directory.Path, "affected.proj")}", output);
             Assert.Contains($"Microsoft.Build.Traversal", output);
             Assert.Contains($"Include=\"{projectPath}\"", output);
         }
@@ -47,14 +47,14 @@ namespace Affected.Cli.Tests
                 .Save();
 
             // Fake changes to it's project's csproj file.
-            SetupChanges(directory.Path, projectPath);
+            SetupFileChanges(directory.Path, projectPath);
 
             var (output, exitCode) =
                 await this.InvokeAsync($"-p {directory.Path} --dry-run -f text");
 
             Assert.Equal(0, exitCode);
 
-            Assert.Contains($"WRITE {directory.Path}/affected.txt", output);
+            Assert.Contains($"WRITE {Path.Combine(directory.Path, "affected.txt")}", output);
             Assert.Contains(projectPath, output);
         }
 
@@ -70,15 +70,15 @@ namespace Affected.Cli.Tests
                 .Save();
 
             // Fake changes to it's project's csproj file.
-            SetupChanges(directory.Path, projectPath);
+            SetupFileChanges(directory.Path, projectPath);
 
             var (output, exitCode) =
                 await this.InvokeAsync($"-p {directory.Path} --dry-run -f traversal text");
 
             Assert.Equal(0, exitCode);
 
-            Assert.Contains($"WRITE {directory.Path}/affected.txt", output);
-            Assert.Contains($"WRITE {directory.Path}/affected.proj", output);
+            Assert.Contains($"WRITE {Path.Combine(directory.Path, "affected.txt")}", output);
+            Assert.Contains($"WRITE {Path.Combine(directory.Path, "affected.proj")}", output);
         }
 
         [Fact]
@@ -112,7 +112,7 @@ namespace Affected.Cli.Tests
                 .Save();
 
             // Fake changes to it's project's csproj file.
-            SetupChanges(directory.Path, projectPath);
+            SetupFileChanges(directory.Path, projectPath);
 
             var (output, exitCode) =
                 await this.InvokeAsync($"-p {directory.Path} -f text");
@@ -138,7 +138,7 @@ namespace Affected.Cli.Tests
                 .Save();
 
             // Fake changes to it's project's csproj file.
-            SetupChanges(directory.Path, projectPath);
+            SetupFileChanges(directory.Path, projectPath);
 
             var (output, exitCode) =
                 await this.InvokeAsync($"-p {directory.Path} -f text --output-dir relative/");
@@ -166,14 +166,14 @@ namespace Affected.Cli.Tests
                 .Save();
 
             // Fake changes to it's project's csproj file.
-            SetupChanges(directory.Path, projectPath);
+            SetupFileChanges(directory.Path, projectPath);
 
             var (output, exitCode) =
                 await this.InvokeAsync($"-p {directory.Path} --dry-run --output-name to-build");
 
             Assert.Equal(0, exitCode);
 
-            Assert.Contains($"WRITE {directory.Path}/to-build.proj", output);
+            Assert.Contains($"WRITE {Path.Combine(directory.Path, "to-build.proj")}", output);
         }
         
         [Fact]
@@ -188,14 +188,14 @@ namespace Affected.Cli.Tests
                 .Save();
 
             // Fake changes to it's project's csproj file.
-            SetupChanges(directory.Path, projectPath);
+            SetupFileChanges(directory.Path, projectPath);
 
             var (output, exitCode) =
                 await this.InvokeAsync($"-p {directory.Path} --dry-run --output-name to-build.whatever");
 
             Assert.Equal(0, exitCode);
 
-            Assert.Contains($"WRITE {directory.Path}/to-build.whatever.proj", output);
+            Assert.Contains($"WRITE {Path.Combine(directory.Path, "to-build.whatever.proj")}", output);
         }
     }
 }
