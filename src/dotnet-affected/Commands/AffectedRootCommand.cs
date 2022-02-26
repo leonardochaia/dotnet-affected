@@ -1,6 +1,8 @@
+﻿using Affected.Cli.Views;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.Rendering;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -55,6 +57,12 @@ namespace Affected.Cli.Commands
 
             public async Task<int> InvokeAsync(InvocationContext ic)
             {
+                if (_data.Verbose)
+                {
+                    var view = new WithChangesAndAffectedView(_context.ChangedProjects, _context.AffectedProjects);
+                    _console.Append(view);
+                }
+
                 // TODO: OutputName & OutputDir
                 await _formatterExecutor.Execute(_context.ChangedProjects.Concat(_context.AffectedProjects),
                     _data.Formatters, _data.OutputDir, _data.OutputName, _data.DryRun, _data.Verbose);

@@ -57,6 +57,30 @@ namespace Affected.Cli.Tests
             Assert.Contains($"WRITE {Path.Combine(directory.Path, "affected.txt")}", output);
             Assert.Contains(projectPath, output);
         }
+        
+        [Fact]
+        public async Task When_any_changes_and_verbosity_should_output_changed_and_affected_projects()
+        {
+            // Create a project
+            var projectName = "InventoryManagement";
+            using var directory = new TempWorkingDirectory();
+            var projectPath = directory.MakePathForCsProj(projectName);
+
+            CreateProject(projectPath, projectName)
+                .Save();
+
+            // Fake changes to it's project's csproj file.
+            SetupFileChanges(directory.Path, projectPath);
+
+            var (output, exitCode) =
+                await this.InvokeAsync($"-p {directory.Path} -f text --verbose");
+
+            Assert.Equal(0, exitCode);
+
+            Assert.Contains($"WRITE: {Path.Combine(directory.Path, "affected.txt")}", output);
+            Assert.Contains(projectName, output);
+            Assert.Contains("No projects where affected by any of the changed projects.", output);
+        }
 
         [Fact]
         public async Task When_any_changes_using_multiple_formatter_should_output()

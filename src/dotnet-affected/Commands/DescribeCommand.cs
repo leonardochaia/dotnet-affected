@@ -2,7 +2,6 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Rendering;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Affected.Cli.Commands
