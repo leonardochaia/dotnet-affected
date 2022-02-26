@@ -4,18 +4,19 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace Affected.Cli.Tests
 {
     public abstract class BaseServiceProviderRepositoryTest
-        : BaseRepositoryTest
+        : BaseRepositoryTest, IAsyncLifetime
     {
         protected ServiceProvider ServiceProvider { get; set; }
 
         protected ICommandExecutionContext Context =>
             this.ServiceProvider.GetRequiredService<ICommandExecutionContext>();
 
-        public override Task InitializeAsync()
+        public Task InitializeAsync()
         {
             var services = this.BuildAffectedCli()
                 .ComposeServiceCollection();
@@ -25,13 +26,19 @@ namespace Affected.Cli.Tests
             return Task.CompletedTask;
         }
 
-        public override async Task DisposeAsync()
+        public Task DisposeAsync()
         {
-            if (this.ServiceProvider is null) return;
+            return Task.CompletedTask;
+        }
 
-            await this.ServiceProvider.DisposeAsync();
-
-            await base.DisposeAsync();
+        protected override void Dispose(bool dispose)
+        {
+            if (dispose)
+            {
+                this.ServiceProvider.Dispose();
+            }
+            
+            base.Dispose(dispose);
         }
 
         protected override void ConfigureServices(IServiceCollection services)

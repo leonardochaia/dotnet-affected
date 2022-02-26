@@ -1,14 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.CommandLine;
 using System.CommandLine.IO;
 using System.CommandLine.Rendering;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace Affected.Cli.Tests
 {
     public abstract class BaseRepositoryTest
-        : BaseMSBuildTest, IAsyncLifetime
+        : BaseMSBuildTest, IDisposable
     {
         protected ITerminal Terminal { get; } = new TestTerminal()
         {
@@ -16,11 +15,6 @@ namespace Affected.Cli.Tests
         };
 
         protected TemporaryRepository Repository { get; } = new TemporaryRepository();
-
-        public virtual Task InitializeAsync()
-        {
-            return Task.CompletedTask;
-        }
 
         protected virtual AffectedCommandLineBuilder BuildAffectedCli()
         {
@@ -38,10 +32,17 @@ namespace Affected.Cli.Tests
         {
         }
 
-        public virtual Task DisposeAsync()
+        public void Dispose()
         {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool dispose)
+        {
+            if(!dispose) return;
+
             Repository?.Dispose();
-            return Task.CompletedTask;
         }
     }
 }
