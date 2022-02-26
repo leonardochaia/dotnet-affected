@@ -53,13 +53,13 @@ namespace Affected.Cli.Commands
                 _console = console;
             }
 
-            public Task<int> InvokeAsync(InvocationContext ic)
+            public async Task<int> InvokeAsync(InvocationContext ic)
             {
                 // TODO: OutputName & OutputDir
-                _formatterExecutor.Execute(_context.ChangedProjects.Concat(_context.AffectedProjects),
+                await _formatterExecutor.Execute(_context.ChangedProjects.Concat(_context.AffectedProjects),
                     _data.Formatters, _data.OutputDir, _data.OutputName, _data.DryRun, _data.Verbose);
 
-                return Task.FromResult(0);
+                return 0;
             }
         }
 
