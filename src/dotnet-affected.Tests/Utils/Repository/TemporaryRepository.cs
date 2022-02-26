@@ -52,7 +52,7 @@ namespace Affected.Cli.Tests
             GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool dispose)
+        protected virtual void Dispose(bool dispose)
         {
             if (!dispose) return;
             this.Repository.Dispose();

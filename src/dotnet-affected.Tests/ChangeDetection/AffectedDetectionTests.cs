@@ -29,9 +29,8 @@ namespace Affected.Cli.Tests
             this.Repository.StageAndCommit();
 
             // Create changes in the first project
-            var targetFilePath = Path.Combine(msBuildProject.DirectoryPath, "file.cs");
-            File.CreateText(targetFilePath);
-            await File.WriteAllTextAsync(targetFilePath, "// Initial content");
+            var targetFilePath = Path.Combine(projectName, "file.cs");
+            await this.Repository.CreateTextFileAsync(targetFilePath, "// Initial content");
 
             Assert.Single(Context.ChangedProjects);
             Assert.Single(Context.AffectedProjects);
@@ -68,9 +67,8 @@ namespace Affected.Cli.Tests
             this.Repository.StageAndCommit();
 
             // Create changes in the first project
-            var targetFilePath = Path.Combine(sharedMsBuildProject.DirectoryPath, "file.cs");
-            File.CreateText(targetFilePath);
-            await File.WriteAllTextAsync(targetFilePath, "// Initial content");
+            var targetFilePath = Path.Combine(sharedProjectName, "file.cs");
+            await this.Repository.CreateTextFileAsync(targetFilePath, "// Initial content");
 
             Assert.Single(Context.ChangedProjects);
             Assert.Equal(2, Context.AffectedProjects.Count());

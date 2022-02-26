@@ -21,17 +21,31 @@ namespace Affected.Cli
         private readonly ICollection<Action<CommandLineBuilder>> _configureCommandLine =
             new List<Action<CommandLineBuilder>>();
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="AffectedCommandLineBuilder"/>.
+        /// </summary>
+        /// <param name="rootCommand"></param>
         public AffectedCommandLineBuilder(RootCommand rootCommand)
         {
             _rootCommand = rootCommand;
         }
 
+        /// <summary>
+        /// Adds a callback for configuring the <see cref="IServiceCollection"/>.
+        /// </summary>
+        /// <param name="callback"></param>
+        /// <returns></returns>
         public AffectedCommandLineBuilder ConfigureServices(Action<IServiceCollection> callback)
         {
             this._configureServices.Add(callback);
             return this;
         }
 
+        /// <summary>
+        /// Adds a callback for configuring the <see cref="CommandLineBuilder"/>.
+        /// </summary>
+        /// <param name="callback"></param>
+        /// <returns></returns>
         public AffectedCommandLineBuilder ConfigureCommandLine(Action<CommandLineBuilder> callback)
         {
             this._configureCommandLine.Add(callback);

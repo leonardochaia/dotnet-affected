@@ -42,5 +42,15 @@ namespace Affected.Cli.Tests
 
             return solutionPath;
         }
+
+        public static async Task CreateTextFileAsync(
+            this TemporaryRepository repo,
+            string path,
+            string contents)
+        {
+            path = Path.Combine(repo.Path, path);
+            await using var _ = File.CreateText(path);
+            await File.WriteAllTextAsync(path, contents);
+        }
     }
 }

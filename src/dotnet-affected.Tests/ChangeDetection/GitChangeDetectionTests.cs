@@ -33,12 +33,10 @@ namespace Affected.Cli.Tests
             // Create a project
             var projectName = "InventoryManagement";
             var msBuildProject = Repository.CreateCsProject(projectName);
-            var projectDirectory = msBuildProject.DirectoryPath;
 
             // Create a file with some changes
-            var targetFilePath = Path.Combine(projectDirectory, "file.cs");
-            File.CreateText(targetFilePath);
-            await File.WriteAllTextAsync(targetFilePath, "// Initial content");
+            var targetFilePath = Path.Combine(projectName, "file.cs");
+            await this.Repository.CreateTextFileAsync(targetFilePath, "// Initial content");
 
             Assert.Single(Context.ChangedProjects);
             Assert.Empty(Context.AffectedProjects);
