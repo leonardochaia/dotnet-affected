@@ -5,6 +5,11 @@ using Xunit.Abstractions;
 
 namespace Affected.Cli.Tests
 {
+    /// <summary>
+    /// Tests for the public API.
+    /// These tests ensures that when using the CLI, output is generated correctly.
+    /// They should not cover any domain/business logic, but input/output instead.
+    /// </summary>
     public class AffectedCommandTests : BaseDotnetAffectedCommandTest
     {
         public AffectedCommandTests(ITestOutputHelper helper) : base(helper)

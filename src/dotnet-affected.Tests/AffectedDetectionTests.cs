@@ -4,6 +4,10 @@ using Xunit.Abstractions;
 
 namespace Affected.Cli.Tests
 {
+    /// <summary>
+    /// Ensures that when a project has changed, dependant projects are affected by those changes.
+    /// This should consider all cases where a project should be affected by a set of changes.
+    /// </summary>
     public class AffectedDetectionTests
         : BaseDotnetAffectedCommandTest
     {
