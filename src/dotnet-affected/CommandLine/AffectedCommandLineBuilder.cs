@@ -11,7 +11,7 @@ namespace Affected.Cli
     /// This custom builder is a helper class that allows us to keep state while we build the CommandLineBuilder.
     /// We need this so that we can call Configure* methods multiple times.
     /// </summary>
-    internal class AffectedCommandLineBuilder
+    public class AffectedCommandLineBuilder
     {
         private readonly RootCommand _rootCommand;
 
@@ -38,13 +38,15 @@ namespace Affected.Cli
             return this;
         }
 
+        /// <summary>
+        /// Composes the <see cref="IServiceCollection"/> with <see cref="ConfigureServices"/> and
+        /// builds a new <see cref="CommandLineBuilder"/> which is configured by calling all
+        /// <see cref="ConfigureCommandLine"/>.
+        /// </summary>
+        /// <returns>A new <see cref="Parser"/> instance.</returns>
         public Parser Build()
         {
-            var services = new ServiceCollection();
-            foreach (var callback in _configureServices)
-            {
-                callback.Invoke(services);
-            }
+            var services = ComposeServiceCollection();
 
             var builder = new CommandLineBuilder(this._rootCommand)
                 .UseAffectedCli(new StartupData(services));
@@ -55,6 +57,21 @@ namespace Affected.Cli
             }
 
             return builder.Build();
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="IServiceCollection"/> and applies all <see cref="ConfigureServices"/>
+        /// </summary>
+        /// <returns>A newly configured <see cref="IServiceCollection"/>.</returns>
+        public ServiceCollection ComposeServiceCollection()
+        {
+            var services = new ServiceCollection();
+            foreach (var callback in _configureServices)
+            {
+                callback.Invoke(services);
+            }
+
+            return services;
         }
     }
 }

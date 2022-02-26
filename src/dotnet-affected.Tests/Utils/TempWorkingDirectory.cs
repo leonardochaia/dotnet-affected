@@ -1,7 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Affected.Cli.Tests
 {
@@ -22,26 +20,6 @@ namespace Affected.Cli.Tests
         public string MakePathForCsProj(string projectName)
         {
             return System.IO.Path.Combine(Path, projectName, $"{projectName}.csproj");
-        }
-
-        public string MakePathFor(string fileName)
-        {
-            return System.IO.Path.Combine(Path, fileName);
-        }
-
-        public async Task<string> CreateSolutionFileForProjects(string solutionName, params string[] projectPaths)
-        {
-            var i = 0;
-            var solutionContents = new SolutionFileBuilder
-            {
-                Projects = projectPaths.ToDictionary(p => i++.ToString())
-            }.BuildSolution();
-
-            var solutionPath = MakePathFor(solutionName);
-
-            await File.WriteAllTextAsync(solutionPath, solutionContents);
-
-            return solutionPath;
         }
 
         /// <summary>
