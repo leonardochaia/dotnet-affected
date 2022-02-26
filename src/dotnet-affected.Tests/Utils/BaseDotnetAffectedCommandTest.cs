@@ -83,7 +83,7 @@ namespace Affected.Cli.Tests
         /// </summary>
         /// <param name="csprojPath">Path for new csproj.</param>
         /// <param name="projectName">Project name.</param>
-        /// <returns></returns>
+        /// <returns>The root element reference.</returns>
         protected ProjectRootElement CreateProject(string csprojPath, string projectName)
         {
             return ProjectRootElement
@@ -91,7 +91,12 @@ namespace Affected.Cli.Tests
                 .SetName(projectName);
         }
 
-        protected void SetupChanges(string directory, params string[] output)
+        /// <summary>
+        /// Mock changes for the <paramref name="output"/> files in the provided <paramref name="directory"/>.
+        /// </summary>
+        /// <param name="directory">Directory where output is located.</param>
+        /// <param name="output">List of output files.</param>
+        protected void SetupFileChanges(string directory, params string[] output)
         {
             ChangesProviderMock.Setup(
                     cp => cp.GetChangedFiles(directory, It.IsAny<string>(), It.IsAny<string>()))

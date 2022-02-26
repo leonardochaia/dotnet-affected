@@ -27,11 +27,11 @@ namespace Affected.Cli.Tests
             var dependantProjectPath = directory.MakePathForCsProj(dependantProjectName);
 
             CreateProject(dependantProjectPath, dependantProjectName)
-                .AddDependency(projectPath)
+                .AddProjectDependency(projectPath)
                 .Save();
 
             // Fake changes to first project's csproj file.
-            SetupChanges(directory.Path, projectPath);
+            SetupFileChanges(directory.Path, projectPath);
 
             var context = CreateCommandExecutionContext(directory.Path);
 
@@ -64,7 +64,7 @@ namespace Affected.Cli.Tests
             var projectPath = directory.MakePathForCsProj(projectName);
 
             CreateProject(projectPath, projectName)
-                .AddDependency(sharedProjectPath)
+                .AddProjectDependency(sharedProjectPath)
                 .Save();
 
             // Create another project that depends on the first one
@@ -72,11 +72,11 @@ namespace Affected.Cli.Tests
             var dependantProjectPath = directory.MakePathForCsProj(dependantProjectName);
 
             CreateProject(dependantProjectPath, dependantProjectName)
-                .AddDependency(projectPath)
+                .AddProjectDependency(projectPath)
                 .Save();
 
             // Fake changes to first project's csproj file.
-            SetupChanges(directory.Path, sharedProjectPath);
+            SetupFileChanges(directory.Path, sharedProjectPath);
 
             var context = CreateCommandExecutionContext(directory.Path);
 

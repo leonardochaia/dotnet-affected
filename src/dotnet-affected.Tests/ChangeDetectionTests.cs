@@ -25,7 +25,7 @@ namespace Affected.Cli.Tests
                 .Save();
 
             // Fake changes on the project's file
-            SetupChanges(directory.Path, projectPath);
+            SetupFileChanges(directory.Path, projectPath);
 
             var context = CreateCommandExecutionContext(directory.Path);
 
@@ -51,7 +51,7 @@ namespace Affected.Cli.Tests
 
             // Fake changes on the project's file
             var projectDirectory = Path.GetDirectoryName(projectPath);
-            SetupChanges(directory.Path, Path.Combine(projectDirectory!, "some/random/file.cs"));
+            SetupFileChanges(directory.Path, Path.Combine(projectDirectory!, "some/random/file.cs"));
 
             var context = CreateCommandExecutionContext(directory.Path);
 
@@ -107,7 +107,7 @@ namespace Affected.Cli.Tests
                 .Save();
 
             // Fake changes for the second project
-            SetupChanges(directory.Path, otherPath);
+            SetupFileChanges(directory.Path, otherPath);
 
             var context = CreateCommandExecutionContext(directory.Path,
                 new[]
@@ -135,7 +135,7 @@ namespace Affected.Cli.Tests
                 .Save();
 
             // Fake changes on the project's file
-            SetupChanges(directory.Path, projectPath);
+            SetupFileChanges(directory.Path, projectPath);
 
             // Create a solution which includes the project
             var solutionPath = await directory.CreateSolutionFileForProjects("test-solution.sln", projectPath);
@@ -174,7 +174,7 @@ namespace Affected.Cli.Tests
                 .Save();
 
             // Fake changes for the both projects
-            SetupChanges(directory.Path, projectPath, otherPath);
+            SetupFileChanges(directory.Path, projectPath, otherPath);
 
             var context = CreateCommandExecutionContext(
                 directory.Path,
@@ -244,7 +244,7 @@ namespace Affected.Cli.Tests
                 .Save();
 
             // Fake changes for the outsider
-            SetupChanges(directory.Path, outsiderPath);
+            SetupFileChanges(directory.Path, outsiderPath);
 
             var context = CreateCommandExecutionContext(
                 directory.Path,

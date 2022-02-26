@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Xunit;
 
@@ -19,7 +20,7 @@ namespace Affected.Cli.Tests
                 };
                 yield return new object[]
                 {
-                    "", "/home/lchaia/dotnet-affected/Affected.sln", "/home/lchaia/dotnet-affected"
+                    "", "/home/lchaia/dotnet-affected/Affected.sln", Path.GetDirectoryName("/home/lchaia/dotnet-affected/Affected.sln")
                 };
                 yield return new object[]
                 {

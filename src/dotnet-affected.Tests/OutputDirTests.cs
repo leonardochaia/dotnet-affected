@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Xunit;
 
@@ -20,7 +21,7 @@ namespace Affected.Cli.Tests
                 yield return new object[]
                 {
                     "/home/lchaia/dotnet-affected", "relative/path",
-                    "/home/lchaia/dotnet-affected/relative/path"
+                    Path.Combine("/home/lchaia/dotnet-affected", "relative/path")
                 };
                 yield return new object[]
                 {
