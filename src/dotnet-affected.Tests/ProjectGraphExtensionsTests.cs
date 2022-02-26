@@ -178,7 +178,6 @@ namespace Affected.Cli.Tests
         public void FindProjectsForFilePaths_ShouldFindMultipleProject()
         {
             // Arrange
-            // Arrange
             using var project1 = CreateProjectFile(
                 Path.Combine("somecontext", "project1", "project1")
             );
