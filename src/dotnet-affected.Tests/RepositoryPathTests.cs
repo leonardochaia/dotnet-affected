@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Xunit;
 
@@ -9,24 +10,22 @@ namespace Affected.Cli.Tests
 {
     public class RepositoryPathTests
     {
-        private static readonly char S = System.IO.Path.DirectorySeparatorChar;
-
         private class TestPathsClassData : IEnumerable<object[]>
         {
             public IEnumerator<object[]> GetEnumerator()
             {
                 yield return new object[]
                 {
-                    $"{S}home{S}lchaia{S}dotnet-affected", "", $"{S}home{S}lchaia{S}dotnet-affected"
+                    "/home/lchaia/dotnet-affected", "", "/home/lchaia/dotnet-affected"
                 };
                 yield return new object[]
                 {
-                    "", $"{S}home{S}lchaia{S}dotnet-affected{S}Affected.sln", $"{S}home{S}lchaia{S}dotnet-affected"
+                    "", "/home/lchaia/dotnet-affected/Affected.sln", Path.GetDirectoryName("/home/lchaia/dotnet-affected/Affected.sln")
                 };
                 yield return new object[]
                 {
-                    $"{S}home{S}lchaia{S}dotnet-affected", $"{S}home{S}lchaia{S}dotnet-affected{S}subdirectory{S}other{S}Affected.sln",
-                    $"{S}home{S}lchaia{S}dotnet-affected"
+                    "/home/lchaia/dotnet-affected", "/home/lchaia/dotnet-affected/subdirectory/other/Affected.sln",
+                    "/home/lchaia/dotnet-affected"
                 };
                 yield return new object[]
                 {

@@ -10,7 +10,7 @@ namespace Affected.Cli.Tests
             return element;
         }
 
-        public static ProjectRootElement AddDependency(this ProjectRootElement element, string dependencyPath)
+        public static ProjectRootElement AddProjectDependency(this ProjectRootElement element, string dependencyPath)
         {
             element.AddItem("ProjectReference", dependencyPath);
             return element;

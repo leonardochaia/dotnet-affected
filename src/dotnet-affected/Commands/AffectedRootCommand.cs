@@ -53,10 +53,10 @@ namespace Affected.Cli.Commands
                 _console = console;
             }
 
-            public Task<int> InvokeAsync(InvocationContext ic)
+            public async Task<int> InvokeAsync(InvocationContext ic)
             {
                 // TODO: OutputName & OutputDir
-                _formatterExecutor.Execute(_context.ChangedProjects.Concat(_context.AffectedProjects),
+                await _formatterExecutor.Execute(_context.ChangedProjects.Concat(_context.AffectedProjects),
                     _data.Formatters, _data.OutputDir, _data.OutputName, _data.DryRun, _data.Verbose);
 
                 if (_data.Verbose)
@@ -64,7 +64,7 @@ namespace Affected.Cli.Commands
                     _console.WriteChangedAndAffectedProjects(_context, _data.Verbose);
                 }
 
-                return Task.FromResult(0);
+                return 0;
             }
         }
 
@@ -182,7 +182,7 @@ namespace Affected.Cli.Commands
                 this.SetDefaultValue(false);
             }
         }
-
+        
         private class OutputDirOption : Option<string>
         {
             public OutputDirOption()
@@ -195,7 +195,7 @@ namespace Affected.Cli.Commands
                                    "If relative, it's relative to the --repository-path";
             }
         }
-
+        
         private class OutputNameOption : Option<string>
         {
             public OutputNameOption()

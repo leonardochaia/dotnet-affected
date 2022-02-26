@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Xunit;
 
@@ -11,22 +12,20 @@ namespace Affected.Cli.Tests
     {
         private class TestPathsClassData : IEnumerable<object[]>
         {
-            private static readonly char S = System.IO.Path.DirectorySeparatorChar;
-
             public IEnumerator<object[]> GetEnumerator()
             {
                 yield return new object[]
                 {
-                    $"{S}home{S}lchaia{S}dotnet-affected", "", $"{S}home{S}lchaia{S}dotnet-affected"
+                    "/home/lchaia/dotnet-affected", "", "/home/lchaia/dotnet-affected"
                 };
                 yield return new object[]
                 {
-                    $"{S}home{S}lchaia{S}dotnet-affected", $"relative{S}path",
-                    $"{S}home{S}lchaia{S}dotnet-affected{S}relative{S}path"
+                    "/home/lchaia/dotnet-affected", "relative/path",
+                    Path.Combine("/home/lchaia/dotnet-affected", "relative/path")
                 };
                 yield return new object[]
                 {
-                    $"{S}home{S}lchaia{S}dotnet-affected", $"{S}some{S}absolute{S}path", $"{S}some{S}absolute{S}path"
+                    "/home/lchaia/dotnet-affected", "/some/absolute/path", "/some/absolute/path"
                 };
             }
 
