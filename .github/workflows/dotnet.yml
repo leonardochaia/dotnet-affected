@@ -8,7 +8,10 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
     env:
       # https://www.donovanbrown.com/post/Stop-wasting-time-during-NET-Core-builds
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
