@@ -17,11 +17,6 @@ namespace Affected.Cli.Tests
             Directory.Delete(Path, true);
         }
 
-        public string MakePathForCsProj(string projectName)
-        {
-            return System.IO.Path.Combine(Path, projectName, $"{projectName}.csproj");
-        }
-
         /// <summary>
         /// Generates a unique directory name in the temporary folder.
         /// Caller must delete when finished.

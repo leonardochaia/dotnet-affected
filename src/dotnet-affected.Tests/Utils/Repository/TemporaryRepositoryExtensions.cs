@@ -10,13 +10,13 @@ namespace Affected.Cli.Tests
     {
         public static ProjectRootElement CreateCsProject(
             this TemporaryRepository repo,
-            string name,
+            string projectName,
             Action<ProjectRootElement> customizer = null)
         {
-            var directory = repo.Directory.MakePathForCsProj(name);
+            var path = Path.Combine(repo.Path, projectName, $"{projectName}.csproj");
             var project = ProjectRootElement
-                .Create(directory)
-                .SetName(name);
+                .Create(path)
+                .SetName(projectName);
 
             customizer?.Invoke(project);
 
@@ -25,7 +25,7 @@ namespace Affected.Cli.Tests
             return project;
         }
 
-        public static async Task<string> CreateSolutionAsync(
+        public static async Task CreateSolutionAsync(
             this TemporaryRepository repo,
             string solutionName,
             params string[] projectPaths)
@@ -39,8 +39,6 @@ namespace Affected.Cli.Tests
             var solutionPath = Path.Combine(repo.Path, solutionName);
 
             await File.WriteAllTextAsync(solutionPath, solutionContents);
-
-            return solutionPath;
         }
 
         public static async Task CreateTextFileAsync(
