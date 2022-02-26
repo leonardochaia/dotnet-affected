@@ -10,8 +10,9 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest]
     env:
       # https://www.donovanbrown.com/post/Stop-wasting-time-during-NET-Core-builds
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
@@ -43,7 +44,7 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Test
-      run: dotnet test --no-build
+      run: dotnet test --no-build --filter "FullyQualifiedName=Affected.Cli.Tests.GitChangeDetectionTests.When_has_changes_project_should_have_changed"
     - name: Run Tool PowerShell
       if: matrix.os == 'windows-latest'
       shell: pwsh
