@@ -44,7 +44,7 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Test
-      run: dotnet test --no-build --filter "FullyQualifiedName=Affected.Cli.Tests.PathStringExtensionsTests.IsSubPathOfTest"
+      run: dotnet test --no-build --filter "FullyQualifiedName=Affected.Cli.Tests.GitChangeDetectionTests.When_has_changes_project_should_have_changed"
     - name: Run Tool PowerShell
       if: matrix.os == 'windows-latest'
       shell: pwsh
