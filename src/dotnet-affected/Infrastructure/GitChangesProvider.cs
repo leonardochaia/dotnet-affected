@@ -9,12 +9,7 @@ namespace Affected.Cli
     {
         public IEnumerable<string> GetChangedFiles(string directory, string from, string to)
         {
-            Console.WriteLine($"Creating repo at {directory}");
             using var repository = new Repository(directory);
-
-            Console.WriteLine($"Repo created at {repository.Info.Path}");
-            Console.WriteLine($"Repo working directory at {repository.Info.WorkingDirectory}");
-
             
             // Find the To Commit or use HEAD.
             var toCommit = GetCommitOrHead(repository, to);
@@ -24,7 +19,7 @@ namespace Affected.Cli
             {
                 // this.WriteLine($"Finding changes from working directory against {to}");
 
-                return GetChangesAgainstWorkingDirectory(repository, toCommit.Tree);
+                return GetChangesAgainstWorkingDirectory(repository, toCommit.Tree, directory);
             }
 
             var fromCommit = GetCommitOrThrow(repository, @from);
@@ -34,30 +29,32 @@ namespace Affected.Cli
             return GetChangesBetweenTrees(
                 repository,
                 fromCommit.Tree,
-                toCommit.Tree);
+                toCommit.Tree,
+                directory);
         }
 
         private static IEnumerable<string> GetChangesAgainstWorkingDirectory(
             Repository repository,
-            Tree tree)
+            Tree tree,
+            string repositoryRootPath)
         {
             var changes = repository.Diff.Compare<TreeChanges>(
                 tree,
                 DiffTargets.Index | DiffTargets.WorkingDirectory);
 
-            return TreeChangesToPaths(changes, repository.Info.WorkingDirectory);
+            return TreeChangesToPaths(changes, repositoryRootPath);
         }
 
-        private static IEnumerable<string> GetChangesBetweenTrees(
-            Repository repository,
+        private static IEnumerable<string> GetChangesBetweenTrees(Repository repository,
             Tree fromTree,
-            Tree toTree)
+            Tree toTree,
+            string repositoryRootPath)
         {
             var changes = repository.Diff.Compare<TreeChanges>(
                 fromTree,
                 toTree);
 
-            return TreeChangesToPaths(changes, repository.Info.Path);
+            return TreeChangesToPaths(changes, repositoryRootPath);
         }
 
         private static Commit GetCommitOrHead(Repository repository, string name)

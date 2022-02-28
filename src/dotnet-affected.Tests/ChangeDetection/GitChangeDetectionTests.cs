@@ -20,14 +20,6 @@ namespace Affected.Cli.Tests
             var projectName = "InventoryManagement";
             var msBuildProject = Repository.CreateCsProject(projectName);
             
-            Console.WriteLine($"Repo: {Repository.Path}");
-            
-            Console.WriteLine($"Git Repo Path: {Repository.Repository.Info.Path}");
-            Console.WriteLine($"Git Repo Working Directory: {Repository.Repository.Info.WorkingDirectory}");
-
-            Console.WriteLine($"Project Dir: {msBuildProject.DirectoryPath}");
-            Console.WriteLine($"Project FullPath: {msBuildProject.FullPath}");
-            
             Assert.Single(Context.ChangedProjects);
             Assert.Empty(Context.AffectedProjects);
 
