@@ -10,7 +10,7 @@ namespace Affected.Cli
         public IEnumerable<string> GetChangedFiles(string directory, string from, string to)
         {
             using var repository = new Repository(directory);
-            
+
             // Find the To Commit or use HEAD.
             var toCommit = GetCommitOrHead(repository, to);
 
