@@ -21,6 +21,9 @@ namespace Affected.Cli.Tests
             var msBuildProject = Repository.CreateCsProject(projectName);
             
             Console.WriteLine($"Repo: {Repository.Path}");
+            
+            Console.WriteLine($"Git Repo Path: {Repository.Repository.Info.Path}");
+            Console.WriteLine($"Git Repo Working Directory: {Repository.Repository.Info.WorkingDirectory}");
 
             Console.WriteLine($"Project Dir: {msBuildProject.DirectoryPath}");
             Console.WriteLine($"Project FullPath: {msBuildProject.FullPath}");
