@@ -52,7 +52,7 @@ namespace Affected.Cli
                 fromTree,
                 toTree);
 
-            return TreeChangesToPaths(changes, repository.Info.WorkingDirectory);
+            return TreeChangesToPaths(changes, repository.Info.Path);
         }
 
         private static Commit GetCommitOrHead(Repository repository, string name)
