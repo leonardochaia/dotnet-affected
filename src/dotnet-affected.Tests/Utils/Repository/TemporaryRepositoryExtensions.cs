@@ -47,7 +47,8 @@ namespace Affected.Cli.Tests
             string contents)
         {
             path = Path.Combine(repo.Path, path);
-            await using var _ = File.CreateText(path);
+            var file = File.CreateText(path);
+            await file.DisposeAsync();
             await File.WriteAllTextAsync(path, contents);
         }
     }
