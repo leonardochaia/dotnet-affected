@@ -35,29 +35,18 @@ namespace Affected.Cli.Tests
         /// REMARKS: git2LibSharp leaves some read only files that <see cref="Directory.Delete(string)"/>
         /// has trouble deleting.
         /// source: https://stackoverflow.com/a/26372070
+        /// deletion source: https://stackoverflow.com/a/8714329
         /// </summary>
         private void Delete()
         {
-            void Recursion(string directory)
+            var directory = new DirectoryInfo(this.Path) { Attributes = FileAttributes.Normal };
+
+            foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
             {
-                foreach (var subdirectory in Directory.EnumerateDirectories(directory)) 
-                {
-                    Recursion(subdirectory);
-                }
-
-                foreach (var fileName in Directory.EnumerateFiles(directory))
-                {
-                    var fileInfo = new FileInfo(fileName)
-                    {
-                        Attributes = FileAttributes.Normal
-                    };
-                    fileInfo.Delete();
-                }
-
-                Directory.Delete(directory);
+                info.Attributes = FileAttributes.Normal;
             }
-            
-            Recursion(this.Path);
+
+            directory.Delete(true);
         }
     }
 }
