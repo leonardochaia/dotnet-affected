@@ -20,6 +20,13 @@ namespace Affected.Cli.Tests
         [InlineData(@"c:\foobar\a.txt", @"c:\foo\", false)]
         [InlineData(@"c:\foo\a.txt", @"c:\foobar", false)]
         [InlineData(@"c:\foo\a.txt", @"c:\foobar\", false)]
+        // UNIX
+        [InlineData("/var/lib", "/var", true)]
+        [InlineData("/var/lib", "/var/", true)]
+        [InlineData("/var/lib/", "/var", true)]
+        [InlineData("/var/lib/", "/var/", true)]
+        [InlineData("/var/lib/recursive", "/var", true)]
+        [InlineData("/var", "/other", false)]
 
         // These don't pass on UNIX... AFAIK we should never be using paths with ../
         // hence this should never be an issue. One more reason for not making this shared.

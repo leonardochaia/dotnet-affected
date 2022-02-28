@@ -111,9 +111,17 @@ namespace Affected.Cli.Commands
                 .FindNodesContainingFiles(filesWithChanges)
                 .ToList();
 
+
+
             WriteLine($"Found {filesWithChanges.Count} changed files" +
                       $" inside {output.Count} projects.");
 
+            
+            foreach (var withChange in filesWithChanges)
+            {
+                WriteLine(withChange);
+            }
+            
             return output;
         }
 

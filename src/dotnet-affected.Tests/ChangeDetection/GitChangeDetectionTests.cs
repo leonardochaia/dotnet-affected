@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -18,7 +19,12 @@ namespace Affected.Cli.Tests
             // Create a project
             var projectName = "InventoryManagement";
             var msBuildProject = Repository.CreateCsProject(projectName);
+            
+            Console.WriteLine($"Repo: {Repository.Path}");
 
+            Console.WriteLine($"Project Dir: {msBuildProject.DirectoryPath}");
+            Console.WriteLine($"Project FullPath: {msBuildProject.FullPath}");
+            
             Assert.Single(Context.ChangedProjects);
             Assert.Empty(Context.AffectedProjects);
 
