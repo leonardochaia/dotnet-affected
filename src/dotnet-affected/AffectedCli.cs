@@ -19,7 +19,7 @@ namespace Affected.Cli
             return new AffectedCommandLineBuilder(new AffectedRootCommand())
                 .ConfigureServices(services =>
                 {
-                    services.AddTransient<ICommandExecutionContext, CommandExecutionContext>();
+                    services.AddSingleton<ICommandExecutionContext, CommandExecutionContext>();
                     services.AddTransient<IChangesProvider, GitChangesProvider>();
                     services.AddFromBindingContext<CommandExecutionData>();
 

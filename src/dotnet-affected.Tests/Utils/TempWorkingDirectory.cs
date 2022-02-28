@@ -1,7 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Affected.Cli.Tests
 {
@@ -16,32 +14,7 @@ namespace Affected.Cli.Tests
 
         public void Dispose()
         {
-            Directory.Delete(Path, true);
-        }
-
-        public string MakePathForCsProj(string projectName)
-        {
-            return System.IO.Path.Combine(Path, projectName, $"{projectName}.csproj");
-        }
-
-        public string MakePathFor(string fileName)
-        {
-            return System.IO.Path.Combine(Path, fileName);
-        }
-
-        public async Task<string> CreateSolutionFileForProjects(string solutionName, params string[] projectPaths)
-        {
-            var i = 0;
-            var solutionContents = new SolutionFileBuilder
-            {
-                Projects = projectPaths.ToDictionary(p => i++.ToString())
-            }.BuildSolution();
-
-            var solutionPath = MakePathFor(solutionName);
-
-            await File.WriteAllTextAsync(solutionPath, solutionContents);
-
-            return solutionPath;
+            this.Delete();
         }
 
         /// <summary>
@@ -56,6 +29,24 @@ namespace Affected.Cli.Tests
             Directory.CreateDirectory(temporaryDirectory);
 
             return temporaryDirectory;
+        }
+        
+        /// <summary>
+        /// REMARKS: git2LibSharp leaves some read only files that <see cref="Directory.Delete(string)"/>
+        /// has trouble deleting.
+        /// source: https://stackoverflow.com/a/26372070
+        /// deletion source: https://stackoverflow.com/a/8714329
+        /// </summary>
+        private void Delete()
+        {
+            var directory = new DirectoryInfo(this.Path) { Attributes = FileAttributes.Normal };
+
+            foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
+            {
+                info.Attributes = FileAttributes.Normal;
+            }
+
+            directory.Delete(true);
         }
     }
 }

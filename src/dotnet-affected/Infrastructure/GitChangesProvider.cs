@@ -19,7 +19,7 @@ namespace Affected.Cli
             {
                 // this.WriteLine($"Finding changes from working directory against {to}");
 
-                return GetChangesAgainstWorkingDirectory(repository, toCommit.Tree);
+                return GetChangesAgainstWorkingDirectory(repository, toCommit.Tree, directory);
             }
 
             var fromCommit = GetCommitOrThrow(repository, @from);
@@ -29,30 +29,32 @@ namespace Affected.Cli
             return GetChangesBetweenTrees(
                 repository,
                 fromCommit.Tree,
-                toCommit.Tree);
+                toCommit.Tree,
+                directory);
         }
 
         private static IEnumerable<string> GetChangesAgainstWorkingDirectory(
             Repository repository,
-            Tree tree)
+            Tree tree,
+            string repositoryRootPath)
         {
             var changes = repository.Diff.Compare<TreeChanges>(
                 tree,
                 DiffTargets.Index | DiffTargets.WorkingDirectory);
 
-            return TreeChangesToPaths(changes, repository.Info.WorkingDirectory);
+            return TreeChangesToPaths(changes, repositoryRootPath);
         }
 
-        private static IEnumerable<string> GetChangesBetweenTrees(
-            Repository repository,
+        private static IEnumerable<string> GetChangesBetweenTrees(Repository repository,
             Tree fromTree,
-            Tree toTree)
+            Tree toTree,
+            string repositoryRootPath)
         {
             var changes = repository.Diff.Compare<TreeChanges>(
                 fromTree,
                 toTree);
 
-            return TreeChangesToPaths(changes, repository.Info.WorkingDirectory);
+            return TreeChangesToPaths(changes, repositoryRootPath);
         }
 
         private static Commit GetCommitOrHead(Repository repository, string name)
