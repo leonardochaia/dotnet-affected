@@ -9,8 +9,13 @@ namespace Affected.Cli
     {
         public IEnumerable<string> GetChangedFiles(string directory, string from, string to)
         {
+            Console.WriteLine($"Creating repo at {directory}");
             using var repository = new Repository(directory);
 
+            Console.WriteLine($"Repo created at {repository.Info.Path}");
+            Console.WriteLine($"Repo working directory at {repository.Info.WorkingDirectory}");
+
+            
             // Find the To Commit or use HEAD.
             var toCommit = GetCommitOrHead(repository, to);
 
