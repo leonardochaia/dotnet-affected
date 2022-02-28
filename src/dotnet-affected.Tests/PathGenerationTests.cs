@@ -9,7 +9,7 @@ using Xunit;
 namespace Affected.Cli.Tests
 {
     public class PathGenerationTests
-    {        
+    {
         private class RepositoryPathsClassData : IEnumerable<object[]>
         {
             public IEnumerator<object[]> GetEnumerator()
@@ -20,7 +20,8 @@ namespace Affected.Cli.Tests
                 };
                 yield return new object[]
                 {
-                    "", "/home/lchaia/dotnet-affected/Affected.sln", Path.GetDirectoryName("/home/lchaia/dotnet-affected/Affected.sln")
+                    "", "/home/lchaia/dotnet-affected/Affected.sln",
+                    Path.GetDirectoryName("/home/lchaia/dotnet-affected/Affected.sln")
                 };
                 yield return new object[]
                 {
@@ -57,7 +58,7 @@ namespace Affected.Cli.Tests
 
             Assert.Equal(expected, data.RepositoryPath);
         }
-        
+
         private class OutputDirPathsClassData : IEnumerable<object[]>
         {
             public IEnumerator<object[]> GetEnumerator()
@@ -101,6 +102,5 @@ namespace Affected.Cli.Tests
 
             Assert.Equal(expected, data.OutputDir);
         }
-
     }
 }
