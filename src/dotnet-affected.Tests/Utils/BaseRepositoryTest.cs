@@ -23,7 +23,7 @@ namespace Affected.Cli.Tests
                 .ConfigureServices(services =>
                 {
                     services.AddSingleton<ITerminal>(this.Terminal);
-                    services.AddSingleton<IConsole>(new TestConsole());
+                    services.AddSingleton<IConsole>(new SystemConsole());
                     this.ConfigureServices(services);
                 });
         }
