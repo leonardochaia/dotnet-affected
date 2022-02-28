@@ -3,41 +3,37 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace Affected.Cli.Tests
 {
     public abstract class BaseServiceProviderRepositoryTest
-        : BaseRepositoryTest, IAsyncLifetime
+        : BaseRepositoryTest
     {
-        protected ServiceProvider ServiceProvider { get; set; }
+        private readonly Lazy<ServiceProvider> _serviceProviderLazy;
+
+        protected ServiceProvider ServiceProvider => _serviceProviderLazy.Value;
 
         protected ICommandExecutionContext Context =>
             this.ServiceProvider.GetRequiredService<ICommandExecutionContext>();
 
-        public Task InitializeAsync()
+        protected BaseServiceProviderRepositoryTest()
         {
-            var services = this.BuildAffectedCli()
-                .ComposeServiceCollection();
+            this._serviceProviderLazy = new Lazy<ServiceProvider>(() =>
+            {
+                var services = this.BuildAffectedCli()
+                    .ComposeServiceCollection();
 
-            this.ServiceProvider = services.BuildServiceProvider(true);
-
-            return Task.CompletedTask;
-        }
-
-        public Task DisposeAsync()
-        {
-            return Task.CompletedTask;
+                return services.BuildServiceProvider(true);
+            });
         }
 
         protected override void Dispose(bool dispose)
         {
             if (dispose)
             {
-                this.ServiceProvider.Dispose();
+                this.ServiceProvider?.Dispose();
             }
-            
+
             base.Dispose(dispose);
         }
 
@@ -54,7 +50,6 @@ namespace Affected.Cli.Tests
                 true,
                 string.Empty,
                 string.Empty)));
-
         }
     }
 }
