@@ -44,7 +44,7 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Test
-      run: dotnet test --no-build
+      run: dotnet test --no-build --filter "FullyQualifiedName=Affected.Cli.Tests.TestLib2GitSharp.TestRepoPaths"
     - name: Run Tool PowerShell
       if: matrix.os == 'windows-latest'
       shell: pwsh
