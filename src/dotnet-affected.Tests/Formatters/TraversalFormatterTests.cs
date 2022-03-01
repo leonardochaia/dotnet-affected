@@ -1,16 +1,11 @@
 ﻿using Affected.Cli.Formatters;
 using System.Threading.Tasks;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Affected.Cli.Tests.Formatters
 {
-    public class TraversalFormatterTests : BaseDotnetAffectedCommandTest
+    public class TraversalFormatterTests : BaseMSBuildTest
     {
-        public TraversalFormatterTests(ITestOutputHelper helper) : base(helper)
-        {
-        }
-
         [Fact]
         public async Task Using_single_project_should_contain_project()
         {

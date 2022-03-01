@@ -5,7 +5,12 @@ using Xunit.Abstractions;
 
 namespace Affected.Cli.Tests
 {
-    public class AffectedCommandTests : BaseDotnetAffectedCommandTest
+    /// <summary>
+    /// Tests for the public API.
+    /// These tests ensures that when using the CLI, output is generated correctly.
+    /// They should not cover any domain/business logic, but input/output instead.
+    /// </summary>
+    public class AffectedCommandTests : BaseInvocationTest
     {
         public AffectedCommandTests(ITestOutputHelper helper) : base(helper)
         {
@@ -16,23 +21,16 @@ namespace Affected.Cli.Tests
         {
             // Create a project
             var projectName = "InventoryManagement";
-            using var directory = new TempWorkingDirectory();
-            var projectPath = directory.MakePathForCsProj(projectName);
-
-            CreateProject(projectPath, projectName)
-                .Save();
-
-            // Fake changes to it's project's csproj file.
-            SetupFileChanges(directory.Path, projectPath);
+            var msBuildProject = this.Repository.CreateCsProject(projectName);
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {directory.Path} --dry-run");
+                await this.InvokeAsync($"-p {Repository.Path} --dry-run");
 
             Assert.Equal(0, exitCode);
             
-            Assert.Contains($"WRITE {Path.Combine(directory.Path, "affected.proj")}", output);
+            Assert.Contains($"WRITE {Path.Combine(Repository.Path, "affected.proj")}", output);
             Assert.Contains($"Microsoft.Build.Traversal", output);
-            Assert.Contains($"Include=\"{projectPath}\"", output);
+            Assert.Contains($"Include=\"{msBuildProject.FullPath}\"", output);
         }
 
         [Fact]
@@ -40,22 +38,15 @@ namespace Affected.Cli.Tests
         {
             // Create a project
             var projectName = "InventoryManagement";
-            using var directory = new TempWorkingDirectory();
-            var projectPath = directory.MakePathForCsProj(projectName);
-
-            CreateProject(projectPath, projectName)
-                .Save();
-
-            // Fake changes to it's project's csproj file.
-            SetupFileChanges(directory.Path, projectPath);
+            var msBuildProject = this.Repository.CreateCsProject(projectName);
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {directory.Path} --dry-run -f text");
+                await this.InvokeAsync($"-p {Repository.Path} --dry-run -f text");
 
             Assert.Equal(0, exitCode);
 
-            Assert.Contains($"WRITE {Path.Combine(directory.Path, "affected.txt")}", output);
-            Assert.Contains(projectPath, output);
+            Assert.Contains($"WRITE {Path.Combine(Repository.Path, "affected.txt")}", output);
+            Assert.Contains(msBuildProject.FullPath, output);
         }
         
         [Fact]
@@ -63,21 +54,14 @@ namespace Affected.Cli.Tests
         {
             // Create a project
             var projectName = "InventoryManagement";
-            using var directory = new TempWorkingDirectory();
-            var projectPath = directory.MakePathForCsProj(projectName);
-
-            CreateProject(projectPath, projectName)
-                .Save();
-
-            // Fake changes to it's project's csproj file.
-            SetupFileChanges(directory.Path, projectPath);
+            this.Repository.CreateCsProject(projectName);
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {directory.Path} -f text --verbose");
+                await this.InvokeAsync($"-p {Repository.Path} -f text --verbose");
 
             Assert.Equal(0, exitCode);
 
-            Assert.Contains($"WRITE: {Path.Combine(directory.Path, "affected.txt")}", output);
+            Assert.Contains($"WRITE: {Path.Combine(Repository.Path, "affected.txt")}", output);
             Assert.Contains(projectName, output);
             Assert.Contains("No projects where affected by any of the changed projects.", output);
         }
@@ -87,22 +71,15 @@ namespace Affected.Cli.Tests
         {
             // Create a project
             var projectName = "InventoryManagement";
-            using var directory = new TempWorkingDirectory();
-            var projectPath = directory.MakePathForCsProj(projectName);
-
-            CreateProject(projectPath, projectName)
-                .Save();
-
-            // Fake changes to it's project's csproj file.
-            SetupFileChanges(directory.Path, projectPath);
+            this.Repository.CreateCsProject(projectName);
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {directory.Path} --dry-run -f traversal text");
+                await this.InvokeAsync($"-p {Repository.Path} --dry-run -f traversal text");
 
             Assert.Equal(0, exitCode);
 
-            Assert.Contains($"WRITE {Path.Combine(directory.Path, "affected.txt")}", output);
-            Assert.Contains($"WRITE {Path.Combine(directory.Path, "affected.proj")}", output);
+            Assert.Contains($"WRITE {Path.Combine(Repository.Path, "affected.txt")}", output);
+            Assert.Contains($"WRITE {Path.Combine(Repository.Path, "affected.proj")}", output);
         }
 
         [Fact]
@@ -110,116 +87,17 @@ namespace Affected.Cli.Tests
         {
             // Create a project
             var projectName = "InventoryManagement";
-            using var directory = new TempWorkingDirectory();
-            var projectPath = directory.MakePathForCsProj(projectName);
+            this.Repository.CreateCsProject(projectName);
 
-            CreateProject(projectPath, projectName)
-                .Save();
+            // Commit so there are no changes.
+            this.Repository.StageAndCommit();
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {directory.Path} --dry-run -f text");
+                await this.InvokeAsync($"-p {Repository.Path} --dry-run -f text");
 
             Assert.Equal(AffectedExitCodes.NothingChanged, exitCode);
 
             Assert.Contains($"No affected projects where found for the current changes", output);
-        }
-
-        [Fact]
-        public async Task Should_create_file_at_repo_root()
-        {
-            // Create a project
-            var projectName = "InventoryManagement";
-            using var directory = new TempWorkingDirectory();
-            var projectPath = directory.MakePathForCsProj(projectName);
-
-            CreateProject(projectPath, projectName)
-                .Save();
-
-            // Fake changes to it's project's csproj file.
-            SetupFileChanges(directory.Path, projectPath);
-
-            var (output, exitCode) =
-                await this.InvokeAsync($"-p {directory.Path} -f text");
-
-            var destination = Path.Combine(directory.Path, "affected.txt");
-            var outputContents = await File.ReadAllTextAsync(destination);
-
-            Assert.Equal(0, exitCode);
-
-            Assert.Contains($"WRITE: {destination}", output);
-            Assert.Contains(projectPath, outputContents);
-        }
-        
-        [Fact]
-        public async Task Using_relative_output_dir_should_create_file_inside_relative_dir()
-        {
-            // Create a project
-            var projectName = "InventoryManagement";
-            using var directory = new TempWorkingDirectory();
-            var projectPath = directory.MakePathForCsProj(projectName);
-
-            CreateProject(projectPath, projectName)
-                .Save();
-
-            // Fake changes to it's project's csproj file.
-            SetupFileChanges(directory.Path, projectPath);
-
-            var (output, exitCode) =
-                await this.InvokeAsync($"-p {directory.Path} -f text --output-dir relative/");
-
-            var destination = Path.Combine(directory.Path, "relative/affected.txt");
-
-            Assert.Equal(0, exitCode);
-
-            Assert.Contains($"WRITE: {destination}", output);
-
-            Assert.True(File.Exists(destination));
-            var outputContents = await File.ReadAllTextAsync(destination);
-            Assert.Contains(projectPath, outputContents);
-        }
-        
-        [Fact]
-        public async Task When_using_output_name_should_create_file()
-        {
-            // Create a project
-            var projectName = "InventoryManagement";
-            using var directory = new TempWorkingDirectory();
-            var projectPath = directory.MakePathForCsProj(projectName);
-
-            CreateProject(projectPath, projectName)
-                .Save();
-
-            // Fake changes to it's project's csproj file.
-            SetupFileChanges(directory.Path, projectPath);
-
-            var (output, exitCode) =
-                await this.InvokeAsync($"-p {directory.Path} --dry-run --output-name to-build");
-
-            Assert.Equal(0, exitCode);
-
-            Assert.Contains($"WRITE {Path.Combine(directory.Path, "to-build.proj")}", output);
-        }
-        
-        [Fact]
-        public async Task When_using_output_name_should_create_file_with_extension()
-        {
-            // Create a project
-            var projectName = "InventoryManagement";
-            using var directory = new TempWorkingDirectory();
-            var projectPath = directory.MakePathForCsProj(projectName);
-
-            CreateProject(projectPath, projectName)
-                .Save();
-
-            // Fake changes to it's project's csproj file.
-            SetupFileChanges(directory.Path, projectPath);
-
-            var (output, exitCode) =
-                await this.InvokeAsync($"-p {directory.Path} --dry-run --output-name to-build.whatever");
-
-            Assert.Equal(0, exitCode);
-
-            Assert.Contains($"WRITE {Path.Combine(directory.Path, "to-build.whatever.proj")}", output);
         }
     }
 }
