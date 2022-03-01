@@ -14,6 +14,7 @@ namespace Affected.Cli.Commands
     {
         private readonly CommandExecutionData _executionData;
         private readonly IConsole _console;
+        private readonly Lazy<IEnumerable<string>> _changedFiles;
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _changedProjects;
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _affectedProjects;
         private readonly IChangesProviderRef _changesProvider;
@@ -34,9 +35,12 @@ namespace Affected.Cli.Commands
             // For error handling to be managed properly at the handler level,
             // we use Lazies so that its done on demand when its actually needed
             // instead of happening here on the constructor
+            _changedFiles = new Lazy<IEnumerable<string>>(DetermineChangedFiles);
             _changedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(DetermineChangedProjects);
             _affectedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(DetermineAffectedProjects);
         }
+
+        public IEnumerable<string> ChangedFiles => _changedFiles.Value;
 
         public IEnumerable<IProjectInfo> ChangedProjects => _changedProjects.Value
             .Select(p => new ProjectInfo(p)).ToList();
@@ -44,9 +48,28 @@ namespace Affected.Cli.Commands
         public IEnumerable<IProjectInfo> AffectedProjects => _affectedProjects.Value
             .Select(p => new ProjectInfo(p)).ToList();
 
+        private IEnumerable<string> DetermineChangedFiles()
+        {
+            // Get all files that have changed
+            return this._changesProvider.Value
+                .GetChangedFiles(
+                    _executionData.RepositoryPath,
+                    _executionData.From,
+                    _executionData.To)
+                .ToList();
+        }
+
         private IEnumerable<ProjectGraphNode> DetermineChangedProjects()
         {
-            var output = FindChangedNodesUsingChangesProvider().ToList();
+            var filesWithChanges = _changedFiles.Value;
+
+            // Match which files belong to which of our known projects
+            var output = _graph.Value
+                .FindNodesContainingFiles(filesWithChanges)
+                .ToList();
+
+            WriteLine($"Found {filesWithChanges.Count()} changed files" +
+                      $" inside {output.Count} projects.");
 
             if (!output.Any())
             {
@@ -59,27 +82,6 @@ namespace Affected.Cli.Commands
         private IEnumerable<ProjectGraphNode> DetermineAffectedProjects()
         {
             return _graph.Value.FindNodesThatDependOn(_changedProjects.Value);
-        }
-
-        private IEnumerable<ProjectGraphNode> FindChangedNodesUsingChangesProvider()
-        {
-            // Get all files that have changed
-            var filesWithChanges = this._changesProvider.Value
-                .GetChangedFiles(
-                    _executionData.RepositoryPath,
-                    _executionData.From,
-                    _executionData.To)
-                .ToList();
-
-            // Match which files belong to which of our known projects
-            var output = _graph.Value
-                .FindNodesContainingFiles(filesWithChanges)
-                .ToList();
-
-            WriteLine($"Found {filesWithChanges.Count} changed files" +
-                      $" inside {output.Count} projects.");
-
-            return output;
         }
 
         private void WriteLine(string? message = null)
