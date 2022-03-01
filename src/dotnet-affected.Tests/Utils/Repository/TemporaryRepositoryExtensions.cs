@@ -24,6 +24,35 @@ namespace Affected.Cli.Tests
 
             return project;
         }
+        
+        public static ProjectRootElement CreateDirectoryPackageProps(
+            this TemporaryRepository repo,
+            Action<ProjectRootElement> customizer)
+        {
+            var path = Path.Combine(repo.Path, "Directory.Packages.props");
+            var project = ProjectRootElement
+                .Create(path);
+
+            customizer?.Invoke(project);
+
+            project.Save();
+
+            return project;
+        }
+        
+        public static ProjectRootElement UpdateDirectoryPackageProps(
+            this TemporaryRepository repo,
+            Action<ProjectRootElement> customizer)
+        {
+            var path = Path.Combine(repo.Path, "Directory.Packages.props");
+            var project = ProjectRootElement.Open(path) ?? throw new InvalidOperationException("Failed to load msbuild project");
+
+            customizer?.Invoke(project);
+
+            project.Save();
+
+            return project;
+        }
 
         public static async Task CreateSolutionAsync(
             this TemporaryRepository repo,
