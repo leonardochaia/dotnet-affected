@@ -23,7 +23,7 @@ namespace Affected.Cli.Tests
 
             _helper.WriteLine($"Request create repo at {directory.Path}");
 
-            var createdRepoPath = Repository.Init(directory.Path);
+            var createdRepoPath = Repository.Init(directory.Path, Path.Combine(directory.Path, ".git"));
             _helper.WriteLine($"Output Git Init {createdRepoPath}");
 
             using var repo = new Repository(directory.Path);
