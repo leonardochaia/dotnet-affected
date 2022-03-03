@@ -7,33 +7,40 @@ using System.Linq;
 
 namespace Affected.Cli.Commands
 {
+    /// <summary>
+    /// Calculates contextual information used across commands
+    /// </summary>
     internal class CommandExecutionContext : ICommandExecutionContext
     {
         private readonly CommandExecutionData _executionData;
         private readonly IConsole _console;
-        private readonly IChangesProvider _changesProvider;
+        private readonly Lazy<IEnumerable<string>> _changedFiles;
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _changedProjects;
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _affectedProjects;
-        private readonly Lazy<ProjectGraph> _graph;
+        private readonly IChangesProviderRef _changesProvider;
+        private readonly IProjectGraphRef _graph;
 
         public CommandExecutionContext(
             CommandExecutionData executionData,
             IConsole console,
-            IChangesProvider changesProvider)
+            IChangesProviderRef changesProvider,
+            IProjectGraphRef graph)
         {
             _executionData = executionData;
             _console = console;
             _changesProvider = changesProvider;
+            _graph = graph;
 
             // Discovering projects, and finding affected may throw
             // For error handling to be managed properly at the handler level,
             // we use Lazies so that its done on demand when its actually needed
             // instead of happening here on the constructor
-            _graph = new Lazy<ProjectGraph>(BuildProjectGraph);
+            _changedFiles = new Lazy<IEnumerable<string>>(DetermineChangedFiles);
             _changedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(DetermineChangedProjects);
-            _affectedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(
-                () => _graph.Value.FindNodesThatDependOn(_changedProjects.Value));
+            _affectedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(DetermineAffectedProjects);
         }
+
+        public IEnumerable<string> ChangedFiles => _changedFiles.Value;
 
         public IEnumerable<IProjectInfo> ChangedProjects => _changedProjects.Value
             .Select(p => new ProjectInfo(p)).ToList();
@@ -41,40 +48,28 @@ namespace Affected.Cli.Commands
         public IEnumerable<IProjectInfo> AffectedProjects => _affectedProjects.Value
             .Select(p => new ProjectInfo(p)).ToList();
 
-        /// <summary>
-        /// Builds a <see cref="ProjectGraph"/> from all discovered projects.
-        /// </summary>
-        /// <returns>A new Project Graph.</returns>
-        private ProjectGraph BuildProjectGraph()
+        private IEnumerable<string> DetermineChangedFiles()
         {
-            // Discover all projects and build the graph
-            var allProjects = BuildProjectDiscoverer()
-                .DiscoverProjects(_executionData);
-
-            WriteLine($"Building Dependency Graph");
-
-            var output = new ProjectGraph(allProjects);
-
-            WriteLine(
-                $"Built Graph with {output.ConstructionMetrics.NodeCount} Projects " +
-                $"in {output.ConstructionMetrics.ConstructionTime:s\\.ff}s");
-
-            return output;
+            // Get all files that have changed
+            return this._changesProvider.Value
+                .GetChangedFiles(
+                    _executionData.RepositoryPath,
+                    _executionData.From,
+                    _executionData.To)
+                .ToList();
         }
 
         private IEnumerable<ProjectGraphNode> DetermineChangedProjects()
         {
-            IEnumerable<ProjectGraphNode> output;
-            if (!_executionData.AssumeChanges.Any())
-            {
-                output = FindNodesThatChangedUsingChangesProvider();
-            }
-            else
-            {
-                WriteLine($"Assuming hypothetical project changes, won't use Git diff");
-                output = _graph.Value
-                    .FindNodesByName(_executionData.AssumeChanges);
-            }
+            var filesWithChanges = _changedFiles.Value;
+
+            // Match which files belong to which of our known projects
+            var output = _graph.Value
+                .FindNodesContainingFiles(filesWithChanges)
+                .ToList();
+
+            WriteLine($"Found {filesWithChanges.Count()} changed files" +
+                      $" inside {output.Count} projects.");
 
             if (!output.Any())
             {
@@ -84,37 +79,9 @@ namespace Affected.Cli.Commands
             return output;
         }
 
-        private IProjectDiscoverer BuildProjectDiscoverer()
+        private IEnumerable<ProjectGraphNode> DetermineAffectedProjects()
         {
-            if (string.IsNullOrWhiteSpace(_executionData.SolutionPath))
-            {
-                WriteLine($"Discovering projects from {_executionData.RepositoryPath}");
-                return new DirectoryProjectDiscoverer();
-            }
-
-            WriteLine($"Discovering projects from Solution {_executionData.SolutionPath}");
-            return new SolutionFileProjectDiscoverer();
-        }
-
-        private IEnumerable<ProjectGraphNode> FindNodesThatChangedUsingChangesProvider()
-        {
-            // Get all files that have changed
-            var filesWithChanges = this._changesProvider
-                .GetChangedFiles(
-                    _executionData.RepositoryPath,
-                    _executionData.From,
-                    _executionData.To)
-                .ToList();
-
-            // Match which files belong to which of our known projects
-            var output = _graph.Value
-                .FindNodesContainingFiles(filesWithChanges)
-                .ToList();
-
-            WriteLine($"Found {filesWithChanges.Count} changed files" +
-                      $" inside {output.Count} projects.");
-
-            return output;
+            return _graph.Value.FindNodesThatDependOn(_changedProjects.Value);
         }
 
         private void WriteLine(string? message = null)
