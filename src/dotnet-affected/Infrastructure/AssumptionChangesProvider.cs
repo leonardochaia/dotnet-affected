@@ -27,5 +27,10 @@ namespace Affected.Cli
                 .FindNodesByName(_data.AssumeChanges)
                 .Select(n => n.ProjectInstance.FullPath);
         }
+
+        public IEnumerable<string> GetChangedLinesForFile(string directory, string pathToFile, string @from, string to)
+        {
+            throw new System.InvalidOperationException("--assume-changes should not try to use line changes");
+        }
     }
 }
