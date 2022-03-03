@@ -30,10 +30,12 @@ namespace Affected.Cli.Tests
             Repository.UpdateDirectoryPackageProps(
                 b => b.UpdatePackageVersion(packageName, "v2.0.0"));
 
-            Assert.Single(Context.ChangedProjects);
-            Assert.Empty(Context.AffectedProjects);
+            Assert.Empty(Context.ChangedProjects);
+            Assert.Single(Context.ChangedFiles);
+            Assert.Single(Context.ChangedNuGetPackages);
+            Assert.Single(Context.AffectedProjects);
 
-            var projectInfo = Context.ChangedProjects.Single();
+            var projectInfo = Context.AffectedProjects.Single();
             Assert.Equal(projectName, projectInfo.Name);
             Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
         }
@@ -62,7 +64,7 @@ namespace Affected.Cli.Tests
             Repository.UpdateDirectoryPackageProps(
                 b => b.UpdatePackageVersion(otherPackageName, "v2.0.0"));
 
-            Assert.Throws<NoChangesException>(() => Context.ChangedProjects);
+            Assert.Throws<NoChangesException>(() => Context.AffectedProjects);
         }
 
         [Fact]
@@ -88,7 +90,7 @@ namespace Affected.Cli.Tests
             Repository.UpdateDirectoryPackageProps(
                 b => b.UpdatePackageVersion(packageName, "v2.0.0"));
 
-            Assert.Throws<NoChangesException>(() => Context.ChangedProjects);
+            Assert.Throws<NoChangesException>(() => Context.AffectedProjects);
         }
     }
 }
