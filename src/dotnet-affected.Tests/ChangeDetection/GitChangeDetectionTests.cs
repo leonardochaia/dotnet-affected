@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -19,7 +18,8 @@ namespace Affected.Cli.Tests
             // Create a project
             var projectName = "InventoryManagement";
             var msBuildProject = Repository.CreateCsProject(projectName);
-            
+
+            Assert.Single(Context.ChangedFiles);
             Assert.Single(Context.ChangedProjects);
             Assert.Empty(Context.AffectedProjects);
 
@@ -39,6 +39,7 @@ namespace Affected.Cli.Tests
             var targetFilePath = Path.Combine(projectName, "file.cs");
             await this.Repository.CreateTextFileAsync(targetFilePath, "// Initial content");
 
+            Assert.Equal(2, Context.ChangedFiles.Count());
             Assert.Single(Context.ChangedProjects);
             Assert.Empty(Context.AffectedProjects);
 

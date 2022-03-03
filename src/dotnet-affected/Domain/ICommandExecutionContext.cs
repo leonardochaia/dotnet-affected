@@ -9,6 +9,12 @@ namespace Affected.Cli
     public interface ICommandExecutionContext
     {
         /// <summary>
+        /// Gets the list of files that have any change in the current context.
+        /// A change implies the file was modified.
+        /// </summary>
+        IEnumerable<string> ChangedFiles { get; }
+
+        /// <summary>
         /// Gets the list of projects that have any change in the current context.
         /// A change may be due to a change to the project file itself or files related to the project
         /// </summary>
