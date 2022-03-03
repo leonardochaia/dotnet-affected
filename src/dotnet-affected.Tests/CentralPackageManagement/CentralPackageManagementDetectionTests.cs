@@ -38,6 +38,46 @@ namespace Affected.Cli.Tests
             Assert.Equal(projectName, projectInfo.Name);
             Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
         }
+        
+        [Fact]
+        public void When_directory_packages_props_changes_dependencies_of_affected_projects_should_also_be_affected()
+        {
+            // Create a Directory.Package.props
+            var packageName = "Some.Library";
+            Repository.CreateDirectoryPackageProps(
+                b => b.AddPackageVersion(packageName, "1.0.0"));
+
+            // Create a project with a nuget dependency
+            var projectName = "InventoryManagement";
+            var msBuildProject = Repository.CreateCsProject(
+                projectName,
+                b => b.AddNuGetDependency(packageName));
+            
+            // Create a project that depends on the first project
+            var dependantProjectName = "InventoryManagement.Tests";
+            var dependantMsBuildProject = Repository.CreateCsProject(
+                dependantProjectName,
+                b => b.AddProjectDependency(msBuildProject.FullPath));
+
+            // Commit so there are no changes
+            Repository.StageAndCommit();
+
+            // Update package to newer version
+            Repository.UpdateDirectoryPackageProps(
+                b => b.UpdatePackageVersion(packageName, "v2.0.0"));
+
+            Assert.Single(Context.ChangedFiles);
+            Assert.Single(Context.ChangedNuGetPackages);
+            Assert.Equal(2, Context.AffectedProjects.Count());
+
+            var projectInfo = Context.AffectedProjects.FirstOrDefault();
+            Assert.Equal(dependantProjectName, projectInfo.Name);
+            Assert.Equal(dependantMsBuildProject.FullPath, projectInfo.FilePath);
+            
+            var dependantProjectInfo = Context.AffectedProjects.ElementAt(1);
+            Assert.Equal(projectName, dependantProjectInfo.Name);
+            Assert.Equal(msBuildProject.FullPath, dependantProjectInfo.FilePath);
+        }
 
         [Fact]
         public void When_directory_packages_props_changes_without_dependant_projects_should_throw()

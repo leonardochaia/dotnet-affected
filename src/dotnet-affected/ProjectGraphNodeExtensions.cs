@@ -14,8 +14,9 @@ namespace Affected.Cli
 
         internal static bool ReferencesNuGetPackage(this ProjectGraphNode node, string nuGetPackageName)
         {
-            return node.ProjectInstance.Items
-                .Any(x => x.ItemType == "PackageReference" && x.EvaluatedInclude == nuGetPackageName);
+            return node.ProjectInstance
+                .GetItemsByItemTypeAndEvaluatedInclude("PackageReference", nuGetPackageName)
+                .Any();
         }
         
         internal static bool IsOptedOutFromCentrallyManagedNuGetPackageVersions(this ProjectGraphNode node)

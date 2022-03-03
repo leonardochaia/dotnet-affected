@@ -81,13 +81,13 @@ namespace Affected.Cli.Commands
 
         private IEnumerable<ProjectGraphNode> DetermineAffectedProjects()
         {
-            // Find projects that depend on the affected projects
-            var dependantProjects = _graph.Value
-                .FindNodesThatDependOn(_changedProjects.Value);
-
             // Find projects referencing NuGet packages that changed
             var nodesReferencingNuGets = _graph.Value
                 .FindNodesReferencingNuGetPackages(_changedNugetPackages.Value);
+            
+            // Find projects that depend on the changed projects + projects affected by nuget
+            var dependantProjects = _graph.Value
+                .FindNodesThatDependOn(_changedProjects.Value.Concat(nodesReferencingNuGets));
 
             WriteLine($"Found {dependantProjects.Count()} affected by changed projects");
             WriteLine($"Found {nodesReferencingNuGets.Count()} affected by changed NuGet packages");
