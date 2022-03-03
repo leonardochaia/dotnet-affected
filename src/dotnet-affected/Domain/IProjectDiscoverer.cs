@@ -12,6 +12,6 @@ namespace Affected.Cli
         /// Discovers the projects that will be involved in changed detection.
         /// </summary>
         /// <returns>The list of project files to consider.</returns>
-        ProjectDiscoveryResult DiscoverProjects(CommandExecutionData data);
+        IEnumerable<string> DiscoverProjects(CommandExecutionData data);
     }
 }
