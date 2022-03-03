@@ -25,5 +25,11 @@ namespace Affected.Cli
         /// i.e if A depends on B, and B has any changes, A will be affected.
         /// </summary>
         IEnumerable<IProjectInfo> AffectedProjects { get; }
+        
+        /// <summary>
+        /// Gets the list of packages that have changed.
+        /// Only valid when using Central Package Management.
+        /// </summary>
+        IEnumerable<string> ChangedNuGetPackages { get; }
     }
 }

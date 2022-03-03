@@ -92,7 +92,7 @@ namespace Affected.Cli.Tests
             var outsiderName = "OutsiderProject";
             this.Repository.CreateCsProject(outsiderName);
 
-            Assert.Throws<NoChangesException>(() => Context.ChangedProjects);
+            Assert.Throws<NoChangesException>(() => Context.AffectedProjects);
         }
     }
 }

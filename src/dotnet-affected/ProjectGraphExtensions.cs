@@ -77,9 +77,29 @@ namespace Affected.Cli
 
                 foreach (var node in nodes)
                 {
-                    if (!hasReturned.Contains(node.ProjectInstance.FullPath))
+                    if (hasReturned.Add(node.ProjectInstance.FullPath))
                     {
-                        hasReturned.Add(node.ProjectInstance.FullPath);
+                        yield return node;
+                    }
+                }
+            }
+        }
+        
+        internal static IEnumerable<ProjectGraphNode> FindNodesReferencingNuGetPackages(
+            this ProjectGraph graph,
+            IEnumerable<string> nuGetPackageNames)
+        {
+            var hasReturned = new HashSet<string>();
+            foreach (var nuget in nuGetPackageNames)
+            {
+                var nodes = graph.ProjectNodes
+                    .Where(n => !n.IsOptedOutFromCentrallyManagedNuGetPackageVersions() 
+                                && n.ReferencesNuGetPackage(nuget));
+                
+                foreach (var node in nodes)
+                {
+                    if (hasReturned.Add(node.ProjectInstance.FullPath))
+                    {
                         yield return node;
                     }
                 }

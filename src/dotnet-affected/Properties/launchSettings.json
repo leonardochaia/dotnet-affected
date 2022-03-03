@@ -34,6 +34,20 @@
             "environmentVariables": {
                 "DOTNET_ENVIRONMENT": "Development"
             }
+        },
+        "Affected": {
+            "commandName": "Project",
+            "commandLineArgs": "-v -p C:\\Projects\\dotnet-affected --from fa4884f90bddcae7d7ac012681ddbd80cf0182e3 --output-dir C:\\Temp --output-name changed",
+            "environmentVariables": {
+                "DOTNET_ENVIRONMENT": "Development"
+            }
+        },
+        "OSI": {
+            "commandName": "Project",
+            "commandLineArgs": "-v -p C:\\Projects\\OneSalesInterface --solution-path C:\\Projects\\OneSalesInterface\\OneSalesInterface.sln --from origin/develop --output-dir C:\\Projects\\OneSalesInterface\\ --output-name changed",
+            "environmentVariables": {
+                "DOTNET_ENVIRONMENT": "Development"
+            }
         }
     }
 }

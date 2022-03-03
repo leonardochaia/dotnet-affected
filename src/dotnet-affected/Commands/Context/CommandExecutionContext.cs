@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.IO;
+using System.IO;
 using System.Linq;
 
 namespace Affected.Cli.Commands
@@ -17,6 +18,7 @@ namespace Affected.Cli.Commands
         private readonly Lazy<IEnumerable<string>> _changedFiles;
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _changedProjects;
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _affectedProjects;
+        private readonly Lazy<IEnumerable<string>> _changedNugetPackages;
         private readonly IChangesProviderRef _changesProvider;
         private readonly IProjectGraphRef _graph;
 
@@ -38,9 +40,12 @@ namespace Affected.Cli.Commands
             _changedFiles = new Lazy<IEnumerable<string>>(DetermineChangedFiles);
             _changedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(DetermineChangedProjects);
             _affectedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(DetermineAffectedProjects);
+            _changedNugetPackages = new Lazy<IEnumerable<string>>(DetermineChangedNugetPackages);
         }
 
         public IEnumerable<string> ChangedFiles => _changedFiles.Value;
+
+        public IEnumerable<string> ChangedNuGetPackages => _changedNugetPackages.Value;
 
         public IEnumerable<IProjectInfo> ChangedProjects => _changedProjects.Value
             .Select(p => new ProjectInfo(p)).ToList();
@@ -71,7 +76,28 @@ namespace Affected.Cli.Commands
             WriteLine($"Found {filesWithChanges.Count()} changed files" +
                       $" inside {output.Count} projects.");
 
-            if (!output.Any())
+            return output;
+        }
+
+        private IEnumerable<ProjectGraphNode> DetermineAffectedProjects()
+        {
+            // Find projects referencing NuGet packages that changed
+            var nodesReferencingNuGets = _graph.Value
+                .FindNodesReferencingNuGetPackages(_changedNugetPackages.Value);
+            
+            // Find projects that depend on the changed projects + projects affected by nuget
+            var dependantProjects = _graph.Value
+                .FindNodesThatDependOn(_changedProjects.Value.Concat(nodesReferencingNuGets));
+
+            WriteLine($"Found {dependantProjects.Count()} affected by changed projects");
+            WriteLine($"Found {nodesReferencingNuGets.Count()} affected by changed NuGet packages");
+
+            var output = dependantProjects
+                .Concat(nodesReferencingNuGets)
+                .Deduplicate()
+                .ToArray();
+
+            if (!_changedProjects.Value.Any() && !output.Any())
             {
                 throw new NoChangesException();
             }
@@ -79,9 +105,31 @@ namespace Affected.Cli.Commands
             return output;
         }
 
-        private IEnumerable<ProjectGraphNode> DetermineAffectedProjects()
+        private IEnumerable<string> DetermineChangedNugetPackages()
         {
-            return _graph.Value.FindNodesThatDependOn(_changedProjects.Value);
+            var packagePropsPath = _changedFiles.Value
+                .SingleOrDefault(f => f.EndsWith("Directory.Packages.props"));
+
+            if (packagePropsPath is null)
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            packagePropsPath = Path.GetRelativePath(_executionData.RepositoryPath, packagePropsPath);
+
+            // Get all centrally managed NuGet packages that have changed
+            var lineChanges = _changesProvider.Value.GetChangedLinesForFile(
+                _executionData.RepositoryPath,
+                packagePropsPath,
+                _executionData.From,
+                _executionData.To);
+
+            var changedNugetPackages = NugetHelper.ParseNugetPackagesFromLines(lineChanges)
+                .ToList();
+
+            WriteLine($"Found {changedNugetPackages.Count()} changed NuGet packages");
+
+            return changedNugetPackages;
         }
 
         private void WriteLine(string? message = null)
