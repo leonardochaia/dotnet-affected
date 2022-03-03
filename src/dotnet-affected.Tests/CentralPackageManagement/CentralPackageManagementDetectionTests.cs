@@ -30,7 +30,6 @@ namespace Affected.Cli.Tests
             Repository.UpdateDirectoryPackageProps(
                 b => b.UpdatePackageVersion(packageName, "v2.0.0"));
 
-            Assert.Empty(Context.ChangedProjects);
             Assert.Single(Context.ChangedFiles);
             Assert.Single(Context.ChangedNuGetPackages);
             Assert.Single(Context.AffectedProjects);

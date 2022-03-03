@@ -97,7 +97,7 @@ namespace Affected.Cli.Commands
                 .Deduplicate()
                 .ToArray();
 
-            if (!output.Any())
+            if (!_changedProjects.Value.Any() && !output.Any())
             {
                 throw new NoChangesException();
             }

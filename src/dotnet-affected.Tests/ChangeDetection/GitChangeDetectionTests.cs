@@ -51,7 +51,7 @@ namespace Affected.Cli.Tests
         [Fact]
         public void When_nothing_has_changed_should_throw_nothing_has_changed()
         {
-            Assert.Throws<NoChangesException>(() => Context.ChangedProjects);
+            Assert.Throws<NoChangesException>(() => Context.AffectedProjects);
         }
     }
 }
