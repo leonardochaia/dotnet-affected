@@ -13,8 +13,11 @@ namespace Affected.Cli.Views
                 return;
             }
 
-            Add(new ContentView("Changed Projects"));
-            Add(new ProjectInfoTable(context.ChangedProjects));
+            if (context.ChangedProjects.Any())
+            {
+                Add(new ContentView("Changed Projects"));
+                Add(new ProjectInfoTable(context.ChangedProjects));
+            }
 
             if (context.ChangedNuGetPackages.Any())
             {
