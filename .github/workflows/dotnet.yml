@@ -65,21 +65,70 @@ jobs:
       shell: bash
       run: ./src/dotnet-affected/bin/Debug/net5.0/dotnet-affected -p $GITHUB_WORKSPACE --assume-changes dotnet-affected -v
 
+    - name: Pack
+      if: success() && matrix.os == 'ubuntu-latest'
+      run: dotnet pack --no-restore --no-build --include-symbols -p:SymbolPackageFormat=snupkg -o .
+
+    - uses: actions/upload-artifact@master
+      if: success() && matrix.os == 'ubuntu-latest'
+      with:
+        name: packages
+        path: "*.nupkg"
+
+    - uses: actions/upload-artifact@master
+      if: success() && matrix.os == 'ubuntu-latest'
+      with:
+        name: artifacts
+        path: ./src/dotnet-affected/bin/Debug/net5.0/dotnet-affected/*
+
   release:
     needs: build
     runs-on: ubuntu-latest
     if: success() && github.ref == 'refs/heads/main'
     steps:
-    - name: Pack
-      run: dotnet pack --no-restore --no-build --include-symbols -p:SymbolPackageFormat=snupkg -o .
+    - uses: nrwl/last-successful-commit-action@v1
+      id: last_successful_commit
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ GITHUB_REF_NAME }}
+        workflow_id: 'dotnet.yml'
+
+    - uses: actions/download-artifact@master
+      with:
+        name: artifacts
+        path: "."
+
+    - name: Detect Affected
+      id: affected
+      run: |
+        set +e
+        ./dotnet-affected -p $GITHUB_WORKSPACE -v \
+            --from ${{ steps.last_successful_commit.outputs.commit_hash }} \
+            --to ${{ GITHUB_SHA }} \
+            --format text
+
+        if [ "$?" -eq 0 ]; then
+            echo "::set-output name=should_deploy::true"
+        else
+            echo "::set-output name=should_deploy::false"                        
+        fi
+
+    - uses: actions/download-artifact@master
+      if: success() && steps.affected.should_deploy
+      with:
+        name: packages
+        path: "."
 
     - name: Push to NuGet
+      if: success() && steps.affected.should_deploy
       run: dotnet nuget push *.nupkg --skip-duplicate -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}}
 
     - uses: dotnet/nbgv@master
+      if: success() && steps.affected.should_deploy
       id: nbgv
 
     - uses: "marvinpinto/action-automatic-releases@latest"
+      if: success() && steps.affected.should_deploy
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "${{ steps.nbgv.outputs.SemVer2 }}"
