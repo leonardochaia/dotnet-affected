@@ -90,7 +90,7 @@ jobs:
       id: last_successful_commit
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: ${{ GITHUB_REF_NAME }}
+        branch: ${{ env.GITHUB_REF_NAME }}
         workflow_id: 'dotnet.yml'
 
     - uses: actions/download-artifact@master
@@ -104,7 +104,7 @@ jobs:
         set +e
         ./dotnet-affected -p $GITHUB_WORKSPACE -v \
             --from ${{ steps.last_successful_commit.outputs.commit_hash }} \
-            --to ${{ GITHUB_SHA }} \
+            --to $GITHUB_SHA \
             --format text
 
         if [ "$?" -eq 0 ]; then
