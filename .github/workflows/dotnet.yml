@@ -86,6 +86,10 @@ jobs:
     runs-on: ubuntu-latest
     if: success() && github.ref == 'refs/heads/main'
     steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
     - uses: nrwl/last-successful-commit-action@v1
       id: last_successful_commit
       with:
