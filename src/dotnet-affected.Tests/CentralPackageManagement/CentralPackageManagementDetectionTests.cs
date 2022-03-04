@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Affected.Cli.Tests
@@ -38,7 +40,7 @@ namespace Affected.Cli.Tests
             Assert.Equal(projectName, projectInfo.Name);
             Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
         }
-        
+
         [Fact]
         public void When_packages_changes_dependencies_of_affected_projects_should_also_be_affected()
         {
@@ -52,7 +54,7 @@ namespace Affected.Cli.Tests
             var msBuildProject = Repository.CreateCsProject(
                 projectName,
                 b => b.AddNuGetDependency(packageName));
-            
+
             // Create a project that depends on the first project
             var dependantProjectName = "InventoryManagement.Tests";
             var dependantMsBuildProject = Repository.CreateCsProject(
@@ -73,12 +75,12 @@ namespace Affected.Cli.Tests
             var projectInfo = Context.AffectedProjects.FirstOrDefault();
             Assert.Equal(dependantProjectName, projectInfo.Name);
             Assert.Equal(dependantMsBuildProject.FullPath, projectInfo.FilePath);
-            
+
             var dependantProjectInfo = Context.AffectedProjects.ElementAt(1);
             Assert.Equal(projectName, dependantProjectInfo.Name);
             Assert.Equal(msBuildProject.FullPath, dependantProjectInfo.FilePath);
         }
-        
+
         [Fact]
         public void When_package_is_deleted_dependant_projects_should_be_affected()
         {
@@ -108,7 +110,7 @@ namespace Affected.Cli.Tests
             Assert.Equal(projectName, projectInfo.Name);
             Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
         }
-        
+
         [Fact]
         public void When_directory_packages_props_changes_without_dependant_projects_should_throw()
         {
@@ -132,6 +134,7 @@ namespace Affected.Cli.Tests
             Repository.UpdateDirectoryPackageProps(
                 b => b.AddPackageVersion(otherPackageName, "v2.0.0"));
 
+            Assert.Single(Context.ChangedNuGetPackages);
             Assert.Throws<NoChangesException>(() => Context.AffectedProjects);
         }
 
@@ -159,6 +162,51 @@ namespace Affected.Cli.Tests
                 b => b.UpdatePackageVersion(packageName, "v2.0.0"));
 
             Assert.Throws<NoChangesException>(() => Context.AffectedProjects);
+        }
+
+        [Fact]
+        public async Task With_conditional_props_file_projects_should_still_be_affected()
+        {
+            // Create a Directory.Packages.props file with conditions
+            var propsFile = @"
+<Project>
+    <ItemGroup Condition=""'$(TargetFramework)' == 'net5.0'"">
+        <PackageVersion Include=""Some.Library"" Version=""5.0.0"" />
+    </ItemGroup>
+
+    <ItemGroup Condition=""'$(TargetFramework)' == 'net6.0'"">
+        <PackageVersion Include=""Other.Library"" Version=""6.0.0"" />
+    </ItemGroup>
+</Project>
+";
+            var propsPath = Path.Combine(Repository.Path, "Directory.Packages.props");
+            await Repository.CreateTextFileAsync(propsPath, propsFile);
+
+            // Create a project with a nuget dependency
+            var projectName = "InventoryManagement";
+            Repository.CreateCsProject(
+                projectName,
+                b => b.AddNuGetDependency("Some.Library"));
+
+            // Commit all so there are no changes
+            Repository.StageAndCommit();
+
+            // Update versions in props file
+            propsFile = @"
+<Project>
+    <ItemGroup Condition=""'$(TargetFramework)' == 'net5.0'"">
+        <PackageVersion Include=""Some.Library"" Version=""5.1.0"" />
+    </ItemGroup>
+
+    <ItemGroup Condition=""'$(TargetFramework)' == 'net6.0'"">
+        <PackageVersion Include=""Other.Library"" Version=""6.1.0"" />
+    </ItemGroup>
+</Project>
+";
+            await Repository.CreateTextFileAsync(propsPath, propsFile);
+
+            Assert.Equal(2, Context.ChangedNuGetPackages.Count());
+            Assert.Single(Context.AffectedProjects);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace Affected.Cli
+﻿using System.Collections.Generic;
+
+namespace Affected.Cli
 {
     /// <summary>
     /// Changes about a package across two revisions.
@@ -9,13 +11,9 @@
         /// Initializes a new instance of <see cref="PackageChange"/>.
         /// </summary>
         /// <param name="name"></param>
-        /// <param name="oldVersion"></param>
-        /// <param name="newVersion"></param>
-        public PackageChange(string name, string? oldVersion, string? newVersion)
+        public PackageChange(string name)
         {
             Name = name;
-            OldVersion = oldVersion;
-            NewVersion = newVersion;
         }
 
         /// <summary>
@@ -26,11 +24,11 @@
         /// <summary>
         /// Gets or set the old version.
         /// </summary>
-        public string? OldVersion { get; }
+        public ICollection<string> OldVersions { get; } = new HashSet<string>();
 
         /// <summary>
         /// Gets or sets the new version.
         /// </summary>
-        public string? NewVersion { get; }
+        public ICollection<string> NewVersions { get; } = new HashSet<string>();
     }
 }

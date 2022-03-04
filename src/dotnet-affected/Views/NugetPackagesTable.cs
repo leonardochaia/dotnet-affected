@@ -10,8 +10,8 @@ namespace Affected.Cli.Views
         {
             this.Items = nugetPackages.OrderBy(x => x.Name).ToList();
             this.AddColumn(p => p.Name, "Name");
-            this.AddColumn(p => p.OldVersion, "Old Version");
-            this.AddColumn(p => p.NewVersion, "New Version");
+            this.AddColumn(p => string.Join(",", p.OldVersions), "Old Versions");
+            this.AddColumn(p => string.Join(",", p.NewVersions), "New Versions");
         }
     }
 }
