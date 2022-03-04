@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.CommandLine.Binding;
+using System.CommandLine.NamingConventionBinder;
 
 namespace Affected.Cli
 {
