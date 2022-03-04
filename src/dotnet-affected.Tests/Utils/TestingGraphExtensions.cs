@@ -53,7 +53,7 @@ namespace Affected.Cli.Tests
         public static ProjectRootElement UpdatePackageVersion(
             this ProjectRootElement element,
             string packageName,
-            string? newVersion)
+            string newVersion)
         {
             Exception BuildException(string message)
             {
