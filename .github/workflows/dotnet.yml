@@ -79,7 +79,7 @@ jobs:
       if: success() && matrix.os == 'ubuntu-latest'
       with:
         name: artifacts
-        path: src/dotnet-affected/bin/Debug/net5.0/dotnet-affected/
+        path: src/dotnet-affected/bin/Debug/net5.0/
 
   release:
     needs: build
@@ -102,6 +102,7 @@ jobs:
       id: affected
       run: |
         set +e
+        chmod +x ./dotnet-affected
         ./dotnet-affected -p $GITHUB_WORKSPACE -v \
             --from ${{ steps.last_successful_commit.outputs.commit_hash }} \
             --to $GITHUB_SHA \
