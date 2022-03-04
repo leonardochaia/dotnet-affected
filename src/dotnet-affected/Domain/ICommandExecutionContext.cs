@@ -30,6 +30,6 @@ namespace Affected.Cli
         /// Gets the list of packages that have changed.
         /// Only valid when using Central Package Management.
         /// </summary>
-        IEnumerable<string> ChangedNuGetPackages { get; }
+        IEnumerable<PackageChange> ChangedNuGetPackages { get; }
     }
 }

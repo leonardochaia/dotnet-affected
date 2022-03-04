@@ -30,11 +30,11 @@ namespace Affected.Cli
                     p => p.Metadata.SingleOrDefault(m => m.Name == "Version")!.EvaluatedValue);
         }
 
-        public static IDictionary<string, string> DiffPackageDictionaries(
+        public static IEnumerable<PackageChange> DiffPackageDictionaries(
             IDictionary<string, string> fromPackages,
             IDictionary<string, string> toPackages)
         {
-            var output = new Dictionary<string, string>();
+            var output = new List<PackageChange>();
             foreach (var (key, currentVersion) in fromPackages)
             {
                 if (toPackages.ContainsKey(key))
@@ -43,20 +43,20 @@ namespace Affected.Cli
                     if (otherVersion != currentVersion)
                     {
                         // Updated packages
-                        output.Add(key, currentVersion);
+                        output.Add(new PackageChange(key, otherVersion, currentVersion));
                     }
                 }
                 else
                 {
                     // New packages
-                    output.Add(key, currentVersion);
+                    output.Add(new PackageChange(key, null, currentVersion));
                 }
             }
 
             // Deleted packages
             foreach (var package in toPackages.Keys.Except(fromPackages.Keys))
             {
-                output.Add(package, "<deleted>");
+                output.Add(new PackageChange(package, toPackages[package], null));
             }
 
             return output;

@@ -16,7 +16,7 @@ namespace Affected.Cli.Commands
         private readonly Lazy<IEnumerable<string>> _changedFiles;
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _changedProjects;
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _affectedProjects;
-        private readonly Lazy<IEnumerable<string>> _changedNugetPackages;
+        private readonly Lazy<IEnumerable<PackageChange>> _changedNugetPackages;
         private readonly IChangesProviderRef _changesProvider;
         private readonly IProjectGraphRef _graph;
 
@@ -37,12 +37,12 @@ namespace Affected.Cli.Commands
             _changedFiles = new Lazy<IEnumerable<string>>(DetermineChangedFiles);
             _changedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(DetermineChangedProjects);
             _affectedProjects = new Lazy<IEnumerable<ProjectGraphNode>>(DetermineAffectedProjects);
-            _changedNugetPackages = new Lazy<IEnumerable<string>>(DetermineChangedNugetPackages);
+            _changedNugetPackages = new Lazy<IEnumerable<PackageChange>>(DetermineChangedNugetPackages);
         }
 
         public IEnumerable<string> ChangedFiles => _changedFiles.Value;
 
-        public IEnumerable<string> ChangedNuGetPackages => _changedNugetPackages.Value;
+        public IEnumerable<PackageChange> ChangedNuGetPackages => _changedNugetPackages.Value;
 
         public IEnumerable<IProjectInfo> ChangedProjects => _changedProjects.Value
             .Select(p => new ProjectInfo(p)).ToList();
@@ -76,8 +76,9 @@ namespace Affected.Cli.Commands
         private IEnumerable<ProjectGraphNode> DetermineAffectedProjects()
         {
             // Find projects referencing NuGet packages that changed
+            var changedPackages = _changedNugetPackages.Value.Select(p => p.Name);
             var projectsAffectedByNugetPackages = _graph.Value
-                .FindNodesReferencingNuGetPackages(_changedNugetPackages.Value);
+                .FindNodesReferencingNuGetPackages(changedPackages);
 
             // Combine changed projects with projects affected by nuget changes
             var changedAndNugetAffected = _changedProjects.Value
@@ -101,7 +102,7 @@ namespace Affected.Cli.Commands
             return output;
         }
 
-        private IEnumerable<string> DetermineChangedNugetPackages()
+        private IEnumerable<PackageChange> DetermineChangedNugetPackages()
         {
             // Try to find a Directory.Packages.props file in the list of changed files
             var packagePropsPath = _changedFiles.Value
@@ -109,7 +110,7 @@ namespace Affected.Cli.Commands
 
             if (packagePropsPath is null)
             {
-                return Enumerable.Empty<string>();
+                return Enumerable.Empty<PackageChange>();
             }
 
             // Get the contents of the file at from/to revisions
@@ -125,9 +126,7 @@ namespace Affected.Cli.Commands
             var toPackages = NugetHelper.ParseDirectoryPackageProps(toFile);
 
             // Compare both dictionaries
-            var packageDiff = NugetHelper.DiffPackageDictionaries(fromPackages, toPackages);
-
-            return packageDiff.Select(k => k.Key);
+            return NugetHelper.DiffPackageDictionaries(fromPackages, toPackages);
         }
     }
 }

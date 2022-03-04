@@ -22,7 +22,8 @@ namespace Affected.Cli.Views
             if (context.ChangedNuGetPackages.Any())
             {
                 Add(new ContentView(""));
-                Add(new NuGetPackageStackLayoutView(context.ChangedNuGetPackages));
+                Add(new ContentView("Changed NuGet Packages"));
+                Add(new NugetPackagesTable(context.ChangedNuGetPackages));
             }
 
             Add(new ContentView("\nAffected Projects"));
