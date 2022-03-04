@@ -109,7 +109,7 @@ jobs:
         chmod +x ./dotnet-affected
         ./dotnet-affected -p $GITHUB_WORKSPACE -v \
             --from ${{ steps.last_successful_commit.outputs.commit_hash }} \
-            --to {{ env.GITHUB_SHA }} \
+            --to ${{ env.GITHUB_SHA }} \
             --format text
 
         if [ "$?" -eq 0 ]; then
