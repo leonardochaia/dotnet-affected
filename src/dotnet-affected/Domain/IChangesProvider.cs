@@ -17,13 +17,14 @@ namespace Affected.Cli
         IEnumerable<string> GetChangedFiles(string directory, string from, string to);
 
         /// <summary>
-        /// Gets all lines that have changed for file, despite addition/deletion.
+        /// Uses the underlying changes provider to get
+        /// the text contents of a file at <paramref name="from"/> and at <paramref name="to"/>.
         /// </summary>
         /// <param name="directory"></param>
         /// <param name="pathToFile"></param>
         /// <param name="from"></param>
         /// <param name="to"></param>
         /// <returns></returns>
-        public IEnumerable<string> GetChangedLinesForFile(string directory, string pathToFile, string from, string to);
+        (string FromText, string ToText) GetTextFileContents(string directory, string pathToFile, string from, string to);
     }
 }

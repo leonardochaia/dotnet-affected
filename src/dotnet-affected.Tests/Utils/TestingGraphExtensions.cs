@@ -50,8 +50,10 @@ namespace Affected.Cli.Tests
             return element;
         }
 
-        public static ProjectRootElement UpdatePackageVersion(this ProjectRootElement element, string packageName,
-            string newVersion)
+        public static ProjectRootElement UpdatePackageVersion(
+            this ProjectRootElement element,
+            string packageName,
+            string? newVersion)
         {
             Exception BuildException(string message)
             {
@@ -68,11 +70,18 @@ namespace Affected.Cli.Tests
                                .SingleOrDefault(p => p.ElementName == "PackageVersion" && p.Include == packageName)
                            ?? throw BuildException($"Could not find a PackageVersion element for {packageName}");
 
-            var versionToUpdate = toUpdate.Metadata
-                                      .SingleOrDefault(m => m.Name == "Version")
-                                  ?? throw BuildException($"Could not find a Version metadata in ItemGroup {toUpdate}");
-
-            versionToUpdate.Value = newVersion;
+            if (newVersion is null)
+            {
+                itemGroup.RemoveChild(toUpdate);
+            }
+            else
+            {
+                var versionToUpdate = toUpdate.Metadata
+                                          .SingleOrDefault(m => m.Name == "Version")
+                                      ?? throw BuildException(
+                                          $"Could not find a Version metadata in ItemGroup {toUpdate}");
+                versionToUpdate.Value = newVersion;
+            }
 
             return element;
         }

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Text;
 
 namespace Affected.Cli
 {
@@ -17,17 +17,53 @@ namespace Affected.Cli
             return TreeChangesToPaths(changes, directory);
         }
 
-        public IEnumerable<string> GetChangedLinesForFile(string directory, string pathToFile, string from, string to)
+        public (string FromText, string ToText) GetTextFileContents(
+            string directory,
+            string pathToFile,
+            string from,
+            string to)
         {
             using var repository = new Repository(directory);
 
-            var changes = GetChangesForRange<Patch>(repository, from, to);
+            var (fromCommit, toCommit) = ParseRevisionRanges(repository, from, to);
+            
+            pathToFile = Path.GetRelativePath(directory, pathToFile);
 
-            // Get the patch for the Directory.Packages.props file
-            var filePatch = changes[pathToFile];
+            // Read file from commit or working directory
+            var fromText = fromCommit is null
+                ? File.ReadAllText(Path.Combine(directory, pathToFile))
+                : ReadTextFile(pathToFile, fromCommit);
 
-            // Run through all lines, get the NuGet package name using RegEx and yield unique package names
-            return filePatch.AddedLines.Concat(filePatch.DeletedLines).Select(l => l.Content);
+            var toText = ReadTextFile(pathToFile, toCommit);
+
+            return (fromText, toText);
+        }
+
+        private static string ReadTextFile(string pathToFile, Commit commit)
+        {
+            var blob = (Blob)commit[pathToFile].Target;
+
+            using var content = new StreamReader(blob.GetContentStream(), Encoding.UTF8);
+            return content.ReadToEnd();
+        }
+
+        private static (Commit? From, Commit To) ParseRevisionRanges(
+            Repository repository,
+            string from,
+            string to)
+        {
+            // Find the To Commit or use HEAD.
+            var toCommit = GetCommitOrHead(repository, to);
+
+            // No from: compare against working directory
+            if (string.IsNullOrWhiteSpace(from))
+            {
+                // this.WriteLine($"Finding changes from working directory against {to}");
+                return (null, toCommit);
+            }
+
+            var fromCommit = GetCommitOrThrow(repository, @from);
+            return (fromCommit, toCommit);
         }
 
         private static T GetChangesForRange<T>(
@@ -36,24 +72,11 @@ namespace Affected.Cli
             string to)
             where T : class, IDiffResult
         {
-            // Find the To Commit or use HEAD.
-            var toCommit = GetCommitOrHead(repository, to);
+            var (fromCommit, toCommit) = ParseRevisionRanges(repository, from, to);
 
-            // No from: compare against working directory
-            T changes;
-            if (string.IsNullOrWhiteSpace(from))
-            {
-                // this.WriteLine($"Finding changes from working directory against {to}");
-                changes = GetChangesAgainstWorkingDirectory<T>(repository, toCommit.Tree);
-            }
-            else
-            {
-                var fromCommit = GetCommitOrThrow(repository, @from);
-                // this.WriteLine($"Finding changes from {from} against {to}");
-                changes = GetChangesBetweenTrees<T>(repository, fromCommit.Tree, toCommit.Tree);
-            }
-
-            return changes;
+            return fromCommit is null
+                ? GetChangesAgainstWorkingDirectory<T>(repository, toCommit.Tree)
+                : GetChangesBetweenTrees<T>(repository, fromCommit.Tree, toCommit.Tree);
         }
 
         private static T GetChangesAgainstWorkingDirectory<T>(

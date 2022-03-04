@@ -28,9 +28,9 @@ namespace Affected.Cli
                 .Select(n => n.ProjectInstance.FullPath);
         }
 
-        public IEnumerable<string> GetChangedLinesForFile(string directory, string pathToFile, string @from, string to)
+        public (string FromText, string ToText) GetTextFileContents(string directory, string pathToFile, string from, string to)
         {
-            throw new System.InvalidOperationException("--assume-changes should not try to use line changes");
+            throw new System.InvalidOperationException("--assume-changes should not try to access file contents");
         }
     }
 }

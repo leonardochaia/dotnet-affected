@@ -76,15 +76,20 @@ namespace Affected.Cli.Commands
         private IEnumerable<ProjectGraphNode> DetermineAffectedProjects()
         {
             // Find projects referencing NuGet packages that changed
-            var nodesReferencingNuGets = _graph.Value
+            var projectsAffectedByNugetPackages = _graph.Value
                 .FindNodesReferencingNuGetPackages(_changedNugetPackages.Value);
-            
-            // Find projects that depend on the changed projects + projects affected by nuget
-            var dependantProjects = _graph.Value
-                .FindNodesThatDependOn(_changedProjects.Value.Concat(nodesReferencingNuGets));
 
-            var output = dependantProjects
-                .Concat(nodesReferencingNuGets)
+            // Combine changed projects with projects affected by nuget changes
+            var changedAndNugetAffected = _changedProjects.Value
+                .Concat(projectsAffectedByNugetPackages)
+                .Deduplicate();
+
+            // Find projects that depend on the changed projects + projects affected by nuget
+            var projectsAffectedByChanges = _graph.Value
+                .FindNodesThatDependOn(changedAndNugetAffected);
+
+            var output = projectsAffectedByChanges
+                .Concat(projectsAffectedByNugetPackages)
                 .Deduplicate()
                 .ToArray();
 
@@ -98,6 +103,7 @@ namespace Affected.Cli.Commands
 
         private IEnumerable<string> DetermineChangedNugetPackages()
         {
+            // Try to find a Directory.Packages.props file in the list of changed files
             var packagePropsPath = _changedFiles.Value
                 .SingleOrDefault(f => f.EndsWith("Directory.Packages.props"));
 
@@ -106,19 +112,22 @@ namespace Affected.Cli.Commands
                 return Enumerable.Empty<string>();
             }
 
-            packagePropsPath = Path.GetRelativePath(_executionData.RepositoryPath, packagePropsPath);
+            // Get the contents of the file at from/to revisions
+            var (fromFile, toFile) = _changesProvider.Value
+                .GetTextFileContents(
+                    _executionData.RepositoryPath,
+                    packagePropsPath,
+                    _executionData.From,
+                    _executionData.To);
 
-            // Get all centrally managed NuGet packages that have changed
-            var lineChanges = _changesProvider.Value.GetChangedLinesForFile(
-                _executionData.RepositoryPath,
-                packagePropsPath,
-                _executionData.From,
-                _executionData.To);
+            // Parse props files into package and version dictionary
+            var fromPackages = NugetHelper.ParseDirectoryPackageProps(fromFile);
+            var toPackages = NugetHelper.ParseDirectoryPackageProps(toFile);
 
-            var changedNugetPackages = NugetHelper.ParseNugetPackagesFromLines(lineChanges)
-                .ToList();
+            // Compare both dictionaries
+            var packageDiff = NugetHelper.DiffPackageDictionaries(fromPackages, toPackages);
 
-            return changedNugetPackages;
+            return packageDiff.Select(k => k.Key);
         }
     }
 }
