@@ -8,7 +8,7 @@ namespace Affected.Cli
 {
     internal static class NugetHelper
     {
-        public static IDictionary<string, string> ParseDirectoryPackageProps(string propsFile)
+        public static IEnumerable<(string Package, string Version)> ParseDirectoryPackageProps(string propsFile)
         {
             Stream GenerateStreamFromString(string s)
             {
@@ -23,43 +23,63 @@ namespace Affected.Cli
             using var reader = new XmlTextReader(GenerateStreamFromString(propsFile));
             var project = new Project(reader);
 
-            var packageReferences = project.GetItems("PackageVersion");
-
-            return packageReferences
-                .ToDictionary(p => p.EvaluatedInclude,
-                    p => p.Metadata.SingleOrDefault(m => m.Name == "Version")!.EvaluatedValue);
+            return project.ItemsIgnoringCondition
+                .Where(i => i.ItemType == "PackageVersion")
+                .Select(i => (i.EvaluatedInclude,
+                    i.Metadata.SingleOrDefault(m => m.Name == "Version")!.EvaluatedValue));
         }
 
         public static IEnumerable<PackageChange> DiffPackageDictionaries(
-            IDictionary<string, string> fromPackages,
-            IDictionary<string, string> toPackages)
+            IEnumerable<(string Package, string Version)> fromPackages,
+            IEnumerable<(string Package, string Version)> toPackages)
         {
-            var output = new List<PackageChange>();
+            var output = new Dictionary<string, PackageChange>();
             foreach (var (key, currentVersion) in fromPackages)
             {
-                if (toPackages.ContainsKey(key))
+                var otherVersions = toPackages
+                    .Where(p => p.Package == key)
+                    .ToList();
+
+                PackageChange change;
+                change = !output.ContainsKey(key) ? new PackageChange(key) : output[key];
+
+                if (otherVersions.Any())
                 {
-                    var otherVersion = toPackages[key];
-                    if (otherVersion != currentVersion)
+                    if (otherVersions.Any(p => p.Version == currentVersion))
                     {
-                        // Updated packages
-                        output.Add(new PackageChange(key, otherVersion, currentVersion));
+                        continue;
                     }
+
+                    // Updated packages
+                    foreach (var other in otherVersions)
+                    {
+                        change.OldVersions.Add(other.Version);
+                    }
+
+                    change.NewVersions.Add(currentVersion);
+                    output[key] = change;
                 }
                 else
                 {
                     // New packages
-                    output.Add(new PackageChange(key, null, currentVersion));
+                    change.NewVersions.Add(currentVersion);
+                    output[key] = change;
                 }
             }
 
             // Deleted packages
-            foreach (var package in toPackages.Keys.Except(fromPackages.Keys))
+            foreach (var package in toPackages.Except(fromPackages))
             {
-                output.Add(new PackageChange(package, toPackages[package], null));
+                if (!output.ContainsKey(package.Package))
+                {
+                    output.Add(package.Package, new PackageChange(package.Package));
+                }
+
+                var change = output[package.Package];
+                change.OldVersions.Add(package.Version);
             }
 
-            return output;
+            return output.Values;
         }
     }
 }
