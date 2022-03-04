@@ -59,8 +59,9 @@ namespace Affected.Cli.Commands
             {
                 if (_data.Verbose)
                 {
-                    var view = new WithChangesAndAffectedView(_context.ChangedProjects, _context.AffectedProjects);
-                    _console.Append(view);
+                    var infoView = new AffectedInfoView(_context);
+
+                    _console.Append(infoView);
                 }
 
                 // TODO: OutputName & OutputDir
@@ -185,7 +186,7 @@ namespace Affected.Cli.Commands
                 this.SetDefaultValue(false);
             }
         }
-        
+
         private class OutputDirOption : Option<string>
         {
             public OutputDirOption()
@@ -198,7 +199,7 @@ namespace Affected.Cli.Commands
                                    "If relative, it's relative to the --repository-path";
             }
         }
-        
+
         private class OutputNameOption : Option<string>
         {
             public OutputNameOption()

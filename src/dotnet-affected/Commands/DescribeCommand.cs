@@ -27,7 +27,7 @@ namespace Affected.Cli.Commands
 
             public Task<int> InvokeAsync(InvocationContext ic)
             {
-                var view = new WithChangesAndAffectedView(_context.ChangedProjects, _context.AffectedProjects);
+                var view = new AffectedInfoView(_context);
                 _console.Append(view);
 
                 return Task.FromResult(0);

@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
 
@@ -14,7 +13,6 @@ namespace Affected.Cli.Commands
     internal class CommandExecutionContext : ICommandExecutionContext
     {
         private readonly CommandExecutionData _executionData;
-        private readonly IConsole _console;
         private readonly Lazy<IEnumerable<string>> _changedFiles;
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _changedProjects;
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _affectedProjects;
@@ -29,7 +27,6 @@ namespace Affected.Cli.Commands
             IProjectGraphRef graph)
         {
             _executionData = executionData;
-            _console = console;
             _changesProvider = changesProvider;
             _graph = graph;
 
@@ -73,9 +70,6 @@ namespace Affected.Cli.Commands
                 .FindNodesContainingFiles(filesWithChanges)
                 .ToList();
 
-            WriteLine($"Found {filesWithChanges.Count()} changed files" +
-                      $" inside {output.Count} projects.");
-
             return output;
         }
 
@@ -88,9 +82,6 @@ namespace Affected.Cli.Commands
             // Find projects that depend on the changed projects + projects affected by nuget
             var dependantProjects = _graph.Value
                 .FindNodesThatDependOn(_changedProjects.Value.Concat(nodesReferencingNuGets));
-
-            WriteLine($"Found {dependantProjects.Count()} affected by changed projects");
-            WriteLine($"Found {nodesReferencingNuGets.Count()} affected by changed NuGet packages");
 
             var output = dependantProjects
                 .Concat(nodesReferencingNuGets)
@@ -127,26 +118,7 @@ namespace Affected.Cli.Commands
             var changedNugetPackages = NugetHelper.ParseNugetPackagesFromLines(lineChanges)
                 .ToList();
 
-            WriteLine($"Found {changedNugetPackages.Count()} changed NuGet packages");
-
             return changedNugetPackages;
-        }
-
-        private void WriteLine(string? message = null)
-        {
-            if (!_executionData.Verbose)
-            {
-                return;
-            }
-
-            if (message == null)
-            {
-                _console.Out.WriteLine();
-            }
-            else
-            {
-                _console.Out.WriteLine(message);
-            }
         }
     }
 }
