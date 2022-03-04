@@ -79,7 +79,7 @@ jobs:
       if: success() && matrix.os == 'ubuntu-latest'
       with:
         name: artifacts
-        path: ./src/dotnet-affected/bin/Debug/net5.0/dotnet-affected/*
+        path: ./src/dotnet-affected/bin/Debug/net5.0/dotnet-affected
 
   release:
     needs: build
