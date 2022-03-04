@@ -89,7 +89,6 @@ namespace Affected.Cli.Commands
             var projectsAffectedByChanges = _graph.Value
                 .FindNodesThatDependOn(changedAndNugetAffected);
 
-            // Compose output
             var output = projectsAffectedByChanges
                 .Concat(projectsAffectedByNugetPackages)
                 .Deduplicate()

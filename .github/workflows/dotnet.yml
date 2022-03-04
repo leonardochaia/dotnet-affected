@@ -119,21 +119,21 @@ jobs:
         fi
 
     - uses: actions/download-artifact@master
-      if: success() && steps.affected.should_deploy == 'true'
+      if: success() && steps.affected.outputs.should_deploy == 'true'
       with:
         name: packages
         path: "."
 
     - name: Push to NuGet
-      if: success() && steps.affected.should_deploy == 'true'
+      if: success() && steps.affected.outputs.should_deploy == 'true'
       run: dotnet nuget push *.nupkg --skip-duplicate -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}}
 
     - uses: dotnet/nbgv@master
-      if: success() && steps.affected.should_deploy == 'true'
+      if: success() && steps.affected.outputs.should_deploy == 'true'
       id: nbgv
 
     - uses: "marvinpinto/action-automatic-releases@latest"
-      if: success() && steps.affected.should_deploy == 'true'
+      if: success() && steps.affected.outputs.should_deploy == 'true'
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "${{ steps.nbgv.outputs.SemVer2 }}"
