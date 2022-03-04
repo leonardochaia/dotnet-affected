@@ -7,7 +7,7 @@ namespace Affected.Cli.Views
     {
         public WithChangesAndAffectedView(ICommandExecutionContext context)
         {
-            if (!context.ChangedProjects.Any())
+            if (!context.ChangedProjects.Any() && !context.AffectedProjects.Any())
             {
                 Add(new NoChangesView());
                 return;

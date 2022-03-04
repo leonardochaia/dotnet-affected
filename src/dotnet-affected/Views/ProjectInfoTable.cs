@@ -8,7 +8,7 @@ namespace Affected.Cli.Views
     {
         public ProjectInfoTable(IEnumerable<IProjectInfo> projectInfos)
         {
-            this.Items = projectInfos.ToList();
+            this.Items = projectInfos.OrderBy(x => x.Name).ToList();
             this.AddColumn(p => p.Name, "Name");
             this.AddColumn(p => p.FilePath, "Path");
         }
