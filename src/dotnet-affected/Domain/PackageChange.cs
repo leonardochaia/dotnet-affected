@@ -22,12 +22,12 @@ namespace Affected.Cli
         public string Name { get; }
 
         /// <summary>
-        /// Gets or set the old version.
+        /// Gets or set the old versions.
         /// </summary>
         public ICollection<string> OldVersions { get; } = new HashSet<string>();
 
         /// <summary>
-        /// Gets or sets the new version.
+        /// Gets or sets the new versions.
         /// </summary>
         public ICollection<string> NewVersions { get; } = new HashSet<string>();
     }
