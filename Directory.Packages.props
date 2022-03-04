@@ -14,6 +14,7 @@
         <PackageVersion Include="System.CommandLine.Rendering" Version="0.4.0-alpha.22114.1" />
         <PackageVersion Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta3.22114.1" />
         <PackageVersion Include="LibGit2Sharp" Version="0.27.0-preview-0175" />
+        <PackageVersion Include="Nerdbank.GitVersioning" Version="3.4.255" />
 
         <PackageVersion Include="Microsoft.Win32.Registry" Version="6.0.0-preview.5.21301.5" />
         <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
