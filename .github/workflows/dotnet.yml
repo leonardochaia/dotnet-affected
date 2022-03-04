@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
     env:
       # https://www.donovanbrown.com/post/Stop-wasting-time-during-NET-Core-builds
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
@@ -79,7 +79,7 @@ jobs:
       if: success() && matrix.os == 'ubuntu-latest'
       with:
         name: artifacts
-        path: ./src/dotnet-affected/bin/Debug/net5.0/dotnet-affected
+        path: src/dotnet-affected/bin/Debug/net5.0/dotnet-affected/
 
   release:
     needs: build
