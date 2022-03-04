@@ -19,7 +19,7 @@ namespace Affected.Cli
             this CommandLineBuilder builder,
             IDictionary<Type, RenderingErrorConfig> configs)
         {
-            return builder.UseMiddleware(async (context, next) =>
+            return builder.AddMiddleware(async (context, next) =>
             {
                 try
                 {

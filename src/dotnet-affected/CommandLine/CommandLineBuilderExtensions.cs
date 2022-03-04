@@ -2,6 +2,7 @@
 using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 
 namespace Affected.Cli
 {
@@ -20,12 +21,12 @@ namespace Affected.Cli
         /// <returns></returns>
         public static CommandLineBuilder UseCommandHandler<TCommand, THandler>(
             this CommandLineBuilder builder)
-            where TCommand : ICommand
+            where TCommand : Command
             where THandler : ICommandHandler
         {
             var commandType = typeof(TCommand);
             var handlerType = typeof(THandler);
-            return builder.UseMiddleware(invocation =>
+            return builder.AddMiddleware(invocation =>
             {
                 // Only when we are invoking this command.
                 if (invocation.ParseResult.CommandResult.Command is not Command command
@@ -57,7 +58,7 @@ namespace Affected.Cli
             this CommandLineBuilder builder,
             StartupData data)
         {
-            return builder.UseMiddleware(invocation =>
+            return builder.AddMiddleware(invocation =>
             {
                 // Register contextual stuff.
                 var services = data.ServiceCollection;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.CommandLine.Rendering;
 using System.Linq;
 using System.Threading.Tasks;
@@ -150,10 +151,9 @@ namespace Affected.Cli.Commands
                 {
                     if (optionResult.FindResultFor(fromOption) is null)
                     {
-                        return $"{fromOption.Aliases.First()} is required when using {this.Aliases.First()}";
+                        optionResult.ErrorMessage =
+                            $"{fromOption.Aliases.First()} is required when using {this.Aliases.First()}";
                     }
-
-                    return null;
                 });
             }
         }
@@ -171,6 +171,7 @@ namespace Affected.Cli.Commands
                 {
                     "traversal"
                 });
+                this.AllowMultipleArgumentsPerToken = true;
             }
         }
 
