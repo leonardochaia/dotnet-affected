@@ -35,6 +35,7 @@
         <PackageReference Include="System.CommandLine.Rendering" />
         <PackageReference Include="System.CommandLine.NamingConventionBinder" />
         <PackageReference Include="LibGit2Sharp" />
+        <PackageReference Include="MinVer" PrivateAssets="All"/>
     </ItemGroup>
 
     <ItemGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true'">

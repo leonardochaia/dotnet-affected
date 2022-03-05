@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - 'main'
-      - 'v**'
+    tags:
+        - 'v*'
   pull_request:
     branches: [ main ]
 
@@ -84,13 +85,14 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: success() && github.ref == 'refs/heads/main'
+    if: success() && startsWith(github.ref, 'refs/tags/v')
     steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
 
     - uses: nrwl/last-successful-commit-action@v1
+      name: Build Commit Range
       id: last_successful_commit
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -98,6 +100,7 @@ jobs:
         workflow_id: 'dotnet.yml'
 
     - uses: actions/download-artifact@master
+      name: Download build artifacts
       with:
         name: artifacts
         path: "."
@@ -114,11 +117,14 @@ jobs:
 
         if [ "$?" -eq 0 ]; then
             echo "::set-output name=should_deploy::true"
+            echo "Affected projects detected. Will deploy"
         else
             echo "::set-output name=should_deploy::false"                        
-        fi
+            echo "No affected projects detected."
+          fi
 
     - uses: actions/download-artifact@master
+      name: Download Package Artifact
       if: success() && steps.affected.outputs.should_deploy == 'true'
       with:
         name: packages
@@ -127,18 +133,3 @@ jobs:
     - name: Push to NuGet
       if: success() && steps.affected.outputs.should_deploy == 'true'
       run: dotnet nuget push *.nupkg --skip-duplicate -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}}
-
-    - uses: dotnet/nbgv@master
-      if: success() && steps.affected.outputs.should_deploy == 'true'
-      id: nbgv
-
-    - uses: "marvinpinto/action-automatic-releases@latest"
-      if: success() && steps.affected.outputs.should_deploy == 'true'
-      with:
-        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: "${{ steps.nbgv.outputs.SemVer2 }}"
-        prerelease: "${{ github.ref == 'refs/heads/main'}}"
-        title: "${{ steps.nbgv.outputs.SemVer2 }}"
-        files: |
-            LICENSE.txt
-            *.nupkg
