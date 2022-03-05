@@ -1,52 +1,74 @@
 # dotnet-affected
 
-A .NET Tool for determining which projects are affected by a set of changes.
+A .NET Tool for determining which projects are affected by a set of changes. This tool is particularly useful for large
+projects or mono-repositories.
 
-The tool can output the affected project list for informative purposes, or
-it can generate an [MSBuild Traversal SDK](https://github.com/microsoft/MSBuildSdks/tree/main/src/Traversal)
-file which you can then use to build and test what is affected only.
+## Features
 
-This tool is particularly useful for large projects or monorepos.
-Ideally one would use Bazel to do this. However, integrating Bazel with an existing
-solution may be an extensive task.
+dotnet-affected works by comparing two versions of your code, usually by a commit range in CI, or HEAD against your
+current working directory.
 
-dotnet-affected integrates seamlessly with your existing build system.
-It uses `git diff` to determine which projects have changed.
-Then, it uses MSBuild to build a graph of all your projects and its dependencies.
-We can then determine which projects are affected by the changes that `git diff` gave us.
+1. Detects which MSBuild Projects have changed based on the files that changed.
+2. When using Central Package Management, detects which NuGet Packages have changed.
+3. Detects which projects are affected by projects or packages that have changed.
+4. Outputs a [MSBuild Traversal SDK](https://github.com/microsoft/MSBuildSdks/tree/main/src/Traversal) Project that can
+   be used to `dotnet build` and `test` which projects where changed/affected.
+5. Outputs a text file which can be used to deploy only what's needed.
+
+## How it works
+
+dotnet-affected discovers all `*.csproj` and uses MSBuild to builds a `ProjectGraph` of all projects and which projects
+they depend on.
+
+Then `git diff` is ran, to determine which files have changed. These files are then mapped to which project they belong
+to, and we get a list of which projects have any changes.
+
+dotnet-affected will also detect changes to `Directory.Packages.props` and determine which NuGet packages have been
+added/deleted/updated.
+
+With the changed projects, and changed NuGet Packages, it uses the `ProjectGraph` to find which projects are affected by
+those changes.
 
 For example, given this project structure:
 
-1. Project.Shared
-2. Project (depends on .1)
-3. Project.Tests (depends on .2)
-4. Shared.Tests (depends on .1)
+1. Inventory.Shared
+2. Inventory (depends on .1)
+3. Inventory.Tests (depends on .2)
+4. Inventory.Shared.Tests (depends on .1)
 
-When .2 changes, .3 will be affected so we will build and test .2 and .3.
-There's no need to build and test .4 since .1 has not changed.
+When .2 changes, .3 will be affected so we will build and test .2 and .3. There's no need to build and test .4 since .1
+has not changed.
+
+When 1. changes, everything needs to be built/test, since, transitively, they all depend on .1.
 
 ## Caveats
 
-1. It currently works for .csproj only, however, changing to support \*proj should be trivial
-1. SDK projects only. Previous csproj format is not supported.
+1. Detects `.csproj` only. Supporting other SDK projects will be
+   implemented. [#16](https://github.com/leonardochaia/dotnet-affected/issues/16)
+2. SDK projects only. Supporting non-SDK projects will be
+   implemented. [#15](https://github.com/leonardochaia/dotnet-affected/issues/15)
+3. `.props` files and other "global" files that may affect projects are not being detected.
 
 ## Installation
 
 The tool can be installed using `dotnet install`:
 
-```bash
-dotnet tool install --global dotnet-affected --version 2.1.0
+```shell
+dotnet tool install dotnet-affected
 ```
+
+It can also be installed globally with the `--global` flag but installing using local tools is recommended so all devs
+share the same version, and so you share the same version in CI as well.
 
 You can then run the tool using `dotnet affected` in the root of your repository.
 
 ```text
 $ dotnet affected --help
-affected
+Description:
   Determines which projects are affected by a set of changes.
 
 Usage:
-  affected [options] [command]
+  affected [command] [options]
 
 Options:
   -p, --repository-path <repository-path>  Path to the root of the repository, where the .git directory is.
@@ -70,105 +92,167 @@ Commands:
   describe  Prints the current changed and affected projects.
 ```
 
-## Examples
+## Locating Git Repository
 
-### Project Discovery
+dotnet-affected needs the path to your Git repository (where the `.git` folder is) so it can run `git diff`. By default,
+dotnet-affected will attempt to interpret the current working directory as a git repository.
 
-By default, projects are discovered from from the filesystem, by recursively searching
-the current working directory.
+This can be customized using `--repository-path`, shorthand `-p`.
 
-When using `--repository-path`, projects will be discovered from that path.
+Locally, it's recommended to run the tool at the repository root to simplify things. In CI, you usually provide the
+working directory that your CI provider gives you in an environment variable.
 
-One can narrow down which projects should be considered by the tool by providing
-a Solution file using the `--solution-file` arg. When doing so, only the projects
-included in the Solution will be considered for changes.
+## Project Discovery
 
-For example, when using a Solution file, if changes are made to projects not referenced
-by the Solution file, those changes will be ignored by the dotnet affected
-and it will assume nothing has changed.
+By default, projects are discovered by recursively searching the `--repository-path`, or current working directory if
+not specified.
 
-Note that, if your Solution file is not at the root of your Git Repository (where the `.git` directory is),
-you still need to specify `--repository-path`.
+This is quite useful for projects that do not have Solution Files and are using something
+like [SlnGen](https://microsoft.github.io/slngen/)
+to generate solutions.
 
-For example:
+However, when you do have a Solution File, the `--solution-file` can be used to discover projects from the Solution
+instead. This can also be used to filter down which projects the tool discovers, if you don't want to discover all
+present in file system.
 
-```bash
-dotnet affected --repository-path /home/lchaia/monorepo --solution-path /home/lchaia/monorepo/directory/MySolution.sln
+When using `--solution-file`, only the projects included in the Solution will be considered for changes.
+
+For example, if changes are made to projects that are not referenced by the Solution file, those changes will be ignored
+and dotnet-affected will output that nothing.
+
+Note that, if your Solution file is not at the root of your Git Repository (where the `.git` directory is), you still
+need to specify `--repository-path`. For example:
+
+```shell
+dotnet affected --repository-path /home/lchaia/monorepo --solution-path /home/lchaia/monorepo/my-big-project/MyBigProjectSolution.sln
 ```
 
-### Build only affected projects
+## Build/test affected projects
 
-In order to build only what is affected, the tool outputs an
-MSBuild Traversal project that can can then be used with `dotnet build`.
+In order to build only what is affected, the tool outputs an MSBuild Traversal project that can can then be feed
+to  `dotnet build`.
 
-For example, the below command outputs `affected.proj` at the current directory.
+For example, the below command outputs `affected.proj` at the current directory, by comparing your changes against the
+current HEAD.
 
 ```text
 $ dotnet affected --verbose
+Discovering projects from /home/lchaia/dev/dotnet-affected
 Building Dependency Graph
-Built Graph with 6 Projects in 0.36s
-Found 2 changed files inside 1 projects.
+Built Graph with 8 Projects in 0.31s
+1 files have changed inside 1 projects
+0 NuGet Packages have changed
+1 projects are affected by these changes
+Changed Projects
+Name  Path                                                                       
+      /home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj
+                 
+Affected Projects
+Name                   Path                                                                                   
+dotnet-affected.Tests  /home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj
 WRITE: /home/lchaia/dev/dotnet-affected/affected.proj
 ```
 
 The contents of `affected.proj` are:
 
 ```xml
+
 <Project Sdk="Microsoft.Build.Traversal/3.0.3">
-  <ItemGroup>
-    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj" />
-    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference
+            Include="/home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj"/>
+        <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj"/>
+    </ItemGroup>
 </Project>
 ```
 
-You can then use `dotnet test` (or any other dotnet commands) against the resulting `affected.proj` file:
+You can then use `dotnet test` (or any other `dotnet` commands) against the resulting `affected.proj` file:
 
-```bash
+```shell
 dotnet test affected.proj
 ```
 
-### Output Formatting
+## Affected projects between commit ranges
 
-dotnet-affected currently supports outputting Traversal SDK project files
-and plain text list of changed and affected projects.
+By default, dotnet-affected will compare changes between your working directory against the current HEAD. This can be
+changed by providing the `--from` and `--to` parameters. Commit sha or branch names can be used.
+
+Examples:
+
+```shell
+# Compares HEAD against working directory
+dotnet affected
+
+# Compares HEAD against branch chore/target-net7
+dotnet affected --from chore/target-net7
+
+# Compares main against branch chore/target-net7
+dotnet affected --from chore/target-net7 --to main
+```
+
+## Output Formatting
+
+dotnet-affected currently supports outputting Traversal SDK project files and plain text list of changed and affected
+projects. The `--format` option can be used to choose which format to output.
 
 ```text
-dotnet affected --dry-run --format text
-DRY-RUN: WRITE /home/lchaia/dev/dotnet-affected/affected.txt
-DRY-RUN: CONTENTS:
+$ dotnet affected -v --format text
+Discovering projects from /home/lchaia/dev/dotnet-affected
+Building Dependency Graph
+Built Graph with 8 Projects in 0.31s
+1 files have changed inside 1 projects
+0 NuGet Packages have changed
+1 projects are affected by these changes
+Changed Projects
+Name  Path                                                                       
+      /home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj
+                 
+Affected Projects
+Name                   Path                                                                                   
+dotnet-affected.Tests  /home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj
+WRITE: /home/lchaia/dev/dotnet-affected/affected.txt
+```
+
+```text
+$ cat affected.txt                                                                                                                                         ✔ 
 /home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj
 /home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj
 ```
 
-Multiple formats can be outputted at the same time by space separating them:
+## Multiple Output Formats
+
+Multiple formats can be generated at the same time by separating them with spaces. This is quite useful in CI to
+build/test and also get the list of projects to deploy.
 
 ```text
-dotnet affected --dry-run --format text traversal
-DRY-RUN: WRITE /home/lchaia/dev/dotnet-affected/affected.txt
-DRY-RUN: CONTENTS:
-/home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj
-/home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj
-
-DRY-RUN: WRITE /home/lchaia/dev/dotnet-affected/affected.proj
-DRY-RUN: CONTENTS:
-<Project Sdk="Microsoft.Build.Traversal/3.0.3">
-  <ItemGroup>
-    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj" />
-    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj" />
-  </ItemGroup>
-</Project>
+$ dotnet affected -v --format text traversal
+Discovering projects from /home/lchaia/dev/dotnet-affected
+Building Dependency Graph
+Built Graph with 8 Projects in 0.39s
+1 files have changed inside 1 projects
+0 NuGet Packages have changed
+1 projects are affected by these changes
+Changed Projects
+Name  Path                                                                       
+      /home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj
+                 
+Affected Projects
+Name                   Path                                                                                   
+dotnet-affected.Tests  /home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj
+WRITE: /home/lchaia/dev/dotnet-affected/affected.txt
+WRITE: /home/lchaia/dev/dotnet-affected/affected.proj
 ```
 
-### Continuos Integration
+## Continuous Integration
 
-For usage in CI, it's recommended to use the `--from` and `--to` options, which allows
-you to provide commit hashes or branch names to `git diff`. This is used in combination
-with the environment variables provided by your build tool.
+For usage in CI, it's recommended to use the `--from` and `--to` options with the environment variables provided by your
+build tool.
 
-For example, for building a main branch one may use a setup similar to this:
+### Building branches/tags
 
-```bash
+For example, for building a branch a setup like this could be used:
+
+```shell
 # Replace env vars with what your CI system gives you
 dotnet affected \
     --from $LAST_SUCCESSFUL_BUILD_COMMIT \
@@ -176,79 +260,93 @@ dotnet affected \
 dotnet test affected.proj
 ```
 
-For building PRs, something like this perhaps:
+It's important to note that CI system triggers a build per push, not per commit. Which means a set of commits may be
+built, instead of just one. There is also the case where the previous build/s have failed, so we need to build from the
+latest commit that has a successful build.
 
-```bash
-dotnet affected generate --from $GIT_BRANCH --to origin/main
+There's an in-depth explanation of the problem in
+[nrwl/last-successful-commit-action](https://github.com/nrwl/last-successful-commit-action#problem)
+
+For GitHub Actions, you can see a complete example in
+dotnet-affected [release pipeline](https://github.com/leonardochaia/dotnet-affected/blob/8b70e6a33789a7b920237c3196b6a36b4f25e1c9/.github/workflows/dotnet.yml#L85-L135)
+
+### Building Pull Requests
+
+For building PRs, we need to provide the target branch and the PR branch/commit.
+
+For example, in GitHub Actions:
+
+```shell
+dotnet affected generate --from GITHUB_BASE_REF --to GITHUB_HEAD_REF
 dotnet test affected.proj
 ```
 
-It's important to note that CI system usually triggers a build per push, not per commit.
-Which means a set of commits may be built, instead of just one.
-So keep that in mind, you may need something like "the commit of the latest successful build for this branch".
+## Don't build/test/deploy when no projects have changed
 
-Or just use `--to` and `--from` with branch names, which will compare the two branches.
+If nothing has changed, or the changes are not related to any of the discovered projects, there is no need to
+run `dotnet test`.
 
-### Detecting when nothing has changed
+In order to detect this, dotnet affected will exit with an exit status code `166`. You can use this to prevent spending
+time on unnecessary tasks when nothing has changed.
 
-If nothing has changed, or the changes are not related to any of the discovered projects,
-there is no need to run `dotnet test`.
+Note that dotnet affected returns `166` when nothing has changed, not to be confused when nothing is affected. If
+projects have changed, but nothing is affected by those changes, we still need to build those that changed.
 
-In order to detect this, dotnet affected will exit with an exit status code `166`.
-You can use this to prevent spending time on unnecessary tasks when nothing has changed.
-
-Note that dotnet affected returns `166` when nothing has changed, not to be confused when nothing is affected.
-If projects have changed, but nothing is affected by those changes, we still need to build those that changed.
-
-```bash
+```shell
 dotnet affected # [..] other args
 if [ "$?" -eq 0 ]; then
     dotnet build affected.proj
 fi
 ```
 
-### Which projects do I need to re deploy
+For GitHub Actions, you can see an example in
+dotnet-affected [release pipeline](https://github.com/leonardochaia/dotnet-affected/blob/8b70e6a33789a7b920237c3196b6a36b4f25e1c9/.github/workflows/dotnet.yml#L108-L131)
 
-In order to determine what projects need to be deployed since our previous release,
-we can use dotnet-affected to determine which projects were affected from the previous
-release to the current one.
+## Which projects do I need to re deploy
 
-```bash
+In order to determine what projects need to be deployed since our previous release, we can use dotnet-affected to
+determine which projects were affected from the previous release to the current one.
+
+```shell
 dotnet affected --from releases/v1.0.0 --to releases/v2.0.0
 ```
 
-Of course this assumes that your .NET dependencies also represent system's dependencies.
-For example, if your systems communicate through HTTP and you don't share any assemblies between them,
-this won't work.
-But, if your systems share a common assembly with data transfer objects, or auto-generated HttpClients
-for example, this works wonderful.
+Of course this assumes that your .NET dependencies also represent system's dependencies. For example, if your systems
+communicate through HTTP and you don't share any assemblies between them, this won't work. But, if your systems share a
+common assembly with data transfer objects, or auto-generated HttpClients for example, this works wonderful.
 
-### Describe Command
+## Describe Command
 
-dotnet-affected includes a `describe` command that outputs to stdout in a readable fashion
-which projects have changed and which projects are affected by those changes.
+dotnet-affected includes a `describe` command that outputs to stdout in a readable fashion which projects have changed
+and which projects are affected by those changes.
 
-```dotnet affected describe
-Files inside these projects have changed:
-    dotnet-affected
-These projects are affected by those changes:
-    dotnet-affected.Tests
+```text
+$ dotnet affected describe
+1 files have changed inside 1 projects
+0 NuGet Packages have changed
+1 projects are affected by these changes
+Changed Projects
+Name  Path                                                                       
+      /home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj
+                 
+Affected Projects
+Name                   Path                                                                                   
+dotnet-affected.Tests  /home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj
 ```
 
-### Troubleshooting
+## Troubleshooting
 
-Some useful commands and flags are included for troubleshooting or just
-observing what would be affected by a small change to a system.
+Some useful commands and flags are included for troubleshooting or just observing what would be affected by a small
+change to a system.
 
-#### Dry Running
+### Dry Running
 
 Sometimes it is useful to see what the tool would do under certain situation.
 
-When adding the `--dry-run` flag, dotnet-affected will write to stdout
-instead of generating output files.
+When adding the `--dry-run` flag, dotnet-affected will write to stdout instead of generating output files.
 
 ```text
-dotnet affected --dry-run
+$ dotnet affected --dry-run
 DRY-RUN: WRITE /home/lchaia/dev/dotnet-affected/affected.proj
 DRY-RUN: CONTENTS:
 <Project Sdk="Microsoft.Build.Traversal/3.0.3">
@@ -259,14 +357,13 @@ DRY-RUN: CONTENTS:
 </Project>
 ```
 
-#### Assume Changes
+### Assume Changes
 
-You can also use `--assume-changes some-project-name` in order to fake changes
-being made to a certain project. This let's you see what would be affected
-if that project changed.
+You can also use `--assume-changes some-project-name` in order to fake changes being made to a certain project. This
+let's you see what would be affected if that project changed.
 
 ```text
-dotnet-affected --dry-run --assume-changes dotnet-affected.Tests
+$ dotnet-affected --dry-run --assume-changes dotnet-affected.Tests
 DRY-RUN: WRITE /home/lchaia/dev/dotnet-affected/affected.proj
 DRY-RUN: CONTENTS:
 <Project Sdk="Microsoft.Build.Traversal/3.0.3">
@@ -282,33 +379,38 @@ We accept PRs! Feel free to file issues if you encounter any problem.
 
 If you wanna build the solution, these are the steps:
 
-Note: our build infra supports UNIX only, that being said,
-if you install the proper SDK and just build the solution it should work
+Note: Windows users, you can either use WSL or GitBash, or use PowerShell replacing `.sh` scripts with `.ps1`
 
-First run this script to locally install the proper version of the .NET SDK we are using.
-This won't affect other .NET projects that you have.
+### Installing the SDK
 
-```bash
+First run this script to locally install the proper versions of the .NET SDKs we are using. This won't affect other .NET
+projects that you have.
+
+```shell
 ./eng/install-sdk.sh
 ```
 
-It will install the SDK at `eng/.dotnet`.
+It will install the SDKs at `eng/.dotnet`.
+
+### Activating your console
 
 Before running any `dotnet` commands, you need to activate the SDK by running:
 
-```bash
-source ./eng/activate.sh
+```shell
+. ./eng/activate.sh
 ```
+
+If you run `dotnet --info` you should see all SDK installed.
 
 You can then build using.
 
-```bash
+```shell
 dotnet build
 ```
 
 Or open your favorite ide through the activated command line and it will use the locally installed .NET
 
-```bash
+```shell
 source ./eng/activate.sh
 rider Affected.sln
 ```
