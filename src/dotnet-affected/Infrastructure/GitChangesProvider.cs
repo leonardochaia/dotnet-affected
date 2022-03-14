@@ -17,7 +17,7 @@ namespace Affected.Cli
             return TreeChangesToPaths(changes, directory);
         }
 
-        public (string FromText, string ToText) GetTextFileContents(
+        public (string? FromText, string? ToText) GetTextFileContents(
             string directory,
             string pathToFile,
             string from,
@@ -31,17 +31,28 @@ namespace Affected.Cli
 
             // Read file from commit or working directory
             var fromText = fromCommit is null
-                ? File.ReadAllText(Path.Combine(directory, pathToFile))
-                : ReadTextFile(pathToFile, fromCommit);
+                ? ReadTextFileFromWorkingDirectory(directory, pathToFile)
+                : ReadTextFileFromCommit(pathToFile, fromCommit);
 
-            var toText = ReadTextFile(pathToFile, toCommit);
+            var toText = ReadTextFileFromCommit(pathToFile, toCommit);
 
             return (fromText, toText);
         }
 
-        private static string ReadTextFile(string pathToFile, Commit commit)
+        private static string? ReadTextFileFromWorkingDirectory(string directory, string pathToFile)
         {
-            var blob = (Blob)commit[pathToFile].Target;
+            var path = Path.Combine(directory, pathToFile);
+            if (!File.Exists(path)) return null;
+            
+            return File.ReadAllText(path);
+        }
+
+        private static string? ReadTextFileFromCommit(string pathToFile, Commit commit)
+        {
+            var treeEntry = commit[pathToFile];
+            if (treeEntry == null) return null;
+            
+            var blob = (Blob)treeEntry.Target;
 
             using var content = new StreamReader(blob.GetContentStream(), Encoding.UTF8);
             return content.ReadToEnd();

@@ -8,8 +8,10 @@ namespace Affected.Cli
 {
     internal static class NugetHelper
     {
-        public static IEnumerable<(string Package, string Version)> ParseDirectoryPackageProps(string propsFile)
+        public static IEnumerable<(string Package, string Version)> ParseDirectoryPackageProps(string? propsFile)
         {
+            if (propsFile == null) return Enumerable.Empty<(string, string)>();
+            
             Stream GenerateStreamFromString(string s)
             {
                 var stream = new MemoryStream();

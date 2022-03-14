@@ -40,6 +40,13 @@ namespace Affected.Cli.Tests
             return project;
         }
         
+        public static void RemoveDirectoryPackageProps(
+            this TemporaryRepository repo)
+        {
+            var path = Path.Combine(repo.Path, "Directory.Packages.props");
+            File.Delete(path);
+        }
+        
         public static ProjectRootElement UpdateDirectoryPackageProps(
             this TemporaryRepository repo,
             Action<ProjectRootElement> customizer)
