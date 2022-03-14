@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/build.yml
+    with:
+      os_matrix: "[\"ubuntu-latest\"]"
 
   release:
     needs: build
@@ -22,7 +24,7 @@ jobs:
       id: last_successful_commit
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: ${{ env.GITHUB_REF_NAME }}
+        branch: ${{ github.ref_name }}
         workflow_id: 'release.yml'
 
     - uses: actions/download-artifact@v3
@@ -38,16 +40,21 @@ jobs:
         chmod +x ./dotnet-affected
         ./dotnet-affected -p $GITHUB_WORKSPACE -v \
             --from ${{ steps.last_successful_commit.outputs.commit_hash }} \
-            --to $GITHUB_SHA \
+            --to ${{ github.sha }} \
             --format text
 
-        if [ "$?" -eq 0 ]; then
+        exitCode=$?
+
+        if [ $exitCode -eq 0 ]; then
             echo "::set-output name=should_deploy::true"
             echo "Affected projects detected. Will deploy"
-        else
+        elif [ $exitCode -eq 166 ]; then
             echo "::set-output name=should_deploy::false"                        
             echo "No affected projects detected."
-          fi
+        else
+            echo "Failed to run dotnet affected"
+            exit $exitCode
+        fi
 
     - uses: actions/download-artifact@master
       name: Download Package Artifact
