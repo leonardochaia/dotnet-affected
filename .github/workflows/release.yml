@@ -1,0 +1,61 @@
+name: Release NuGet Package
+
+on:
+  push:
+    tags:
+        - 'v*'
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - uses: nrwl/last-successful-commit-action@v1
+      name: Build Commit Range
+      id: last_successful_commit
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ env.GITHUB_REF_NAME }}
+        workflow_id: 'release.yml'
+
+    - uses: actions/download-artifact@v3
+      name: Download build artifacts
+      with:
+        name: artifacts
+        path: "."
+
+    - name: Detect Affected
+      id: affected
+      run: |
+        set +e
+        chmod +x ./dotnet-affected
+        ./dotnet-affected -p $GITHUB_WORKSPACE -v \
+            --from ${{ steps.last_successful_commit.outputs.commit_hash }} \
+            --to $GITHUB_SHA \
+            --format text
+
+        if [ "$?" -eq 0 ]; then
+            echo "::set-output name=should_deploy::true"
+            echo "Affected projects detected. Will deploy"
+        else
+            echo "::set-output name=should_deploy::false"                        
+            echo "No affected projects detected."
+          fi
+
+    - uses: actions/download-artifact@master
+      name: Download Package Artifact
+      if: success() && steps.affected.outputs.should_deploy == 'true'
+      with:
+        name: packages
+        path: "."
+
+    - name: Push to NuGet
+      if: success() && steps.affected.outputs.should_deploy == 'true'
+      run: dotnet nuget push *.nupkg --skip-duplicate -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}}
