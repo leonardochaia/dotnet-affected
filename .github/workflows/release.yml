@@ -4,6 +4,13 @@ on:
   push:
     tags:
         - 'v*'
+  workflow_dispatch:
+    inputs:
+      skip_affected:
+        description: 'Whether to skip detecting if anything is affected or not'
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   build:
@@ -35,6 +42,7 @@ jobs:
 
     - name: Detect Affected
       id: affected
+      if: success() && !github.event.inputs.skip_affected
       run: |
         set +e
         chmod +x ./dotnet-affected
@@ -58,11 +66,11 @@ jobs:
 
     - uses: actions/download-artifact@master
       name: Download Package Artifact
-      if: success() && steps.affected.outputs.should_deploy == 'true'
+      if: success() && (steps.affected.outputs.should_deploy == 'true' || github.event.inputs.skip_affected)
       with:
         name: packages
         path: "."
 
     - name: Push to NuGet
-      if: success() && steps.affected.outputs.should_deploy == 'true'
+      if: success() && (steps.affected.outputs.should_deploy == 'true' || github.event.inputs.skip_affected)
       run: dotnet nuget push *.nupkg --skip-duplicate -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}}
