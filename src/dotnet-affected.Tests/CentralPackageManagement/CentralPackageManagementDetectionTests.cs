@@ -208,5 +208,60 @@ namespace Affected.Cli.Tests
             Assert.Equal(2, Context.ChangedNuGetPackages.Count());
             Assert.Single(Context.AffectedProjects);
         }
+        
+        [Fact]
+        public void When_directory_packages_props_is_added_dependant_projects_should_be_affected()
+        {
+            var packageName = "Some.Library";
+            
+            // Create a project with a nuget dependency
+            var projectName = "InventoryManagement";
+            var msBuildProject = Repository.CreateCsProject(
+                projectName,
+                b => b.AddNuGetDependency(packageName));
+
+            // Commit so there are no changes
+            Repository.StageAndCommit();
+
+            // Create a Directory.Package.props
+            Repository.CreateDirectoryPackageProps(
+                b => b.AddPackageVersion(packageName, "1.0.0"));
+
+            Assert.Single(Context.ChangedFiles);
+            Assert.Single(Context.ChangedNuGetPackages);
+            Assert.Single(Context.AffectedProjects);
+
+            var projectInfo = Context.AffectedProjects.Single();
+            Assert.Equal(projectName, projectInfo.Name);
+            Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
+        }
+        
+        [Fact]
+        public void When_directory_packages_props_is_removed_dependant_projects_should_be_affected()
+        {
+            var packageName = "Some.Library";
+            // Create a Directory.Package.props
+            Repository.CreateDirectoryPackageProps(
+                b => b.AddPackageVersion(packageName, "1.0.0"));
+            
+            // Create a project with a nuget dependency
+            var projectName = "InventoryManagement";
+            var msBuildProject = Repository.CreateCsProject(
+                projectName,
+                b => b.AddNuGetDependency(packageName));
+
+            // Commit so there are no changes
+            Repository.StageAndCommit();
+
+            Repository.RemoveDirectoryPackageProps();
+            
+            Assert.Single(Context.ChangedFiles);
+            Assert.Single(Context.ChangedNuGetPackages);
+            Assert.Single(Context.AffectedProjects);
+
+            var projectInfo = Context.AffectedProjects.Single();
+            Assert.Equal(projectName, projectInfo.Name);
+            Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
+        }
     }
 }

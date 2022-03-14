@@ -41,13 +41,6 @@
             "environmentVariables": {
                 "DOTNET_ENVIRONMENT": "Development"
             }
-        },
-        "OSI": {
-            "commandName": "Project",
-            "commandLineArgs": "-v -p C:\\Projects\\OneSalesInterface --solution-path C:\\Projects\\OneSalesInterface\\OneSalesInterface.sln --from origin/develop --output-dir C:\\Projects\\OneSalesInterface\\ --output-name changed",
-            "environmentVariables": {
-                "DOTNET_ENVIRONMENT": "Development"
-            }
         }
     }
 }
