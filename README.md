@@ -130,7 +130,7 @@ dotnet affected --repository-path /home/lchaia/monorepo --solution-path /home/lc
 ## Build/test affected projects
 
 In order to build only what is affected, the tool outputs an MSBuild Traversal project that can can then be feed
-to  `dotnet build`.
+to `dotnet build`.
 
 For example, the below command outputs `affected.proj` at the current directory, by comparing your changes against the
 current HEAD.
@@ -144,11 +144,11 @@ Built Graph with 8 Projects in 0.31s
 0 NuGet Packages have changed
 1 projects are affected by these changes
 Changed Projects
-Name  Path                                                                       
+Name  Path
       /home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj
-                 
+
 Affected Projects
-Name                   Path                                                                                   
+Name                   Path
 dotnet-affected.Tests  /home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj
 WRITE: /home/lchaia/dev/dotnet-affected/affected.proj
 ```
@@ -204,17 +204,17 @@ Built Graph with 8 Projects in 0.31s
 0 NuGet Packages have changed
 1 projects are affected by these changes
 Changed Projects
-Name  Path                                                                       
+Name  Path
       /home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj
-                 
+
 Affected Projects
-Name                   Path                                                                                   
+Name                   Path
 dotnet-affected.Tests  /home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj
 WRITE: /home/lchaia/dev/dotnet-affected/affected.txt
 ```
 
 ```text
-$ cat affected.txt                                                                                                                                         ✔ 
+$ cat affected.txt                                                                                                                                         ✔
 /home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj
 /home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj
 ```
@@ -233,11 +233,11 @@ Built Graph with 8 Projects in 0.39s
 0 NuGet Packages have changed
 1 projects are affected by these changes
 Changed Projects
-Name  Path                                                                       
+Name  Path
       /home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj
-                 
+
 Affected Projects
-Name                   Path                                                                                   
+Name                   Path
 dotnet-affected.Tests  /home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj
 WRITE: /home/lchaia/dev/dotnet-affected/affected.txt
 WRITE: /home/lchaia/dev/dotnet-affected/affected.proj
@@ -247,6 +247,12 @@ WRITE: /home/lchaia/dev/dotnet-affected/affected.proj
 
 For usage in CI, it's recommended to use the `--from` and `--to` options with the environment variables provided by your
 build tool.
+
+dotnet-affected can be used in any CI system where you `dotnet` is present. You can install the tool and run
+`dotnet affected` commands as if locally.
+
+However, an action is provided for [Github actions](https://github.com/leonardochaia/dotnet-affected-action)
+and having a way to simplify this for other CI systems would be welcome.
 
 ### Building branches/tags
 
@@ -264,22 +270,24 @@ It's important to note that CI system triggers a build per push, not per commit.
 built, instead of just one. There is also the case where the previous build/s have failed, so we need to build from the
 latest commit that has a successful build.
 
-There's an in-depth explanation of the problem in
-[nrwl/last-successful-commit-action](https://github.com/nrwl/last-successful-commit-action#problem)
+There's an in-depth explanation of the problem in [here](https://github.com/nrwl/last-successful-commit-action#problem)
 
-For GitHub Actions, you can see a complete example in
-dotnet-affected [release pipeline](https://github.com/leonardochaia/dotnet-affected/blob/8b70e6a33789a7b920237c3196b6a36b4f25e1c9/.github/workflows/dotnet.yml#L85-L135)
+When using GitHub Actions, `leonardochaia/dotnet-affected@v1` can be used to execute dotnet-affected. This can be
+combined with [nrwl/last-successful-commit-action](https://github.com/nrwl/last-successful-commit-action) to
+build/test only what's affected since last succesful commit.
+
+You can see a complete example for [building branches with GitHub actions here](https://github.com/leonardochaia/dotnet-affected-action#for-building-branches).
 
 ### Building Pull Requests
 
-For building PRs, we need to provide the target branch and the PR branch/commit.
-
-For example, in GitHub Actions:
+For building PRs, we need to provide the target branch/commit and the PR branch/commit.
 
 ```shell
-dotnet affected generate --from GITHUB_BASE_REF --to GITHUB_HEAD_REF
+dotnet affected generate --from origin/main --to $CURRENT_COMMIT_HASH
 dotnet test affected.proj
 ```
+
+You can see a complete example for [building PRs with GitHub actions here](https://github.com/leonardochaia/dotnet-affected-action#for-building-prs).
 
 ## Don't build/test/deploy when no projects have changed
 
@@ -299,8 +307,15 @@ if [ "$?" -eq 0 ]; then
 fi
 ```
 
-For GitHub Actions, you can see an example in
-dotnet-affected [release pipeline](https://github.com/leonardochaia/dotnet-affected/blob/8b70e6a33789a7b920237c3196b6a36b4f25e1c9/.github/workflows/dotnet.yml#L108-L131)
+When using GitHub Actions, conditions can be added to skip steps when nothing has changed or is affected:
+
+```yaml
+- name: Install dependencies
+  if: success() && steps.affected.outputs.affected != ''
+  run: dotnet restore affected.proj
+```
+
+[Complete example](https://github.com/leonardochaia/dotnet-affected-action#for-building-prs)
 
 ## Which projects do I need to re deploy
 
@@ -326,11 +341,11 @@ $ dotnet affected describe
 0 NuGet Packages have changed
 1 projects are affected by these changes
 Changed Projects
-Name  Path                                                                       
+Name  Path
       /home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj
-                 
+
 Affected Projects
-Name                   Path                                                                                   
+Name                   Path
 dotnet-affected.Tests  /home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj
 ```
 
