@@ -7,6 +7,8 @@ namespace Affected.Cli
 {
     internal static class ProjectGraphExtensions
     {
+        private static readonly Dictionary<string, HashSet<ProjectGraphNode>> Cache = new();
+        
         public static IEnumerable<ProjectGraphNode> FindNodesThatDependOn(
             this ProjectGraph graph,
             IEnumerable<ProjectGraphNode> targetNodes)
@@ -14,7 +16,7 @@ namespace Affected.Cli
             var added = new HashSet<string>();
             foreach (var node in targetNodes)
             {
-                foreach (var affected in graph.FindNodesThatDependOn(node).ToList())
+                foreach (var affected in graph.FindNodesThatDependOn(node))
                 {
                     if (!added.Contains(affected.ProjectInstance.FullPath))
                     {
@@ -29,39 +31,47 @@ namespace Affected.Cli
             this ProjectGraph graph,
             ProjectGraphNode targetNode)
         {
-            var targetNodeIsKnown = false;
-            foreach (var currentNode in graph.ProjectNodes)
+            if (!Cache.TryGetValue(targetNode.ProjectInstance.FullPath, out var result))
             {
-                // ignore the target node
-                if (currentNode == targetNode)
+                result = new();
+                Cache[targetNode.ProjectInstance.FullPath] = result;
+                
+                var targetNodeIsKnown = false;
+                foreach (var currentNode in graph.ProjectNodes)
                 {
-                    targetNodeIsKnown = true;
-                    continue;
-                }
-
-                foreach (var dependency in currentNode.ProjectReferences)
-                {
-                    // current project depends on targetNode
-                    if (dependency == targetNode)
+                    // ignore the target node
+                    if (currentNode == targetNode)
                     {
-                        // if targetNode changes, currentNode will be affected.
-                        yield return currentNode;
+                        targetNodeIsKnown = true;
+                        continue;
+                    }
 
-                        // since currentNode depends on targetNode,
-                        // we also need to check which projects the currentNode depends on
-                        // since they could be affected by the changes made on targetNode
-                        foreach (var childDep in graph.FindNodesThatDependOn(currentNode))
+                    foreach (var dependency in currentNode.ProjectReferences)
+                    {
+                        // current project depends on targetNode
+                        if (dependency == targetNode)
                         {
-                            yield return childDep;
+                            // if targetNode changes, currentNode will be affected.
+                            result.Add(currentNode);
+
+                            // since currentNode depends on targetNode,
+                            // we also need to check which projects the currentNode depends on
+                            // since they could be affected by the changes made on targetNode
+                            foreach (var childDep in graph.FindNodesThatDependOn(currentNode))
+                            {
+                                result.Add(childDep);
+                            }
                         }
                     }
                 }
+
+                if (!targetNodeIsKnown)
+                {
+                    throw new InvalidOperationException($"Requested to find {targetNode.ProjectInstance.FullPath} but its not present in known projects");
+                }
             }
 
-            if (!targetNodeIsKnown)
-            {
-                throw new InvalidOperationException($"Requested to find {targetNode.ProjectInstance.FullPath} but its not present in known projects");
-            }
+            return result;
         }
 
         internal static IEnumerable<ProjectGraphNode> FindNodesContainingFiles(
