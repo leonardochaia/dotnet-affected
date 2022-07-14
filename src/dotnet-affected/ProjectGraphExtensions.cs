@@ -1,5 +1,6 @@
 ﻿using Microsoft.Build.Graph;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,7 +8,7 @@ namespace Affected.Cli
 {
     internal static class ProjectGraphExtensions
     {
-        private static readonly Dictionary<string, HashSet<ProjectGraphNode>> Cache = new();
+        private static readonly ConcurrentDictionary<string, IEnumerable<ProjectGraphNode>> Cache = new();
         
         public static IEnumerable<ProjectGraphNode> FindNodesThatDependOn(
             this ProjectGraph graph,
@@ -27,51 +28,52 @@ namespace Affected.Cli
             }
         }
 
+        private static IEnumerable<ProjectGraphNode> FindNodesThatDependOnImpl(
+            ProjectGraph graph,
+            ProjectGraphNode targetNode)
+        {
+            var targetNodeIsKnown = false;
+            foreach (var currentNode in graph.ProjectNodes)
+            {
+                // ignore the target node
+                if (currentNode == targetNode)
+                {
+                    targetNodeIsKnown = true;
+                    continue;
+                }
+
+                foreach (var dependency in currentNode.ProjectReferences)
+                {
+                    // current project depends on targetNode
+                    if (dependency == targetNode)
+                    {
+                        // if targetNode changes, currentNode will be affected.
+                        yield return currentNode;
+
+                        // since currentNode depends on targetNode,
+                        // we also need to check which projects the currentNode depends on
+                        // since they could be affected by the changes made on targetNode
+                        foreach (var childDep in graph.FindNodesThatDependOn(currentNode))
+                        {
+                            yield return childDep;
+                        }
+                    }
+                }
+            }
+
+            if (!targetNodeIsKnown)
+            {
+                throw new InvalidOperationException($"Requested to find {targetNode.ProjectInstance.FullPath} but its not present in known projects");
+            }
+        }
+
         public static IEnumerable<ProjectGraphNode> FindNodesThatDependOn(
             this ProjectGraph graph,
             ProjectGraphNode targetNode)
         {
-            if (!Cache.TryGetValue(targetNode.ProjectInstance.FullPath, out var result))
-            {
-                result = new();
-                Cache[targetNode.ProjectInstance.FullPath] = result;
-                
-                var targetNodeIsKnown = false;
-                foreach (var currentNode in graph.ProjectNodes)
-                {
-                    // ignore the target node
-                    if (currentNode == targetNode)
-                    {
-                        targetNodeIsKnown = true;
-                        continue;
-                    }
-
-                    foreach (var dependency in currentNode.ProjectReferences)
-                    {
-                        // current project depends on targetNode
-                        if (dependency == targetNode)
-                        {
-                            // if targetNode changes, currentNode will be affected.
-                            result.Add(currentNode);
-
-                            // since currentNode depends on targetNode,
-                            // we also need to check which projects the currentNode depends on
-                            // since they could be affected by the changes made on targetNode
-                            foreach (var childDep in graph.FindNodesThatDependOn(currentNode))
-                            {
-                                result.Add(childDep);
-                            }
-                        }
-                    }
-                }
-
-                if (!targetNodeIsKnown)
-                {
-                    throw new InvalidOperationException($"Requested to find {targetNode.ProjectInstance.FullPath} but its not present in known projects");
-                }
-            }
-
-            return result;
+            return Cache.GetOrAdd(
+                targetNode.ProjectInstance.FullPath,
+                s => FindNodesThatDependOnImpl(graph, targetNode)); 
         }
 
         internal static IEnumerable<ProjectGraphNode> FindNodesContainingFiles(
