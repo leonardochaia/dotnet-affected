@@ -1,5 +1,6 @@
 ﻿using Microsoft.Build.Graph;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,6 +8,8 @@ namespace Affected.Cli
 {
     internal static class ProjectGraphExtensions
     {
+        private static readonly ConcurrentDictionary<string, IEnumerable<ProjectGraphNode>> Cache = new();
+        
         public static IEnumerable<ProjectGraphNode> FindNodesThatDependOn(
             this ProjectGraph graph,
             IEnumerable<ProjectGraphNode> targetNodes)
@@ -14,7 +17,7 @@ namespace Affected.Cli
             var added = new HashSet<string>();
             foreach (var node in targetNodes)
             {
-                foreach (var affected in graph.FindNodesThatDependOn(node).ToList())
+                foreach (var affected in graph.FindNodesThatDependOn(node))
                 {
                     if (!added.Contains(affected.ProjectInstance.FullPath))
                     {
@@ -25,8 +28,8 @@ namespace Affected.Cli
             }
         }
 
-        public static IEnumerable<ProjectGraphNode> FindNodesThatDependOn(
-            this ProjectGraph graph,
+        private static IEnumerable<ProjectGraphNode> FindNodesThatDependOnImpl(
+            ProjectGraph graph,
             ProjectGraphNode targetNode)
         {
             var targetNodeIsKnown = false;
@@ -62,6 +65,15 @@ namespace Affected.Cli
             {
                 throw new InvalidOperationException($"Requested to find {targetNode.ProjectInstance.FullPath} but its not present in known projects");
             }
+        }
+
+        public static IEnumerable<ProjectGraphNode> FindNodesThatDependOn(
+            this ProjectGraph graph,
+            ProjectGraphNode targetNode)
+        {
+            return Cache.GetOrAdd(
+                targetNode.ProjectInstance.FullPath,
+                s => FindNodesThatDependOnImpl(graph, targetNode).ToList()); 
         }
 
         internal static IEnumerable<ProjectGraphNode> FindNodesContainingFiles(
