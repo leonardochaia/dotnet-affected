@@ -40,8 +40,8 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: |
         ./eng/install-sdk.ps1
-        echo "DOTNET_ROOT=$GITHUB_WORKSPACE/eng/.dotnet" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
-        echo "$GITHUB_WORKSPACE/eng/.dotnet" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf-8 -Append
+        echo "DOTNET_ROOT=$Env:GITHUB_WORKSPACE/eng/.dotnet" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+        echo "$Env:GITHUB_WORKSPACE/eng/.dotnet" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf-8 -Append
 
     - name: Print host info
       run: printenv && dotnet --info
