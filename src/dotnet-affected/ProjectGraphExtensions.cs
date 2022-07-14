@@ -73,7 +73,7 @@ namespace Affected.Cli
         {
             return Cache.GetOrAdd(
                 targetNode.ProjectInstance.FullPath,
-                s => FindNodesThatDependOnImpl(graph, targetNode)); 
+                s => FindNodesThatDependOnImpl(graph, targetNode).ToList()); 
         }
 
         internal static IEnumerable<ProjectGraphNode> FindNodesContainingFiles(
