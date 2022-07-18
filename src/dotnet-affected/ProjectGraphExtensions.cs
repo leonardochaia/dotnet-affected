@@ -1,4 +1,6 @@
 ﻿using Microsoft.Build.Graph;
+using Microsoft.Build.Prediction;
+using Microsoft.Build.Prediction.Predictors;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -67,17 +69,39 @@ namespace Affected.Cli
             IEnumerable<string> files)
         {
             var hasReturned = new HashSet<string>();
+
+            var graphPredictors = new[]
+            {
+                new ProjectFileAndImportsGraphPredictor()
+            };
+
+            var executor = new ProjectGraphPredictionExecutor(graphPredictors, ProjectPredictors.AllProjectPredictors);
+
+            var predictions = executor.PredictInputsAndOutputs(graph)
+                .PredictionsPerNode
+                .ToArray();
+
+            // REMARKS: we have other means for detecting changes excluded files
+            var exclusions = new[]
+            {
+                // Predictors won't take into account package references
+                "Directory.Packages.props"
+            };
+
             foreach (var file in files)
             {
-                // TODO: Find a better way of doing this.
-                var nodes = graph.ProjectNodes
-                    .Where(n => file.IsSubPathOf(n.ProjectInstance.Directory));
+                if (exclusions.Any(e => file.EndsWith(e))) continue;
 
-                foreach (var node in nodes)
+                // determine nodes depending on the changed file
+                var nodesWithFiles = predictions
+                    .Where(x => x.Value.InputFiles.Any(i => i.Path == file));
+
+                foreach (var (key, value) in nodesWithFiles)
                 {
-                    if (hasReturned.Add(node.ProjectInstance.FullPath))
+                    if (key is null) continue;
+                    if (hasReturned.Add(key.ProjectInstance.FullPath))
                     {
-                        yield return node;
+                        yield return key;
                     }
                 }
             }

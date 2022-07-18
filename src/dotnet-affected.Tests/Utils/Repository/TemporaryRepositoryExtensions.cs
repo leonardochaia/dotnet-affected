@@ -20,6 +20,9 @@ namespace Affected.Cli.Tests
                 .Create(path)
                 .SetName(projectName);
 
+            // REMARKS: Required for test cases using
+            // Directory.Build.Props / Directory.Packages.props
+            project.Sdk = "Microsoft.NET.Sdk";
             customizer?.Invoke(project);
 
             project.Save();
