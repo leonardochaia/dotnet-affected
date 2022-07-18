@@ -72,13 +72,13 @@ namespace Affected.Cli.Tests
             Assert.Single(Context.ChangedNuGetPackages);
             Assert.Equal(2, Context.AffectedProjects.Count());
 
-            var projectInfo = Context.AffectedProjects.FirstOrDefault();
-            Assert.Equal(dependantProjectName, projectInfo.Name);
-            Assert.Equal(dependantMsBuildProject.FullPath, projectInfo.FilePath);
+            var projectInfo = Context.AffectedProjects.First();
+            Assert.Equal(projectName, projectInfo.Name);
+            Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
 
             var dependantProjectInfo = Context.AffectedProjects.ElementAt(1);
-            Assert.Equal(projectName, dependantProjectInfo.Name);
-            Assert.Equal(msBuildProject.FullPath, dependantProjectInfo.FilePath);
+            Assert.Equal(dependantProjectName, dependantProjectInfo.Name);
+            Assert.Equal(dependantMsBuildProject.FullPath, dependantProjectInfo.FilePath);
         }
 
         [Fact]
