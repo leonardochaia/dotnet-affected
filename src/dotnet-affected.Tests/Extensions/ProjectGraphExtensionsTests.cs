@@ -1,60 +1,67 @@
-﻿using Microsoft.Build.Construction;
-using Microsoft.Build.Graph;
-using System;
+﻿using Microsoft.Build.Graph;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Affected.Cli.Tests
 {
     public class ProjectGraphExtensionsTests
-        : BaseMSBuildTest
+        : BaseRepositoryTest
     {
         [Fact]
         public void FindNodesThatDependOn_ShouldFindFirstLevelDependency()
         {
-            // Arrange
-            using var dep1 = CreateProjectFile("dep1");
-            using var dep2 = CreateProjectFile("dep2");
+            // Create a project
+            var dep1Project = Repository.CreateCsProject("dep1");
+            var dep2Project = Repository.CreateCsProject("dep2");
 
             // child depends on dep1 and dep2
-            using var child = CreateProjectFile("child", dep1, dep2);
-            var graph = new ProjectGraph(child.Path);
+            var dependantMsBuildProject = Repository.CreateCsProject(
+                "child",
+                b => b
+                    .AddProjectDependency(dep1Project.FullPath)
+                    .AddProjectDependency(dep2Project.FullPath));
+            var graph = new ProjectGraph(dependantMsBuildProject.FullPath);
 
-            var dep1Node = graph.FindNodeByPath(dep1.Path);
+            var dep1Node = graph.FindNodeByPath(dep1Project.FullPath);
 
             // Act
-            var affected = graph.FindNodesThatDependOn(dep1Node).ToList();
+            var affected = graph.FindNodesThatDependOn(dep1Node)
+                .ToList();
 
             // Assert
             Assert.Single(affected);
-            Assert.Contains(affected, k => k.ProjectInstance.FullPath == child.Path);
+            Assert.Contains(affected, k => k.ProjectInstance.FullPath == dependantMsBuildProject.FullPath);
         }
 
         [Fact]
         public void FindNodesThatDependOn_ShouldFindAnyLevelDependency()
         {
             // Arrange
-            using var dep2 = CreateProjectFile("dep2");
+            var dep2Project = Repository.CreateCsProject("dep2");
 
             // dep1 depends on dep2
-            using var dep1 = CreateProjectFile("dep1", dep2);
+            var dep1Project = Repository.CreateCsProject("dep1", b => b
+                .AddProjectDependency(dep2Project.FullPath));
 
             // root depends on dep1
-            using var projectThatChanged = CreateProjectFile("projectThatChanged", dep1);
+            var projectThatChanged = Repository.CreateCsProject("projectThatChanged", b => b
+                .AddProjectDependency(dep1Project.FullPath));
 
-            var graph = new ProjectGraph(projectThatChanged.Path);
+            var graph = new ProjectGraph(projectThatChanged.FullPath);
 
-            var dep2Node = graph.FindNodeByPath(dep2.Path);
+            var dep2Node = graph.FindNodeByPath(dep2Project.FullPath);
 
             // Act
-            var affected = graph.FindNodesThatDependOn(dep2Node).ToList();
+            var affected = graph.FindNodesThatDependOn(dep2Node)
+                .ToList();
 
             // Assert
             Assert.Equal(2, affected.Count);
 
-            var dep1Node = graph.FindNodeByPath(dep1.Path);
-            var projectThatChangedNode = graph.FindNodeByPath(projectThatChanged.Path);
+            var dep1Node = graph.FindNodeByPath(dep1Project.FullPath);
+            var projectThatChangedNode = graph.FindNodeByPath(projectThatChanged.FullPath);
 
             Assert.Collection(affected,
                 k => Assert.Equal(dep1Node, k),
@@ -66,40 +73,44 @@ namespace Affected.Cli.Tests
         public void FindNodesThatDependOn_ShouldFindDependenciesForAllProjects()
         {
             // Arrange
-            using var dep2 = CreateProjectFile("dep2");
+            var dep2Project = Repository.CreateCsProject("dep2");
 
             // dep1 depends on dep2
-            using var dep1 = CreateProjectFile("dep1", dep2);
+            var dep1Project = Repository.CreateCsProject("dep1", b => b
+                .AddProjectDependency(dep2Project.FullPath));
 
             // root depends on dep1
-            using var projectThatChanged = CreateProjectFile("projectThatChanged", dep1);
+            var projectThatChanged = Repository.CreateCsProject("projectThatChanged", b => b
+                .AddProjectDependency(dep1Project.FullPath));
 
             // other dep
-            using var dep3 = CreateProjectFile("dep3");
+            var dep3Project = Repository.CreateCsProject("dep3");
 
             // other root depends on other dep
-            using var otherProjectThatChanged = CreateProjectFile("otherProject", dep3);
+            var otherProjectThatChanged = Repository.CreateCsProject("otherProjectThatChanged", b => b
+                .AddProjectDependency(dep3Project.FullPath));
 
-            var graph = new ProjectGraph(new string[] {
-                projectThatChanged.Path,
-                otherProjectThatChanged.Path
+            var graph = new ProjectGraph(new string[]
+            {
+                projectThatChanged.FullPath, otherProjectThatChanged.FullPath
             });
 
-            var dep2Node = graph.FindNodeByPath(dep2.Path);
-            var dep3Node = graph.FindNodeByPath(dep3.Path);
+            var dep2Node = graph.FindNodeByPath(dep2Project.FullPath);
+            var dep3Node = graph.FindNodeByPath(dep3Project.FullPath);
 
             // Act
-            var affected = graph.FindNodesThatDependOn(new[] {
-                dep2Node,
-                dep3Node,
-            }).ToList();
+            var affected = graph.FindNodesThatDependOn(new[]
+                {
+                    dep2Node, dep3Node,
+                })
+                .ToList();
 
             // Assert
             Assert.Equal(3, affected.Count);
 
-            var dep1Node = graph.FindNodeByPath(dep1.Path);
-            var projectThatChangedNode = graph.FindNodeByPath(projectThatChanged.Path);
-            var otherProjectThatChangedNode = graph.FindNodeByPath(otherProjectThatChanged.Path);
+            var dep1Node = graph.FindNodeByPath(dep1Project.FullPath);
+            var projectThatChangedNode = graph.FindNodeByPath(projectThatChanged.FullPath);
+            var otherProjectThatChangedNode = graph.FindNodeByPath(otherProjectThatChanged.FullPath);
 
             Assert.Collection(affected,
                 k => Assert.Equal(dep1Node, k),
@@ -109,173 +120,100 @@ namespace Affected.Cli.Tests
         }
 
         [Fact]
-        public void FindProjectsForFilePaths_ShouldFindSingleProject()
+        public async Task FindProjectsForFilePaths_ShouldFindSingleProject()
         {
             // Arrange
-            using var project1 = CreateProjectFile(
-                Path.Combine("somecontext", "project1", "project1")
-            );
+            var project1 = Repository.CreateCsProject("context/Project1");
 
-            using var project2 = CreateProjectFile(
-                Path.Combine("somecontext", "project2", "project2")
-            );
+            var project2 = Repository.CreateCsProject("context/Project2");
 
-            var dummyFile = GetTemporaryFilePath(
-               Path.Combine("somecontext", "project1", "Domain", "SomeEntity"),
-               ".cs"
-            );
+            var targetFilePath = Path.Combine(project1.DirectoryPath, "file.cs");
+            await this.Repository.CreateTextFileAsync(targetFilePath, "// Initial content");
 
-            var graph = new ProjectGraph(new string[] { project1.Path, project2.Path });
+            var graph = new ProjectGraph(new string[]
+            {
+                project1.FullPath, project2.FullPath
+            });
 
             // Act
-            var projects = graph.FindNodesContainingFiles(new[] {
-                dummyFile,
-            }).ToList();
+            var projects = graph.FindNodesContainingFiles(new[]
+                {
+                    targetFilePath,
+                })
+                .ToList();
 
             // Assert
-            var project1Node = graph.FindNodeByPath(project1.Path);
+            var project1Node = graph.FindNodeByPath(project1.FullPath);
             Assert.Single(projects);
             Assert.Equal(project1Node, projects.Single());
         }
 
         [Fact]
-        public void FindProjectsForFilePaths_WithMultipleFiles_ShouldFindSingleProject()
+        public async Task FindProjectsForFilePaths_WithMultipleFiles_ShouldFindSingleProject()
         {
             // Arrange
-            using var project1 = CreateProjectFile(
-                Path.Combine("somecontext", "project1", "project1")
-            );
+            var project1 = Repository.CreateCsProject("context/Project1");
 
-            using var project2 = CreateProjectFile(
-                Path.Combine("somecontext", "project2", "project2")
-            );
+            var project2 = Repository.CreateCsProject("context/Project2");
 
-            var dummyFile = GetTemporaryFilePath(
-               Path.Combine("somecontext", "project1", "Domain", "SomeEntity"),
-               ".cs"
-            );
+            var targetFilePath = Path.Combine(project1.DirectoryPath, "file.cs");
+            await this.Repository.CreateTextFileAsync(targetFilePath, "// Initial content");
 
-            var dummyFile2 = GetTemporaryFilePath(
-               Path.Combine("somecontext", "project1", "Domain", "OtherEntity"),
-               ".cs"
-            );
+            var targetFilePath2 = Path.Combine(project1.DirectoryPath, "file2.cs");
+            await this.Repository.CreateTextFileAsync(targetFilePath2, "// Other content");
 
-            var graph = new ProjectGraph(new string[] { project1.Path, project2.Path });
+            var graph = new ProjectGraph(new string[]
+            {
+                project1.FullPath, project2.FullPath
+            });
 
             // Act
-            var projects = graph.FindNodesContainingFiles(new[] {
-                dummyFile,
-                dummyFile2,
-            }).ToList();
+            var projects = graph.FindNodesContainingFiles(new[]
+                {
+                    targetFilePath, targetFilePath2,
+                })
+                .ToList();
 
             // Assert
-            var project1Node = graph.FindNodeByPath(project1.Path);
+            var project1Node = graph.FindNodeByPath(project1.FullPath);
             Assert.Single(projects);
             Assert.Equal(project1Node, projects.Single());
         }
 
         [Fact]
-        public void FindProjectsForFilePaths_ShouldFindMultipleProject()
+        public async Task FindProjectsForFilePaths_ShouldFindMultipleProject()
         {
             // Arrange
-            using var project1 = CreateProjectFile(
-                Path.Combine("somecontext", "project1", "project1")
-            );
+            // Arrange
+            var project1 = Repository.CreateCsProject("context/Project1");
 
-            using var project2 = CreateProjectFile(
-                Path.Combine("somecontext", "project2", "project2")
-            );
+            var project2 = Repository.CreateCsProject("context/Project2");
 
-            var dummyFile = GetTemporaryFilePath(
-               Path.Combine("somecontext", "project1", "Domain", "SomeEntity"),
-               ".cs"
-            );
+            var targetFilePath = Path.Combine(project1.DirectoryPath, "file.cs");
+            await this.Repository.CreateTextFileAsync(targetFilePath, "// Initial content");
 
-            var dummyFile2 = GetTemporaryFilePath(
-               Path.Combine("somecontext", "project2", "OtherDomain", "OtherEntity"),
-               ".cs"
-            );
+            var targetFilePath2 = Path.Combine(project2.DirectoryPath, "file.cs");
+            await this.Repository.CreateTextFileAsync(targetFilePath2, "// Initial content");
 
-            var graph = new ProjectGraph(new string[] { project1.Path, project2.Path });
+            var graph = new ProjectGraph(new string[]
+            {
+                project1.FullPath, project2.FullPath
+            });
 
             // Act
-            var projects = graph.FindNodesContainingFiles(new[] {
-                dummyFile,
-                dummyFile2,
-            }).ToList();
+            var projects = graph.FindNodesContainingFiles(new[]
+                {
+                    targetFilePath, targetFilePath2,
+                })
+                .ToList();
 
             // Assert
-            var project1Node = graph.FindNodeByPath(project1.Path);
-            var project2Node = graph.FindNodeByPath(project2.Path);
+            var project1Node = graph.FindNodeByPath(project1.FullPath);
+            var project2Node = graph.FindNodeByPath(project2.FullPath);
 
             Assert.Collection(projects,
                 p => Assert.Equal(project1Node, p),
                 p => Assert.Equal(project2Node, p));
-        }
-
-        /// <summary>
-        /// A path to a file that will be deleted once this class
-        /// is disposed.
-        /// </summary>
-        private class TempFile : IDisposable
-        {
-            public TempFile(string path)
-            {
-                Path = path;
-            }
-
-            public string Path { get; }
-
-            public void Dispose()
-            {
-                File.Delete(this.Path);
-            }
-
-            public override string ToString()
-            {
-                return this.Path;
-            }
-        }
-
-        /// <summary>
-        /// Gets a path to a temporary file, located in the
-        /// <see cref="Path.GetTempPath"/>.
-        /// </summary>
-        /// <param name="prefix"></param>
-        /// <param name="extension"></param>
-        /// <returns></returns>
-        private static string GetTemporaryFilePath(string prefix, string extension)
-        {
-            var directory = Path.GetTempPath();
-            Directory.CreateDirectory(directory);
-            return Path.Combine(directory, $"{prefix}-{Guid.NewGuid():N}{extension}");
-        }
-
-        /// <summary>
-        /// Creates an temporary MSBuild csproj file, which possible
-        /// includes ProjectReferences to other projects.
-        /// </summary>
-        /// <param name="prefix"></param>
-        /// <param name="projectReferences"></param>
-        /// <returns></returns>
-        private static TempFile CreateProjectFile(
-            string prefix,
-            params TempFile[] projectReferences)
-        {
-            projectReferences ??= Array.Empty<TempFile>();
-
-            string filePath = GetTemporaryFilePath(prefix, ".csproj");
-
-            ProjectRootElement xml = ProjectRootElement.Create();
-
-            var itemGroup = xml.AddItemGroup();
-            foreach (var projectReference in projectReferences)
-            {
-                itemGroup.AddItem("ProjectReference", projectReference.Path);
-            }
-
-            xml.Save(filePath);
-            return new TempFile(filePath);
         }
     }
 }
