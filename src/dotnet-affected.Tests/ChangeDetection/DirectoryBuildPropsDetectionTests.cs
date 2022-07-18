@@ -150,8 +150,8 @@ namespace Affected.Cli.Tests
             await Repository.CreateTextFileAsync(nestedPropsPath, nestedPropsFile);
 
             Assert.Single(Context.ChangedProjects);
-            Assert.Equal(Context.ChangedProjects.First()
-                .Name, "Inventory/InventoryManagement");
+            Assert.Equal("Inventory/InventoryManagement", Context.ChangedProjects.First()
+                .Name);
             Assert.Empty(Context.AffectedProjects);
         }
 
@@ -207,8 +207,9 @@ namespace Affected.Cli.Tests
             await Repository.CreateTextFileAsync(propsPath, propsFile);
 
             Assert.Single(Context.ChangedProjects);
-            Assert.Equal(Context.ChangedProjects.First()
-                .Name, "Purchasing/PurchaseOrderManager");
+            Assert.Equal("Purchasing/PurchaseOrderManager",
+                Context.ChangedProjects.First()
+                    .Name);
             Assert.Empty(Context.AffectedProjects);
         }
     }
