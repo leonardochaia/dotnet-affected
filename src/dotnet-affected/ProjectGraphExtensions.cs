@@ -4,6 +4,7 @@ using Microsoft.Build.Prediction.Predictors;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Affected.Cli
@@ -88,13 +89,16 @@ namespace Affected.Cli
                 "Directory.Packages.props"
             };
 
-            foreach (var file in files)
+            // normalize paths so that they match on windows.
+            var normalizedFiles = files.Select(Path.GetFullPath);
+            foreach (var file in normalizedFiles)
             {
                 if (exclusions.Any(e => file.EndsWith(e))) continue;
 
                 // determine nodes depending on the changed file
                 var nodesWithFiles = predictions
-                    .Where(x => x.Value.InputFiles.Any(i => i.Path == file));
+                    .Where(x => x.Value.InputFiles
+                        .Any(i => Path.GetFullPath(i.Path) == file));
 
                 foreach (var (key, value) in nodesWithFiles)
                 {
