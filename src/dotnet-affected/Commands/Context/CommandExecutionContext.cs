@@ -45,10 +45,14 @@ namespace Affected.Cli.Commands
         public IEnumerable<PackageChange> ChangedNuGetPackages => _changedNugetPackages.Value;
 
         public IEnumerable<IProjectInfo> ChangedProjects => _changedProjects.Value
-            .Select(p => new ProjectInfo(p)).ToList();
+            .Select(p => new ProjectInfo(p))
+            .OrderBy(x=> x.Name)
+            .ToList();
 
         public IEnumerable<IProjectInfo> AffectedProjects => _affectedProjects.Value
-            .Select(p => new ProjectInfo(p)).ToList();
+            .Select(p => new ProjectInfo(p))
+            .OrderBy(x=> x.Name)
+            .ToList();
 
         private IEnumerable<string> DetermineChangedFiles()
         {
