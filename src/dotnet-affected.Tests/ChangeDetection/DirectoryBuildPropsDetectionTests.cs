@@ -84,6 +84,9 @@ namespace Affected.Cli.Tests
             this.Repository.CreateCsProject(
                 dependantProjectName);
 
+            // Commit all so there are no changes
+            Repository.StageAndCommit();
+
             // Update the default props file
             defaultPropsFile = @"
 <Project>
