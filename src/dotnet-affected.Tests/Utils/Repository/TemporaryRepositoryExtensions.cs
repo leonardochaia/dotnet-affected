@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Affected.Cli.Tests
 {
-    internal static class TemporaryRepositoryExtensions
+    public static class TemporaryRepositoryExtensions
     {
         public static ProjectRootElement CreateCsProject(
             this TemporaryRepository repo,

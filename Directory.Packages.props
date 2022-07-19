@@ -13,11 +13,15 @@
         <PackageVersion Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
         <PackageVersion Include="System.CommandLine.Rendering" Version="0.4.0-alpha.22114.1" />
         <PackageVersion Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta3.22114.1" />
+        <PackageVersion Include="System.CodeDom" Version="6.0.0" />
         <PackageVersion Include="LibGit2Sharp" Version="0.27.0-preview-0175" />
         <PackageVersion Include="MinVer" Version="2.5.0" />
 
         <PackageVersion Include="Microsoft.Win32.Registry" Version="6.0.0-preview.5.21301.5" />
         <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+
+        <PackageVersion Include="BenchmarkDotNet" Version="0.13.1" />
+        <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.12.1" Condition="'$(OS)' == 'Windows_NT'"/>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
@@ -29,6 +33,10 @@
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+        <PackageVersion Include="Microsoft.Build" Version="17.0.0" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp6.0'">
         <PackageVersion Include="Microsoft.Build" Version="17.0.0" />
     </ItemGroup>
 
