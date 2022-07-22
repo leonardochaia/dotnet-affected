@@ -1,12 +1,14 @@
 ﻿using Microsoft.Build.Construction;
+using Microsoft.Build.Graph;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Affected.Cli.Tests
 {
-    internal static class TemporaryRepositoryExtensions
+    public static class TemporaryRepositoryExtensions
     {
         public static ProjectRootElement CreateCsProject(
             this TemporaryRepository repo,
@@ -43,7 +45,14 @@ namespace Affected.Cli.Tests
         public static void RemoveDirectoryPackageProps(
             this TemporaryRepository repo)
         {
-            var path = Path.Combine(repo.Path, "Directory.Packages.props");
+            repo.DeleteFile("Directory.Packages.props");
+        }
+
+        public static void DeleteFile(
+            this TemporaryRepository repo,
+            string relativePath)
+        {
+            var path = Path.Combine(repo.Path, relativePath);
             File.Delete(path);
         }
         
@@ -86,6 +95,50 @@ namespace Affected.Cli.Tests
             var file = File.CreateText(path);
             await file.DisposeAsync();
             await File.WriteAllTextAsync(path, contents);
+        }
+        
+        public static IEnumerable<ProjectRootElement> CreateTree(
+            this TemporaryRepository repository,
+            int totalProjects,
+            int childrenPerProject)
+        {
+            ProjectRootElement parent = null;
+
+            var currentProjects = 0;
+            var currentChildCount = 0;
+            do
+            {
+                var name = $"project-{currentProjects}";
+                var node = repository.CreateCsProject(name);
+
+                parent?.AddProjectDependency(node.FullPath);
+                currentChildCount++;
+
+                if (currentChildCount >= childrenPerProject)
+                {
+                    parent = node;
+                }
+
+                currentProjects++;
+                yield return node;
+            } while (currentProjects < totalProjects);
+        }
+
+        public static void RandomizeChangesInProjectTree(
+            this TemporaryRepository repository,
+            ProjectGraph graph)
+        {
+            var current = 0;
+            foreach (var node in graph.ProjectNodes)
+            {
+                if (current % 5 != 0) continue;
+
+                var filePath = Path.Combine(node.ProjectInstance.Directory, $"file-{current}.cs");
+                var fileContents = $"// contents {current}";
+                Task.Run(() => repository.CreateTextFileAsync(filePath, fileContents));
+
+                current++;
+            }
         }
     }
 }

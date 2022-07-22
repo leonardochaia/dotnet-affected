@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Affected.Cli.Tests
 {
-    internal static class TestingGraphExtensions
+    public static class TestingGraphExtensions
     {
         public static ProjectRootElement SetName(this ProjectRootElement element, string name)
         {
