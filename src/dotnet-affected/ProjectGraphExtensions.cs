@@ -1,10 +1,10 @@
 ﻿using Microsoft.Build.Graph;
 using Microsoft.Build.Prediction;
 using Microsoft.Build.Prediction.Predictors;
+using Microsoft.Build.Prediction.Predictors.CopyTask;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace Affected.Cli
@@ -12,6 +12,42 @@ namespace Affected.Cli
     internal static class ProjectGraphExtensions
     {
         private static readonly ConcurrentDictionary<string, IEnumerable<ProjectGraphNode>> Cache = new();
+
+        private static readonly ProjectFileAndImportsGraphPredictor[] GraphPredictors = new[]
+        {
+            new ProjectFileAndImportsGraphPredictor()
+        };
+
+        private static readonly IProjectPredictor[] ProjectPredictors = new[]
+        {
+            new AvailableItemNameItemsPredictor(), new ContentItemsPredictor(), new NoneItemsPredictor(),
+            (IProjectPredictor)new CopyTaskPredictor(), new CompileItemsPredictor(),
+            new IntermediateOutputPathPredictor(), new ProjectFileAndImportsPredictor(),
+            new CodeAnalysisRuleSetPredictor(), new AssemblyOriginatorKeyFilePredictor(),
+            new EmbeddedResourceItemsPredictor(), new ReferenceItemsPredictor(), new ArtifactsSdkPredictor(),
+            new StyleCopPredictor(), new ManifestsPredictor(), new VSCTCompileItemsPredictor(),
+            new EditorConfigFilesItemsPredictor(), new ApplicationIconPredictor(),
+            new GeneratePackageOnBuildPredictor(), new DocumentationFilePredictor(), new XamlAppDefPredictor(),
+            new TypeScriptCompileItemsPredictor(), new ApplicationDefinitionItemsPredictor(), new PageItemsPredictor(),
+            new ResourceItemsPredictor(), new SplashScreenItemsPredictor(), new TsConfigPredictor(),
+            new MasmItemsPredictor(), new ClIncludeItemsPredictor(), new SqlBuildPredictor(),
+            new AdditionalIncludeDirectoriesPredictor(), new AnalyzerItemsPredictor(),
+            new ModuleDefinitionFilePredictor(), new CppContentFilesProjectOutputGroupPredictor(),
+            new LinkItemsPredictor()
+        };
+
+        private static readonly ProjectGraphPredictionExecutor Executor = new ProjectGraphPredictionExecutor(
+            GraphPredictors,
+            ProjectPredictors);
+
+        /// <summary>
+        /// REMARKS: we have other means for detecting changes excluded files 
+        /// </summary>
+        private static readonly string[] FileExclusions = new[]
+        {
+            // Predictors won't take into account package references
+            "Directory.Packages.props"
+        };
 
         /// <summary>
         /// Recursively searches for all <see cref="ProjectGraphNode.ReferencingProjects"/>
@@ -61,7 +97,7 @@ namespace Affected.Cli
         {
             return Cache.GetOrAdd(
                 targetNode.ProjectInstance.FullPath,
-                s => FindReferencingProjectsImpl(targetNode)
+                _ => FindReferencingProjectsImpl(targetNode)
                     .ToList());
         }
 
@@ -71,36 +107,22 @@ namespace Affected.Cli
         {
             var hasReturned = new HashSet<string>();
 
-            var graphPredictors = new[]
-            {
-                new ProjectFileAndImportsGraphPredictor()
-            };
-
-            var executor = new ProjectGraphPredictionExecutor(graphPredictors, ProjectPredictors.AllProjectPredictors);
-
-            var predictions = executor.PredictInputsAndOutputs(graph)
+            var predictions = Executor.PredictInputsAndOutputs(graph)
                 .PredictionsPerNode
                 .ToArray();
 
-            // REMARKS: we have other means for detecting changes excluded files
-            var exclusions = new[]
-            {
-                // Predictors won't take into account package references
-                "Directory.Packages.props"
-            };
-
             // normalize paths so that they match on windows.
-            var normalizedFiles = files.Select(Path.GetFullPath);
+            var normalizedFiles = files
+                .Where(f => !FileExclusions.Any(f.EndsWith));
+
             foreach (var file in normalizedFiles)
             {
-                if (exclusions.Any(e => file.EndsWith(e))) continue;
-
                 // determine nodes depending on the changed file
                 var nodesWithFiles = predictions
                     .Where(x => x.Value.InputFiles
-                        .Any(i => Path.GetFullPath(i.Path) == file));
+                        .Any(i => i.Path == file));
 
-                foreach (var (key, value) in nodesWithFiles)
+                foreach (var (key, _) in nodesWithFiles)
                 {
                     if (key is null) continue;
                     if (hasReturned.Add(key.ProjectInstance.FullPath))
