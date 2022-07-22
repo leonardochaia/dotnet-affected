@@ -11,9 +11,9 @@ namespace Affected.Cli.Benchmarks
     [MemoryDiagnoser]
     public class InvocationBenchmarks
     {
-        [Params(0, 50, 100, 500, 1000)] public int TotalProjects { get; set; }
+        [Params(500, 1000)] public int TotalProjects { get; set; }
 
-        [Params(10, 20)] public int ChildrenPerProject { get; set; }
+        [Params(20)] public int ChildrenPerProject { get; set; }
 
         static InvocationBenchmarks()
         {
@@ -37,7 +37,7 @@ namespace Affected.Cli.Benchmarks
             var graph = new ProjectGraph(rootNodes.Select(x => x.FullPath));
             this.Repository.RandomizeChangesInProjectTree(graph);
 
-            Console.WriteLine($"Seeded graph with total of {graph.ProjectNodes.Count()} projects");
+            Console.WriteLine($"Seeded graph with total of {graph.ProjectNodes.Count()} projects in {graph.ConstructionMetrics.ConstructionTime}");
         }
 
         [GlobalCleanup]
