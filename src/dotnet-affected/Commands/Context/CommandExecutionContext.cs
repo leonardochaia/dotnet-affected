@@ -82,7 +82,8 @@ namespace Affected.Cli.Commands
             // Find projects referencing NuGet packages that changed
             var changedPackages = _changedNugetPackages.Value.Select(p => p.Name);
             var projectsAffectedByNugetPackages = _graph.Value
-                .FindNodesReferencingNuGetPackages(changedPackages);
+                .FindNodesReferencingNuGetPackages(changedPackages)
+                .ToList();
 
             // Combine changed projects with projects affected by nuget changes
             var changedAndNugetAffected = _changedProjects.Value
@@ -91,7 +92,7 @@ namespace Affected.Cli.Commands
 
             // Find projects that depend on the changed projects + projects affected by nuget
             var projectsAffectedByChanges = _graph.Value
-                .FindNodesThatDependOn(changedAndNugetAffected);
+                .ProjectNodes.SelectMany(n=> n.ReferencingProjects);
 
             var output = projectsAffectedByChanges
                 .Concat(projectsAffectedByNugetPackages)
