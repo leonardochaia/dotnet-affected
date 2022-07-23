@@ -5,6 +5,7 @@ using Microsoft.Build.Locator;
 using System;
 using System.CommandLine.Parsing;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Affected.Cli.Benchmarks
 {
@@ -13,6 +14,7 @@ namespace Affected.Cli.Benchmarks
     ///     Complete dotnet-affected benchmark with I/O.
     /// </summary>
     [MemoryDiagnoser]
+    [WarmupCount(1)] // Should be enough to populate caches
     public class MacroBenchmarks
     {
         static MacroBenchmarks()
@@ -27,12 +29,13 @@ namespace Affected.Cli.Benchmarks
         private TemporaryRepository Repository { get; } = new();
 
         [GlobalSetup]
-        public void GlobalSetup()
+        public async Task GlobalSetup()
         {
             Console.WriteLine("Seeding project graph");
+
             // Create a random tree of csproj
             var rootNodes = Repository
-                .CreateTree(TotalProjects, ChildrenPerProject)
+                .CreateCsProjTree(TotalProjects, ChildrenPerProject)
                 .ToList();
 
             // Commit so there are no changes
@@ -40,9 +43,9 @@ namespace Affected.Cli.Benchmarks
 
             // Add random files to the tree so that some projects have changes
             var graph = new ProjectGraph(rootNodes.Select(x => x.FullPath));
-            Repository.RandomizeChangesInProjectTree(graph);
+            await Repository.MakeChangesInProjectTree(graph);
 
-            Console.WriteLine($"Seeded graph with total of {graph.ProjectNodes.Count()} " +
+            Console.WriteLine($"Built graph with total of {graph.ProjectNodes.Count()} " +
                               $"projects in {graph.ConstructionMetrics.ConstructionTime}");
         }
 

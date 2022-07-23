@@ -10,17 +10,19 @@ using System.CommandLine;
 using System.CommandLine.IO;
 using System.CommandLine.Rendering;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Affected.Cli.Benchmarks
 {
     /// <summary>
-    ///     Benchmarks the affected detection algorithm AFTER
-    ///     project discovery and building the MSBuild graph.
+    /// Benchmarks the affected detection algorithm AFTER
+    /// project discovery and building the MSBuild graph.
     /// </summary>
     [MemoryDiagnoser]
-    public class AffectedBenchmarks
+    [WarmupCount(1)] // Should be enough to populate caches
+    public class MicroBenchmarks
     {
-        static AffectedBenchmarks()
+        static MicroBenchmarks()
         {
             MSBuildLocator.RegisterDefaults();
         }
@@ -38,12 +40,13 @@ namespace Affected.Cli.Benchmarks
         private ServiceProvider ServiceProvider { get; set; }
 
         [GlobalSetup]
-        public void GlobalSetup()
+        public async Task GlobalSetup()
         {
-            Console.WriteLine("Seeding project graph");
+            Console.WriteLine($"Seeding project graph with {TotalProjects} projects");
+
             // Create a random tree of csproj
             var rootNodes = Repository
-                .CreateTree(TotalProjects, ChildrenPerProject)
+                .CreateCsProjTree(TotalProjects, ChildrenPerProject)
                 .ToList();
 
             // Commit so there are no changes
@@ -51,9 +54,9 @@ namespace Affected.Cli.Benchmarks
 
             // Add random files to the tree so that some projects have changes
             var graph = new ProjectGraph(rootNodes.Select(x => x.FullPath));
-            Repository.RandomizeChangesInProjectTree(graph);
+            await Repository.MakeChangesInProjectTree(graph);
 
-            Console.WriteLine($"Seeded graph with total of {graph.ProjectNodes.Count()} " +
+            Console.WriteLine($"Built graph with total of {graph.ProjectNodes.Count()} " +
                               $"projects in {graph.ConstructionMetrics.ConstructionTime}");
 
             ServiceProvider = AffectedCli
@@ -77,11 +80,11 @@ namespace Affected.Cli.Benchmarks
                 .ComposeServiceCollection()
                 .BuildServiceProvider();
 
-            Context = ServiceProvider.GetRequiredService<ICommandExecutionContext>();
-
             // REMARKS: Ensure the graph is composed at setup time
             Graph = ServiceProvider.GetRequiredService<IProjectGraphRef>()
                 .Value;
+
+            Context = ServiceProvider.GetRequiredService<ICommandExecutionContext>();
         }
 
         [GlobalCleanup]
