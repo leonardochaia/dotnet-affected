@@ -9,71 +9,57 @@ namespace Affected.Cli
     internal static class ProjectGraphExtensions
     {
         private static readonly ConcurrentDictionary<string, IEnumerable<ProjectGraphNode>> Cache = new();
-        
-        public static IEnumerable<ProjectGraphNode> FindNodesThatDependOn(
-            this ProjectGraph graph,
-            IEnumerable<ProjectGraphNode> targetNodes)
+
+        /// <summary>
+        /// Recursively searches for all <see cref="ProjectGraphNode.ReferencingProjects"/>
+        /// in all provided projects.
+        /// </summary>
+        /// <param name="targetNodes"></param>
+        /// <returns></returns>
+        public static IEnumerable<ProjectGraphNode> FindReferencingProjects(
+            this IEnumerable<ProjectGraphNode> targetNodes)
         {
             var added = new HashSet<string>();
             foreach (var node in targetNodes)
             {
-                foreach (var affected in graph.FindNodesThatDependOn(node))
+                foreach (var affected in FindReferencingProjects(node))
                 {
-                    if (!added.Contains(affected.ProjectInstance.FullPath))
-                    {
-                        added.Add(affected.ProjectInstance.FullPath);
+                    if (added.Add(affected.ProjectInstance.FullPath))
                         yield return affected;
-                    }
                 }
             }
         }
 
-        private static IEnumerable<ProjectGraphNode> FindNodesThatDependOnImpl(
-            ProjectGraph graph,
-            ProjectGraphNode targetNode)
+        private static IEnumerable<ProjectGraphNode> FindReferencingProjectsImpl(ProjectGraphNode node)
         {
-            var targetNodeIsKnown = false;
-            foreach (var currentNode in graph.ProjectNodes)
+            var added = new HashSet<string>();
+            foreach (var referencingProject in node.ReferencingProjects)
             {
-                // ignore the target node
-                if (currentNode == targetNode)
+                // Return all referencing projects
+                if (added.Add(referencingProject.ProjectInstance.FullPath))
+                    yield return referencingProject;
+
+                // Recurse each node's children
+                foreach (var child in FindReferencingProjects(referencingProject))
                 {
-                    targetNodeIsKnown = true;
-                    continue;
+                    if (added.Add(child.ProjectInstance.FullPath))
+                        yield return child;
                 }
-
-                foreach (var dependency in currentNode.ProjectReferences)
-                {
-                    // current project depends on targetNode
-                    if (dependency == targetNode)
-                    {
-                        // if targetNode changes, currentNode will be affected.
-                        yield return currentNode;
-
-                        // since currentNode depends on targetNode,
-                        // we also need to check which projects the currentNode depends on
-                        // since they could be affected by the changes made on targetNode
-                        foreach (var childDep in graph.FindNodesThatDependOn(currentNode))
-                        {
-                            yield return childDep;
-                        }
-                    }
-                }
-            }
-
-            if (!targetNodeIsKnown)
-            {
-                throw new InvalidOperationException($"Requested to find {targetNode.ProjectInstance.FullPath} but its not present in known projects");
             }
         }
 
-        public static IEnumerable<ProjectGraphNode> FindNodesThatDependOn(
-            this ProjectGraph graph,
-            ProjectGraphNode targetNode)
+        /// <summary>
+        /// Recursively searches for <see cref="ProjectGraphNode.ReferencingProjects"/>
+        /// </summary>
+        /// <param name="targetNode"></param>
+        /// <returns></returns>
+        public static IEnumerable<ProjectGraphNode> FindReferencingProjects(
+            this ProjectGraphNode targetNode)
         {
             return Cache.GetOrAdd(
                 targetNode.ProjectInstance.FullPath,
-                s => FindNodesThatDependOnImpl(graph, targetNode).ToList()); 
+                s => FindReferencingProjectsImpl(targetNode)
+                    .ToList());
         }
 
         internal static IEnumerable<ProjectGraphNode> FindNodesContainingFiles(
@@ -96,7 +82,7 @@ namespace Affected.Cli
                 }
             }
         }
-        
+
         internal static IEnumerable<ProjectGraphNode> FindNodesReferencingNuGetPackages(
             this ProjectGraph graph,
             IEnumerable<string> nuGetPackageNames)
@@ -105,9 +91,9 @@ namespace Affected.Cli
             foreach (var nuget in nuGetPackageNames)
             {
                 var nodes = graph.ProjectNodes
-                    .Where(n => !n.IsOptedOutFromCentrallyManagedNuGetPackageVersions() 
+                    .Where(n => !n.IsOptedOutFromCentrallyManagedNuGetPackageVersions()
                                 && n.ReferencesNuGetPackage(nuget));
-                
+
                 foreach (var node in nodes)
                 {
                     if (hasReturned.Add(node.ProjectInstance.FullPath))
@@ -131,7 +117,8 @@ namespace Affected.Cli
             string name)
         {
             return graph.ProjectNodes
-                .FirstOrDefault(n => n.GetProjectName().Equals(name, StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(n => n.GetProjectName()
+                    .Equals(name, StringComparison.OrdinalIgnoreCase));
         }
 
         internal static IEnumerable<ProjectGraphNode> FindNodesByName(
