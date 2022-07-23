@@ -55,6 +55,7 @@ namespace Affected.Cli.Tests
 
             // Act
             var affected = dep2Node.FindReferencingProjects()
+                .OrderBy(x => x.ProjectInstance.FullPath)
                 .ToList();
 
             // Assert
@@ -103,6 +104,7 @@ namespace Affected.Cli.Tests
                 {
                     dep2Node, dep3Node,
                 }.FindReferencingProjects()
+                .OrderBy(x => x.ProjectInstance.FullPath)
                 .ToList();
 
             // Assert
@@ -114,8 +116,8 @@ namespace Affected.Cli.Tests
 
             Assert.Collection(affected,
                 k => Assert.Equal(dep1Node, k),
-                k => Assert.Equal(projectThatChangedNode, k),
-                k => Assert.Equal(otherProjectThatChangedNode, k)
+                k => Assert.Equal(otherProjectThatChangedNode, k),
+                k => Assert.Equal(projectThatChangedNode, k)
             );
         }
 
