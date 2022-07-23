@@ -5,6 +5,7 @@ using Microsoft.Build.Prediction.Predictors.CopyTask;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Affected.Cli
@@ -113,7 +114,8 @@ namespace Affected.Cli
 
             // normalize paths so that they match on windows.
             var normalizedFiles = files
-                .Where(f => !FileExclusions.Any(f.EndsWith));
+                .Where(f => !FileExclusions.Any(f.EndsWith))
+                .Select(Path.GetFullPath);
 
             foreach (var file in normalizedFiles)
             {
