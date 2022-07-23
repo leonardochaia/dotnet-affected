@@ -26,7 +26,7 @@ namespace Affected.Cli.Tests
 
             return project;
         }
-        
+
         public static ProjectRootElement CreateDirectoryPackageProps(
             this TemporaryRepository repo,
             Action<ProjectRootElement> customizer)
@@ -41,7 +41,7 @@ namespace Affected.Cli.Tests
 
             return project;
         }
-        
+
         public static void RemoveDirectoryPackageProps(
             this TemporaryRepository repo)
         {
@@ -55,13 +55,14 @@ namespace Affected.Cli.Tests
             var path = Path.Combine(repo.Path, relativePath);
             File.Delete(path);
         }
-        
+
         public static ProjectRootElement UpdateDirectoryPackageProps(
             this TemporaryRepository repo,
             Action<ProjectRootElement> customizer)
         {
             var path = Path.Combine(repo.Path, "Directory.Packages.props");
-            var project = ProjectRootElement.Open(path) ?? throw new InvalidOperationException("Failed to load msbuild project");
+            var project = ProjectRootElement.Open(path) ??
+                          throw new InvalidOperationException("Failed to load msbuild project");
 
             customizer?.Invoke(project);
 
@@ -96,8 +97,17 @@ namespace Affected.Cli.Tests
             await file.DisposeAsync();
             await File.WriteAllTextAsync(path, contents);
         }
-        
-        public static IEnumerable<ProjectRootElement> CreateTree(
+
+        /// <summary>
+        /// Creates a tree of csproj with a total of <paramref name="totalProjects" />
+        /// Each project will try to have <paramref name="childrenPerProject" /> without
+        /// surpassing the <paramref name="totalProjects" /> count.
+        /// </summary>
+        /// <param name="repository"></param>
+        /// <param name="totalProjects"></param>
+        /// <param name="childrenPerProject"></param>
+        /// <returns></returns>
+        public static IEnumerable<ProjectRootElement> CreateCsProjTree(
             this TemporaryRepository repository,
             int totalProjects,
             int childrenPerProject)
@@ -109,13 +119,20 @@ namespace Affected.Cli.Tests
             do
             {
                 var name = $"project-{currentProjects}";
-                var node = repository.CreateCsProject(name);
+                var node = repository.CreateCsProject(name,
+                    project =>
+                    {
+                        // REMARKS: This is what makes building the ProjectGraph EXTREMELY slow
+                        // We expect target projects to be SDK based, so this makes our tests/benchmkars more accurate.
+                        project.Sdk = "Microsoft.NET.Sdk";
+                    });
 
                 parent?.AddProjectDependency(node.FullPath);
                 currentChildCount++;
 
                 if (currentChildCount >= childrenPerProject)
                 {
+                    parent?.Save();
                     parent = node;
                 }
 
@@ -124,18 +141,29 @@ namespace Affected.Cli.Tests
             } while (currentProjects < totalProjects);
         }
 
-        public static void RandomizeChangesInProjectTree(
+        /// <summary>
+        /// Adds a .cs file every <paramref name="everyProjectCount" />
+        /// Useful for making changes to a tree of csproj created with <see cref="CreateCsProjTree" />.
+        /// </summary>
+        /// <param name="repository"></param>
+        /// <param name="graph"></param>
+        /// <param name="everyProjectCount"></param>
+        public static async Task MakeChangesInProjectTree(
             this TemporaryRepository repository,
-            ProjectGraph graph)
+            ProjectGraph graph,
+            int everyProjectCount = 5)
         {
             var current = 0;
             foreach (var node in graph.ProjectNodes)
             {
-                if (current % 5 != 0) continue;
+                if (current % everyProjectCount != 0)
+                {
+                    continue;
+                }
 
                 var filePath = Path.Combine(node.ProjectInstance.Directory, $"file-{current}.cs");
                 var fileContents = $"// contents {current}";
-                Task.Run(() => repository.CreateTextFileAsync(filePath, fileContents));
+                await repository.CreateTextFileAsync(filePath, fileContents);
 
                 current++;
             }
