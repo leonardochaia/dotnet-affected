@@ -8,46 +8,52 @@ using System.Linq;
 
 namespace Affected.Cli.Benchmarks
 {
+    /// <summary>
+    ///     Benchmarks the equivalent of running `dotnet affected`
+    ///     Complete dotnet-affected benchmark with I/O.
+    /// </summary>
     [MemoryDiagnoser]
-    public class InvocationBenchmarks
+    public class MacroBenchmarks
     {
-        [Params(500, 1000)] public int TotalProjects { get; set; }
-
-        [Params(20)] public int ChildrenPerProject { get; set; }
-
-        static InvocationBenchmarks()
+        static MacroBenchmarks()
         {
             MSBuildLocator.RegisterDefaults();
         }
 
-        private TemporaryRepository Repository { get; } = new TemporaryRepository();
+        [Params(500, 1000)] public int TotalProjects { get; set; }
+
+        [Params(20)] public int ChildrenPerProject { get; set; }
+
+        private TemporaryRepository Repository { get; } = new();
 
         [GlobalSetup]
         public void GlobalSetup()
         {
+            Console.WriteLine("Seeding project graph");
             // Create a random tree of csproj
-            var rootNodes = this.Repository
+            var rootNodes = Repository
                 .CreateTree(TotalProjects, ChildrenPerProject)
                 .ToList();
 
             // Commit so there are no changes
-            this.Repository.StageAndCommit();
+            Repository.StageAndCommit();
 
             // Add random files to the tree so that some projects have changes
             var graph = new ProjectGraph(rootNodes.Select(x => x.FullPath));
-            this.Repository.RandomizeChangesInProjectTree(graph);
+            Repository.RandomizeChangesInProjectTree(graph);
 
-            Console.WriteLine($"Seeded graph with total of {graph.ProjectNodes.Count()} projects in {graph.ConstructionMetrics.ConstructionTime}");
+            Console.WriteLine($"Seeded graph with total of {graph.ProjectNodes.Count()} " +
+                              $"projects in {graph.ConstructionMetrics.ConstructionTime}");
         }
 
         [GlobalCleanup]
         public void GlobalCleanUp()
         {
-            this.Repository.Dispose();
+            Repository.Dispose();
         }
 
         [Benchmark]
-        public int Benchmark()
+        public int MacroBenchmark()
         {
             var exitCode = AffectedCli
                 .CreateAffectedCommandLineBuilder()

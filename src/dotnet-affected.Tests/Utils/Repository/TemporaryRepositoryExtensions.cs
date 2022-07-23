@@ -26,7 +26,7 @@ namespace Affected.Cli.Tests
 
             return project;
         }
-        
+
         public static ProjectRootElement CreateDirectoryPackageProps(
             this TemporaryRepository repo,
             Action<ProjectRootElement> customizer)
@@ -41,7 +41,7 @@ namespace Affected.Cli.Tests
 
             return project;
         }
-        
+
         public static void RemoveDirectoryPackageProps(
             this TemporaryRepository repo)
         {
@@ -55,13 +55,14 @@ namespace Affected.Cli.Tests
             var path = Path.Combine(repo.Path, relativePath);
             File.Delete(path);
         }
-        
+
         public static ProjectRootElement UpdateDirectoryPackageProps(
             this TemporaryRepository repo,
             Action<ProjectRootElement> customizer)
         {
             var path = Path.Combine(repo.Path, "Directory.Packages.props");
-            var project = ProjectRootElement.Open(path) ?? throw new InvalidOperationException("Failed to load msbuild project");
+            var project = ProjectRootElement.Open(path) ??
+                          throw new InvalidOperationException("Failed to load msbuild project");
 
             customizer?.Invoke(project);
 
@@ -96,7 +97,7 @@ namespace Affected.Cli.Tests
             await file.DisposeAsync();
             await File.WriteAllTextAsync(path, contents);
         }
-        
+
         public static IEnumerable<ProjectRootElement> CreateTree(
             this TemporaryRepository repository,
             int totalProjects,
@@ -109,13 +110,20 @@ namespace Affected.Cli.Tests
             do
             {
                 var name = $"project-{currentProjects}";
-                var node = repository.CreateCsProject(name);
+                var node = repository.CreateCsProject(name,
+                    project =>
+                    {
+                        // REMARKS: This is what makes building the ProjectGraph EXTREMELY slow
+                        // We expect target projects to be SDK based, so this makes our tests/benchmkars more accurate.
+                        project.Sdk = "Microsoft.NET.Sdk";
+                    });
 
                 parent?.AddProjectDependency(node.FullPath);
                 currentChildCount++;
 
                 if (currentChildCount >= childrenPerProject)
                 {
+                    parent?.Save();
                     parent = node;
                 }
 
