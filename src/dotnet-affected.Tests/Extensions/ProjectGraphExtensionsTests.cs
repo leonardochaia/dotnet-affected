@@ -27,7 +27,7 @@ namespace Affected.Cli.Tests
             var dep1Node = graph.FindNodeByPath(dep1Project.FullPath);
 
             // Act
-            var affected = graph.FindNodesThatDependOn(dep1Node)
+            var affected = dep1Node.FindReferencingProjects()
                 .ToList();
 
             // Assert
@@ -54,7 +54,7 @@ namespace Affected.Cli.Tests
             var dep2Node = graph.FindNodeByPath(dep2Project.FullPath);
 
             // Act
-            var affected = graph.FindNodesThatDependOn(dep2Node)
+            var affected = dep2Node.FindReferencingProjects()
                 .ToList();
 
             // Assert
@@ -99,10 +99,10 @@ namespace Affected.Cli.Tests
             var dep3Node = graph.FindNodeByPath(dep3Project.FullPath);
 
             // Act
-            var affected = graph.FindNodesThatDependOn(new[]
+            var affected = new[]
                 {
                     dep2Node, dep3Node,
-                })
+                }.FindReferencingProjects()
                 .ToList();
 
             // Assert

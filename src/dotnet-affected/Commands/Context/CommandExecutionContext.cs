@@ -46,12 +46,12 @@ namespace Affected.Cli.Commands
 
         public IEnumerable<IProjectInfo> ChangedProjects => _changedProjects.Value
             .Select(p => new ProjectInfo(p))
-            .OrderBy(x=> x.Name)
+            .OrderBy(x => x.Name)
             .ToList();
 
         public IEnumerable<IProjectInfo> AffectedProjects => _affectedProjects.Value
             .Select(p => new ProjectInfo(p))
-            .OrderBy(x=> x.Name)
+            .OrderBy(x => x.Name)
             .ToList();
 
         private IEnumerable<string> DetermineChangedFiles()
@@ -82,7 +82,8 @@ namespace Affected.Cli.Commands
             // Find projects referencing NuGet packages that changed
             var changedPackages = _changedNugetPackages.Value.Select(p => p.Name);
             var projectsAffectedByNugetPackages = _graph.Value
-                .FindNodesReferencingNuGetPackages(changedPackages);
+                .FindNodesReferencingNuGetPackages(changedPackages)
+                .ToList();
 
             // Combine changed projects with projects affected by nuget changes
             var changedAndNugetAffected = _changedProjects.Value
@@ -90,10 +91,8 @@ namespace Affected.Cli.Commands
                 .Deduplicate();
 
             // Find projects that depend on the changed projects + projects affected by nuget
-            var projectsAffectedByChanges = _graph.Value
-                .FindNodesThatDependOn(changedAndNugetAffected);
-
-            var output = projectsAffectedByChanges
+            var output = changedAndNugetAffected
+                .FindReferencingProjects()
                 .Concat(projectsAffectedByNugetPackages)
                 .Deduplicate()
                 .ToArray();
