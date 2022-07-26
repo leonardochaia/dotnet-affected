@@ -25,6 +25,10 @@ namespace Affected.Cli
         /// <param name="from"></param>
         /// <param name="to"></param>
         /// <returns></returns>
-        (string FromText, string ToText) GetTextFileContents(string directory, string pathToFile, string from, string to);
+        (string? FromText, string? ToText) GetTextFileContents(
+            string directory,
+            string pathToFile,
+            string from,
+            string to);
     }
 }

@@ -27,6 +27,8 @@ namespace Affected.Cli
 
                     services.AddSingleton<ICommandExecutionContext, CommandExecutionContext>();
                     services.AddFromBindingContext<CommandExecutionData>();
+                    services.AddSingleton<IChangedProjectsProvider, ChangedProjectsProvider>();
+                    services.AddSingleton<IAffectedExecutor, AffectedExecutor>();
 
                     services.AddTransient<IOutputFormatter, TextOutputFormatter>();
                     services.AddTransient<IOutputFormatter, TraversalProjectOutputFormatter>();

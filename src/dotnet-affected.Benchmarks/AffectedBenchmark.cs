@@ -19,7 +19,6 @@ namespace Affected.Cli.Benchmarks
     /// project discovery and building the MSBuild graph.
     /// </summary>
     [MemoryDiagnoser]
-    [WarmupCount(1)] // Should be enough to populate caches
     public class MicroBenchmarks
     {
         static MicroBenchmarks()
