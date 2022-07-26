@@ -71,7 +71,7 @@ namespace Affected.Cli.Tests
         public async Task FindProjectsForFilePaths_ShouldFindMultipleProject()
         {
             // Arrange
-            var project1 = Repository.CreateCsProject("context/Project1", x => x.Sdk = "Microsoft.NET.Sdk");
+            var project1 = Repository.CreateCsProject("context/Project1");
 
             var project2 = Repository.CreateCsProject("context/Project2");
 
