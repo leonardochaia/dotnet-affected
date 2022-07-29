@@ -14,7 +14,6 @@ namespace Affected.Cli.Benchmarks
     ///     Complete dotnet-affected benchmark with I/O.
     /// </summary>
     [MemoryDiagnoser]
-    [WarmupCount(1)] // Should be enough to populate caches
     public class MacroBenchmarks
     {
         static MacroBenchmarks()

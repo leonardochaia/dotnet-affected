@@ -58,29 +58,8 @@ namespace Affected.Cli
         {
             return Cache.GetOrAdd(
                 targetNode.ProjectInstance.FullPath,
-                s => FindReferencingProjectsImpl(targetNode)
+                _ => FindReferencingProjectsImpl(targetNode)
                     .ToList());
-        }
-
-        internal static IEnumerable<ProjectGraphNode> FindNodesContainingFiles(
-            this ProjectGraph graph,
-            IEnumerable<string> files)
-        {
-            var hasReturned = new HashSet<string>();
-            foreach (var file in files)
-            {
-                // TODO: Find a better way of doing this.
-                var nodes = graph.ProjectNodes
-                    .Where(n => file.IsSubPathOf(n.ProjectInstance.Directory));
-
-                foreach (var node in nodes)
-                {
-                    if (hasReturned.Add(node.ProjectInstance.FullPath))
-                    {
-                        yield return node;
-                    }
-                }
-            }
         }
 
         internal static IEnumerable<ProjectGraphNode> FindNodesReferencingNuGetPackages(

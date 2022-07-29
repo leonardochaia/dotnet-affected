@@ -30,7 +30,10 @@
         <PackageReference Include="Microsoft.Win32.Registry" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
         <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
+        <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" />
+        <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="runtime" />
         <PackageReference Include="Microsoft.Build.Locator" />
+        <PackageReference Include="Microsoft.Build.Prediction" />
         <PackageReference Include="System.CommandLine" />
         <PackageReference Include="System.CommandLine.Rendering" />
         <PackageReference Include="System.CommandLine.NamingConventionBinder" />
