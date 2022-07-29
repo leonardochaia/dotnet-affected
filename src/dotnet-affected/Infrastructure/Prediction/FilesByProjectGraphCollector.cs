@@ -6,6 +6,11 @@ using System.Collections.Generic;
 
 namespace Affected.Cli
 {
+    /// <summary>
+    /// Keeps track of each <see cref="ProjectGraphNode"/> and its predictions.
+    /// Inspired from https://github.com/microsoft/MSBuildPrediction/blob/c9bcdea11c06102d8c21db89acb11a99198670fd/src/BuildPrediction/DefaultProjectGraphPredictionCollector.cs#L1
+    /// Striped down version to only store what we need.
+    /// </summary>
     internal class FilesByProjectGraphCollector : IProjectPredictionCollector
     {
         private readonly Dictionary<ProjectInstance, ProjectInputFilesCollector> _collectorByProjectInstance;

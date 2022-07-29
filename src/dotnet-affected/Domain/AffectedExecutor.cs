@@ -31,15 +31,20 @@ namespace Affected.Cli
 
         public AffectedSummary Execute()
         {
+            // Get files that changed according to changes provider.
             var changedFiles = this.DetermineChangedFiles();
 
+            // Get package changes from Directory.Package.props file.
             var changedPackages = this.FindChangedNugetPackages(changedFiles)
                 .ToArray();
 
+            // Map the files that changed to their corresponding project/s.
             var changedProjects = this.FindProjectsContainingFiles(changedFiles);
 
+            // Determine which projects are affected by the projects and packages that have changed.
             var affectedProjects = this.DetermineAffectedProjects(changedPackages, changedProjects);
 
+            // Output a summary of the operation.
             return new AffectedSummary(changedFiles,
                 changedProjects,
                 affectedProjects,
