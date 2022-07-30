@@ -26,6 +26,12 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Install .NET
+      run: |
+          ./eng/install-sdk.sh
+          echo "DOTNET_ROOT=$GITHUB_WORKSPACE/eng/.dotnet" >> $GITHUB_ENV
+          echo "$GITHUB_WORKSPACE/eng/.dotnet" >> $GITHUB_PATH
+
     - uses: nrwl/last-successful-commit-action@v1
       name: Build Commit Range
       id: last_successful_commit
@@ -47,7 +53,7 @@ jobs:
         set +e
         chmod +x ./dotnet-affected
         ./dotnet-affected -p $GITHUB_WORKSPACE -v \
-            --from ${{ steps.last_successful_commit.outputs.commit_hash }} \
+            --from ${{ steps.last_successful_commit.outputs.commit_hash || 'main' }} \
             --to ${{ github.sha }} \
             --format text
 
