@@ -48,12 +48,12 @@ jobs:
 
     - name: Detect Affected
       id: affected
-      if: success() && !github.event.inputs.skip_affected
+      if: success() && steps.last_successful_commit.outputs.commit_hash != '' && !github.event.inputs.skip_affected
       run: |
         set +e
         chmod +x ./dotnet-affected
         ./dotnet-affected -p $GITHUB_WORKSPACE -v \
-            --from ${{ steps.last_successful_commit.outputs.commit_hash || 'main' }} \
+            --from ${{ steps.last_successful_commit.outputs.commit_hash }} \
             --to ${{ github.sha }} \
             --format text
 
@@ -72,11 +72,11 @@ jobs:
 
     - uses: actions/download-artifact@master
       name: Download Package Artifact
-      if: success() && (steps.affected.outputs.should_deploy == 'true' || github.event.inputs.skip_affected)
+      if: success() && (steps.affected.outputs.should_deploy == 'true' || github.event.inputs.skip_affected || steps.last_successful_commit.outputs.commit_hash == '')
       with:
         name: packages
         path: "."
 
     - name: Push to NuGet
-      if: success() && (steps.affected.outputs.should_deploy == 'true' || github.event.inputs.skip_affected)
+      if: success() && (steps.affected.outputs.should_deploy == 'true' || github.event.inputs.skip_affected || steps.last_successful_commit.outputs.commit_hash == '')
       run: dotnet nuget push *.nupkg --skip-duplicate -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}}
