@@ -1,67 +1,21 @@
 ﻿using Microsoft.Build.Graph;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Affected.Cli
 {
+    /// <summary>
+    /// Extension methods over <see cref="ProjectGraphNode"/>.
+    /// </summary>
     public static class ProjectGraphExtensions
     {
-        private static readonly ConcurrentDictionary<string, IEnumerable<ProjectGraphNode>> Cache = new();
-
         /// <summary>
-        /// Recursively searches for all <see cref="ProjectGraphNode.ReferencingProjects"/>
-        /// in all provided projects.
+        /// Recursively finds the list of nodes that reference the provided <paramref name="nuGetPackageNames"/>.
         /// </summary>
-        /// <param name="targetNodes"></param>
+        /// <param name="graph"></param>
+        /// <param name="nuGetPackageNames"></param>
         /// <returns></returns>
-        public static IEnumerable<ProjectGraphNode> FindReferencingProjects(
-            this IEnumerable<ProjectGraphNode> targetNodes)
-        {
-            var added = new HashSet<string>();
-            foreach (var node in targetNodes)
-            {
-                foreach (var affected in FindReferencingProjects(node))
-                {
-                    if (added.Add(affected.ProjectInstance.FullPath))
-                        yield return affected;
-                }
-            }
-        }
-
-        private static IEnumerable<ProjectGraphNode> FindReferencingProjectsImpl(ProjectGraphNode node)
-        {
-            var added = new HashSet<string>();
-            foreach (var referencingProject in node.ReferencingProjects)
-            {
-                // Return all referencing projects
-                if (added.Add(referencingProject.ProjectInstance.FullPath))
-                    yield return referencingProject;
-
-                // Recurse each node's children
-                foreach (var child in FindReferencingProjects(referencingProject))
-                {
-                    if (added.Add(child.ProjectInstance.FullPath))
-                        yield return child;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Recursively searches for <see cref="ProjectGraphNode.ReferencingProjects"/>
-        /// </summary>
-        /// <param name="targetNode"></param>
-        /// <returns></returns>
-        public static IEnumerable<ProjectGraphNode> FindReferencingProjects(
-            this ProjectGraphNode targetNode)
-        {
-            return Cache.GetOrAdd(
-                targetNode.ProjectInstance.FullPath,
-                _ => FindReferencingProjectsImpl(targetNode)
-                    .ToList());
-        }
-
         public static IEnumerable<ProjectGraphNode> FindNodesReferencingNuGetPackages(
             this ProjectGraph graph,
             IEnumerable<string> nuGetPackageNames)
@@ -83,6 +37,12 @@ namespace Affected.Cli
             }
         }
 
+        /// <summary>
+        /// Searches for the node that matches the given <paramref name="projectPath"/>.
+        /// </summary>
+        /// <param name="graph"></param>
+        /// <param name="projectPath"></param>
+        /// <returns></returns>
         public static ProjectGraphNode? FindNodeByPath(
             this ProjectGraph graph,
             string projectPath)
@@ -91,6 +51,12 @@ namespace Affected.Cli
                 .FirstOrDefault(n => n.ProjectInstance.FullPath == projectPath);
         }
 
+        /// <summary>
+        /// Searches for the node that matches the given <paramref name="name"/>.
+        /// </summary>
+        /// <param name="graph"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public static ProjectGraphNode? FindNodeByName(
             this ProjectGraph graph,
             string name)
@@ -100,6 +66,13 @@ namespace Affected.Cli
                     .Equals(name, StringComparison.OrdinalIgnoreCase));
         }
 
+        /// <summary>
+        /// Searches for a list of nodes where the names matches the provided ones.
+        /// </summary>
+        /// <param name="graph"></param>
+        /// <param name="names"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public static IEnumerable<ProjectGraphNode> FindNodesByName(
             this ProjectGraph graph,
             IEnumerable<string> names)

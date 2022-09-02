@@ -15,7 +15,7 @@ namespace Affected.Cli.Tests
 
         private ProjectGraph _graph;
 
-        private IChangedProjectsProvider Provider => new ChangedProjectsProvider(Graph, Options);
+        private IChangedProjectsProvider Provider => new PredictionChangedProjectsProvider(Graph, Options);
 
         private ProjectGraph Graph => _graph ??= new ProjectGraphFactory(Options).BuildProjectGraph();
 

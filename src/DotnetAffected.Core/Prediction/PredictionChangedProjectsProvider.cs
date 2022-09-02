@@ -8,7 +8,11 @@ using System.Linq;
 
 namespace Affected.Cli
 {
-    public class ChangedProjectsProvider : IChangedProjectsProvider
+    /// <summary>
+    /// Determines which projects have changed based on the list of files that have changed.
+    /// Uses MSBuild.Prediction to figure out which files are input of which projects.
+    /// </summary>
+    public class PredictionChangedProjectsProvider : IChangedProjectsProvider
     {
         private readonly ProjectGraph _graph;
 
@@ -50,7 +54,12 @@ namespace Affected.Cli
 
         private readonly string _repositoryPath;
 
-        public ChangedProjectsProvider(
+        /// <summary>
+        /// Creates the <see cref="PredictionChangedProjectsProvider"/>.
+        /// </summary>
+        /// <param name="graph"></param>
+        /// <param name="options"></param>
+        public PredictionChangedProjectsProvider(
             ProjectGraph graph,
             IDiscoveryOptions options)
         {
@@ -58,6 +67,7 @@ namespace Affected.Cli
             _repositoryPath = options.RepositoryPath;
         }
 
+        /// <inheritdoc />
         public IEnumerable<ProjectGraphNode> GetReferencingProjects(
             IEnumerable<string> files)
         {

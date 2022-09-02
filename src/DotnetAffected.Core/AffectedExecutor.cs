@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Affected.Cli
 {
+    /// <summary>
+    /// Analyzes MSBuild projects in order to determine which projects are affected by a set of changes.
+    /// </summary>
     public class AffectedExecutor : IAffectedExecutor
     {
         private readonly IChangesProvider _changesProvider;
@@ -14,11 +17,23 @@ namespace Affected.Cli
         private ProjectGraph? _graph;
         private readonly IChangedProjectsProvider? _changedProjectsProvider;
 
+        /// <summary>
+        /// Creates an instance of the executor using an existing <see cref="ProjectGraph"/>.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="graph"></param>
         public AffectedExecutor(AffectedOptions options, ProjectGraph graph)
-            : this(options, null, graph, null)
+            : this(options, null, graph)
         {
         }
 
+        /// <summary>
+        /// Creates the executor using all parameters.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="changesProvider"></param>
+        /// <param name="graph"></param>
+        /// <param name="changedProjectsProvider"></param>
         public AffectedExecutor(
             AffectedOptions options,
             IChangesProvider? changesProvider = null,
@@ -31,12 +46,13 @@ namespace Affected.Cli
             _changedProjectsProvider = changedProjectsProvider;
 
             this._repositoryPath = options.RepositoryPath;
-            this._fromRef = options.From;
-            this._toRef = options.To;
+            this._fromRef = options.FromRef;
+            this._toRef = options.ToRef;
         }
 
         private ProjectGraph Graph => _graph ??= new ProjectGraphFactory(_options).BuildProjectGraph();
 
+        /// <inheritdoc />
         public AffectedSummary Execute()
         {
             // Get files that changed according to changes provider.
@@ -73,7 +89,7 @@ namespace Affected.Cli
         private ProjectGraphNode[] FindProjectsContainingFiles(
             IEnumerable<string> changedFiles)
         {
-            var provider = this._changedProjectsProvider ?? new ChangedProjectsProvider(Graph, _options);
+            var provider = this._changedProjectsProvider ?? new PredictionChangedProjectsProvider(Graph, _options);
             // Match which files belong to which of our known projects
             return provider.GetReferencingProjects(changedFiles)
                 .ToArray();

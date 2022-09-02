@@ -10,18 +10,18 @@
         /// </summary>
         /// <param name="repositoryPath"></param>
         /// <param name="solutionPath"></param>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
+        /// <param name="fromRef"></param>
+        /// <param name="toRef"></param>
         public AffectedOptions(
             string repositoryPath,
             string? solutionPath = null,
-            string from = "",
-            string to = "")
+            string fromRef = "",
+            string toRef = "")
         {
             RepositoryPath = repositoryPath;
             SolutionPath = solutionPath;
-            From = from;
-            To = to;
+            FromRef = fromRef;
+            ToRef = toRef;
         }
 
         /// <summary>
@@ -34,7 +34,14 @@
         /// </summary>
         public string? SolutionPath { get; }
 
-        public string From { get; }
-        public string To { get; }
+        /// <summary>
+        /// Gets the reference from which to compare changes to.
+        /// </summary>
+        public string FromRef { get; }
+
+        /// <summary>
+        /// Gets the reference up to which changes will be compared from.
+        /// </summary>
+        public string ToRef { get; }
     }
 }

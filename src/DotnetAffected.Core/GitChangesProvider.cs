@@ -6,8 +6,12 @@ using System.Text;
 
 namespace Affected.Cli
 {
+    /// <summary>
+    /// Detects changes using Git.
+    /// </summary>
     public class GitChangesProvider : IChangesProvider
     {
+        /// <inheritdoc />
         public IEnumerable<string> GetChangedFiles(string directory, string from, string to)
         {
             using var repository = new Repository(directory);
@@ -17,6 +21,7 @@ namespace Affected.Cli
             return TreeChangesToPaths(changes, directory);
         }
 
+        /// <inheritdoc />
         public (string? FromText, string? ToText) GetTextFileContents(
             string directory,
             string pathToFile,

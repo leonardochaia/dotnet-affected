@@ -37,7 +37,7 @@ namespace Affected.Cli
                         return new AffectedExecutor(options,
                             changesProvider,
                             graph,
-                            new ChangedProjectsProvider(graph, options));
+                            new PredictionChangedProjectsProvider(graph, options));
                     });
                 })
                 .ConfigureCommandLine(builder =>

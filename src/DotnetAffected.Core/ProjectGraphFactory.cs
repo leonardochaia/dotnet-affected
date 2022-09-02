@@ -1,5 +1,4 @@
 ﻿using Microsoft.Build.Graph;
-using System;
 
 namespace Affected.Cli
 {
@@ -9,17 +8,14 @@ namespace Affected.Cli
     public class ProjectGraphFactory
     {
         private readonly IDiscoveryOptions _options;
-        private readonly Lazy<ProjectGraph> _graph;
 
+        /// <summary>
+        /// Creates an instance of the factory.
+        /// </summary>
+        /// <param name="options"></param>
         public ProjectGraphFactory(IDiscoveryOptions options)
         {
             _options = options;
-
-            // Discovering projects, and finding affected may throw
-            // For error handling to be managed properly at the handler level,
-            // we use Lazies so that its done on demand when its actually needed
-            // instead of happening here on the constructor
-            _graph = new Lazy<ProjectGraph>(BuildProjectGraph);
         }
 
         /// <summary>
