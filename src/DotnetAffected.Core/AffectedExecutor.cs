@@ -18,6 +18,11 @@ namespace DotnetAffected.Core
         private ProjectGraph? _graph;
         private readonly IChangedProjectsProvider? _changedProjectsProvider;
 
+        public AffectedExecutor(string repositoryPath, ProjectGraph? graph = null)
+            : this(new AffectedOptions(repositoryPath), graph)
+        {
+        }
+
         /// <summary>
         /// Creates the executor using all parameters.
         /// </summary>
