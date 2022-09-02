@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Affected.Cli
+namespace DotnetAffected.Abstractions
 {
     /// <summary>
     /// Abstraction over the underlying repository implementation.

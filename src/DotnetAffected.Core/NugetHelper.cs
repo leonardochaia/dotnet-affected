@@ -1,17 +1,18 @@
-﻿using Microsoft.Build.Evaluation;
+﻿using DotnetAffected.Abstractions;
+using Microsoft.Build.Evaluation;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
 
-namespace Affected.Cli
+namespace DotnetAffected.Core
 {
     internal static class NugetHelper
     {
         public static IEnumerable<(string Package, string Version)> ParseDirectoryPackageProps(string? propsFile)
         {
             if (propsFile == null) return Enumerable.Empty<(string, string)>();
-            
+
             Stream GenerateStreamFromString(string s)
             {
                 var stream = new MemoryStream();

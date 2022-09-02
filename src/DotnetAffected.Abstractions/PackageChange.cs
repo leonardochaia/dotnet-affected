@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Affected.Cli
+namespace DotnetAffected.Abstractions
 {
     /// <summary>
     /// Changes about a package across two revisions.

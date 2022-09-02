@@ -1,4 +1,6 @@
 ﻿using Affected.Cli.Commands;
+using DotnetAffected.Abstractions;
+using DotnetAffected.Core;
 using Microsoft.Build.Graph;
 using System.Collections.Generic;
 using System.Linq;

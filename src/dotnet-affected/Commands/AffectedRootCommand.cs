@@ -1,4 +1,5 @@
 ﻿using Affected.Cli.Views;
+using DotnetAffected.Abstractions;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;

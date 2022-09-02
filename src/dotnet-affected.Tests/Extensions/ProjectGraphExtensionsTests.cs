@@ -1,6 +1,7 @@
-﻿using Microsoft.Build.Graph;
-using System.Linq;
+﻿using DotnetAffected.Core;
+using Microsoft.Build.Graph;
 using Xunit;
+using System.Linq;
 
 namespace Affected.Cli.Tests
 {

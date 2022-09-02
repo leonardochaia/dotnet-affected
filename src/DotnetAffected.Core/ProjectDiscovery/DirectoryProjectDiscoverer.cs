@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using DotnetAffected.Abstractions;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Affected.Cli
+namespace DotnetAffected.Core
 {
     internal class DirectoryProjectDiscoverer : IProjectDiscoverer
     {

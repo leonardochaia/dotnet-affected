@@ -1,4 +1,6 @@
-﻿namespace Affected.Cli
+﻿using DotnetAffected.Abstractions;
+
+namespace DotnetAffected.Core
 {
     /// <summary>
     /// Options for executing Dotnet Affected

@@ -4,7 +4,7 @@ using Microsoft.Build.Prediction;
 using System;
 using System.Collections.Generic;
 
-namespace Affected.Cli
+namespace DotnetAffected.Core
 {
     /// <summary>
     /// Keeps track of each <see cref="ProjectGraphNode"/> and its predictions.

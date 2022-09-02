@@ -1,5 +1,7 @@
 ﻿using Affected.Cli.Tests;
 using BenchmarkDotNet.Attributes;
+using DotnetAffected.Abstractions;
+using DotnetAffected.Core;
 using Microsoft.Build.Graph;
 using Microsoft.Build.Locator;
 using System;

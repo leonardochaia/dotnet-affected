@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using DotnetAffected.Core;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;

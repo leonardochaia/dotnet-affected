@@ -1,4 +1,5 @@
 ﻿using Affected.Cli.Commands;
+using DotnetAffected.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;

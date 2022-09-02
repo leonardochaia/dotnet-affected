@@ -1,4 +1,5 @@
-﻿using Microsoft.Build.Graph;
+﻿using DotnetAffected.Core;
+using Microsoft.Build.Graph;
 
 namespace Affected.Cli
 {
@@ -9,13 +10,13 @@ namespace Affected.Cli
             this.Name = name;
             this.FilePath = filePath;
         }
-        
+
         public ProjectInfo(ProjectGraphNode node)
         {
             this.Name = node.GetProjectName();
             this.FilePath = node.ProjectInstance.FullPath;
         }
-        
+
         /// <summary>
         /// Gets the calculated name of the project.
         /// This does not include the project's extension.

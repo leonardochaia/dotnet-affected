@@ -1,4 +1,4 @@
-﻿namespace Affected.Cli
+﻿namespace DotnetAffected.Abstractions
 {
     /// <summary>
     /// Examines the project graph to determine which projects are affected by a set of changes.

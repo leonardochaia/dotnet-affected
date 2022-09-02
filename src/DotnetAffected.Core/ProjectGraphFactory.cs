@@ -1,6 +1,7 @@
-﻿using Microsoft.Build.Graph;
+﻿using DotnetAffected.Abstractions;
+using Microsoft.Build.Graph;
 
-namespace Affected.Cli
+namespace DotnetAffected.Core
 {
     /// <summary>
     /// Resolves the <see cref="ProjectGraph"/> for the directory provided in user input.

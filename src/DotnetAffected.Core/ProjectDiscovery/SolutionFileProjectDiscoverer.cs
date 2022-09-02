@@ -1,8 +1,9 @@
-﻿using Microsoft.Build.Construction;
+﻿using DotnetAffected.Abstractions;
+using Microsoft.Build.Construction;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Affected.Cli
+namespace DotnetAffected.Core
 {
     internal class SolutionFileProjectDiscoverer : IProjectDiscoverer
     {

@@ -1,6 +1,8 @@
 ﻿using Affected.Cli.Commands;
 using Affected.Cli.Formatters;
 using Affected.Cli.Views;
+using DotnetAffected.Abstractions;
+using DotnetAffected.Core;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;

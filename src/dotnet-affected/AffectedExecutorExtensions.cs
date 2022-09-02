@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using DotnetAffected.Abstractions;
+using System.Linq;
 
 namespace Affected.Cli
 {

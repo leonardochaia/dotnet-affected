@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Affected.Cli
+namespace DotnetAffected.Core
 {
     /// <summary>
     /// Extension methods over <see cref="ProjectGraphNode"/>.

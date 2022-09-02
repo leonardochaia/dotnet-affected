@@ -1,4 +1,5 @@
-﻿using Microsoft.Build.Graph;
+﻿using DotnetAffected.Abstractions;
+using Microsoft.Build.Graph;
 using Microsoft.Build.Prediction;
 using Microsoft.Build.Prediction.Predictors;
 using Microsoft.Build.Prediction.Predictors.CopyTask;
@@ -6,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Affected.Cli
+namespace DotnetAffected.Core
 {
     /// <summary>
     /// Determines which projects have changed based on the list of files that have changed.

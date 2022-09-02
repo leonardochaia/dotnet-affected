@@ -1,8 +1,9 @@
-﻿using Microsoft.Build.Graph;
+﻿using DotnetAffected.Abstractions;
+using Microsoft.Build.Graph;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Affected.Cli
+namespace DotnetAffected.Core
 {
     /// <summary>
     /// Analyzes MSBuild projects in order to determine which projects are affected by a set of changes.

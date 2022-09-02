@@ -3,7 +3,7 @@ using Microsoft.Build.Prediction;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Affected.Cli
+namespace DotnetAffected.Core
 {
     /// <summary>
     /// Keeps track of each <see cref="ProjectInstance"/> and its predictions.

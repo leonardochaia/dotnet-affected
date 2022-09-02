@@ -1,4 +1,4 @@
-﻿namespace Affected.Cli
+﻿namespace DotnetAffected.Abstractions
 {
     /// <summary>
     /// Options for discovering projects.

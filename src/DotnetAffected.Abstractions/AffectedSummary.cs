@@ -1,6 +1,6 @@
 ﻿using Microsoft.Build.Graph;
 
-namespace Affected.Cli
+namespace DotnetAffected.Abstractions
 {
     /// <summary>
     /// The output of calculating affected projects.

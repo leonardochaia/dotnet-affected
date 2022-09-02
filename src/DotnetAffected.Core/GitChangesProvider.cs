@@ -1,10 +1,11 @@
-﻿using LibGit2Sharp;
+﻿using DotnetAffected.Abstractions;
+using LibGit2Sharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Affected.Cli
+namespace DotnetAffected.Core
 {
     /// <summary>
     /// Detects changes using Git.

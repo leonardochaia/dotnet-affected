@@ -1,7 +1,7 @@
 ﻿using Microsoft.Build.Graph;
 using System.Collections.Generic;
 
-namespace Affected.Cli
+namespace DotnetAffected.Abstractions
 {
     /// <summary>
     /// Finds projects based on a list of files they own.
