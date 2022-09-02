@@ -38,12 +38,12 @@ namespace Affected.Cli.Tests
             var msBuildProject = this.Repository.CreateCsProject(_projectName);
             this.Repository.StageAndCommit();
 
-            Assert.Single(Context.ChangedProjects);
-            Assert.Empty(Context.AffectedProjects);
+            Assert.Single(AffectedSummary.ProjectsWithChangedFiles);
+            Assert.Empty(AffectedSummary.AffectedProjects);
 
-            var projectInfo = Context.ChangedProjects.Single();
-            Assert.Equal(_projectName, projectInfo.Name);
-            Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
+            var projectInfo = AffectedSummary.ProjectsWithChangedFiles.Single();
+            Assert.Equal(_projectName, projectInfo.GetProjectName());
+            Assert.Equal(msBuildProject.FullPath, projectInfo.GetFullPath());
         }
 
         [Fact]
@@ -59,12 +59,12 @@ namespace Affected.Cli.Tests
             // Commit so there are no changes
             this.Repository.StageAndCommit();
 
-            Assert.Single(Context.ChangedProjects);
-            Assert.Empty(Context.AffectedProjects);
+            Assert.Single(AffectedSummary.ProjectsWithChangedFiles);
+            Assert.Empty(AffectedSummary.AffectedProjects);
 
-            var projectInfo = Context.ChangedProjects.Single();
-            Assert.Equal(_projectName, projectInfo.Name);
-            Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
+            var projectInfo = AffectedSummary.ProjectsWithChangedFiles.Single();
+            Assert.Equal(_projectName, projectInfo.GetProjectName());
+            Assert.Equal(msBuildProject.FullPath, projectInfo.GetFullPath());
         }
     }
 }

@@ -46,8 +46,8 @@ namespace Affected.Cli.Tests
 ";
             await Repository.CreateTextFileAsync(propsPath, propsFile);
 
-            Assert.Single(Context.ChangedProjects);
-            Assert.Empty(Context.AffectedProjects);
+            Assert.Single(AffectedSummary.ProjectsWithChangedFiles);
+            Assert.Empty(AffectedSummary.AffectedProjects);
         }
 
         [Theory]
@@ -97,8 +97,8 @@ namespace Affected.Cli.Tests
 ";
             await Repository.CreateTextFileAsync(defaultPropsPath, defaultPropsFile);
 
-            Assert.Single(Context.ChangedProjects);
-            Assert.Empty(Context.AffectedProjects);
+            Assert.Single(AffectedSummary.ProjectsWithChangedFiles);
+            Assert.Empty(AffectedSummary.AffectedProjects);
         }
 
         [Theory]
@@ -152,10 +152,10 @@ namespace Affected.Cli.Tests
 ";
             await Repository.CreateTextFileAsync(nestedPropsPath, nestedPropsFile);
 
-            Assert.Single(Context.ChangedProjects);
-            Assert.Equal("Inventory/InventoryManagement", Context.ChangedProjects.First()
-                .Name);
-            Assert.Empty(Context.AffectedProjects);
+            Assert.Single(AffectedSummary.ProjectsWithChangedFiles);
+            Assert.Equal("Inventory/InventoryManagement", AffectedSummary.ProjectsWithChangedFiles.First()
+                .GetProjectName());
+            Assert.Empty(AffectedSummary.AffectedProjects);
         }
 
         [Theory]
@@ -209,11 +209,11 @@ namespace Affected.Cli.Tests
 ";
             await Repository.CreateTextFileAsync(propsPath, propsFile);
 
-            Assert.Single(Context.ChangedProjects);
+            Assert.Single(AffectedSummary.ProjectsWithChangedFiles);
             Assert.Equal("Purchasing/PurchaseOrderManager",
-                Context.ChangedProjects.First()
-                    .Name);
-            Assert.Empty(Context.AffectedProjects);
+                AffectedSummary.ProjectsWithChangedFiles.First()
+                    .GetProjectName());
+            Assert.Empty(AffectedSummary.AffectedProjects);
         }
     }
 }

@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.CommandLine.Builder;
+using System.Linq;
 
 namespace Affected.Cli
 {
@@ -19,12 +20,25 @@ namespace Affected.Cli
             return new AffectedCommandLineBuilder(new AffectedRootCommand())
                 .ConfigureServices(services =>
                 {
-                    services.AddSingleton<ICommandExecutionContext, CommandExecutionContext>();
                     services.AddFromBindingContext<CommandExecutionData>();
 
                     services.AddTransient<IOutputFormatter, TextOutputFormatter>();
                     services.AddTransient<IOutputFormatter, TraversalProjectOutputFormatter>();
                     services.AddTransient<IOutputFormatterExecutor, OutputFormatterExecutor>();
+
+                    services.AddSingleton<IAffectedExecutor>(sp =>
+                    {
+                        var data = sp.GetRequiredService<CommandExecutionData>();
+                        var options = data.ToAffectedOptions();
+                        var graph = new ProjectGraphRef(options).Value;
+                        IChangesProvider changesProvider = data.AssumeChanges?.Any() == true
+                            ? new AssumptionChangesProvider(graph, data.AssumeChanges)
+                            : new GitChangesProvider();
+                        return new AffectedExecutor(options,
+                            changesProvider,
+                            graph,
+                            new ChangedProjectsProvider(graph, options));
+                    });
                 })
                 .ConfigureCommandLine(builder =>
                 {

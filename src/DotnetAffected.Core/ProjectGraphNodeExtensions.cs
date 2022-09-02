@@ -12,6 +12,11 @@ namespace Affected.Cli
             return node.ProjectInstance.GetPropertyValue("ProjectName");
         }
 
+        public static string GetFullPath(this ProjectGraphNode node)
+        {
+            return node.ProjectInstance.FullPath;
+        }
+
         public static bool ReferencesNuGetPackage(this ProjectGraphNode node, string nuGetPackageName)
         {
             return node.ProjectInstance

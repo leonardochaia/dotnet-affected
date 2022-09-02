@@ -32,13 +32,13 @@ namespace Affected.Cli.Tests
             Repository.UpdateDirectoryPackageProps(
                 b => b.UpdatePackageVersion(packageName, "v2.0.0"));
 
-            Assert.Single(Context.ChangedFiles);
-            Assert.Single(Context.ChangedNuGetPackages);
-            Assert.Single(Context.AffectedProjects);
+            Assert.Single(AffectedSummary.FilesThatChanged);
+            Assert.Single(AffectedSummary.ChangedPackages);
+            Assert.Single(AffectedSummary.AffectedProjects);
 
-            var projectInfo = Context.AffectedProjects.Single();
-            Assert.Equal(projectName, projectInfo.Name);
-            Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
+            var projectInfo = AffectedSummary.AffectedProjects.Single();
+            Assert.Equal(projectName, projectInfo.GetProjectName());
+            Assert.Equal(msBuildProject.FullPath, projectInfo.GetFullPath());
         }
 
         [Fact]
@@ -68,17 +68,15 @@ namespace Affected.Cli.Tests
             Repository.UpdateDirectoryPackageProps(
                 b => b.UpdatePackageVersion(packageName, "v2.0.0"));
 
-            Assert.Single(Context.ChangedFiles);
-            Assert.Single(Context.ChangedNuGetPackages);
-            Assert.Equal(2, Context.AffectedProjects.Count());
+            Assert.Single(AffectedSummary.FilesThatChanged);
+            Assert.Single(AffectedSummary.ChangedPackages);
+            Assert.Equal(2, AffectedSummary.AffectedProjects.Count());
 
-            var projectInfo = Context.AffectedProjects.First();
-            Assert.Equal(projectName, projectInfo.Name);
-            Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
+            Assert.Contains(AffectedSummary.AffectedProjects,
+                p => p.GetFullPath() == msBuildProject.FullPath);
 
-            var dependantProjectInfo = Context.AffectedProjects.ElementAt(1);
-            Assert.Equal(dependantProjectName, dependantProjectInfo.Name);
-            Assert.Equal(dependantMsBuildProject.FullPath, dependantProjectInfo.FilePath);
+            Assert.Contains(AffectedSummary.AffectedProjects,
+                p => p.GetFullPath() == dependantMsBuildProject.FullPath);
         }
 
         [Fact]
@@ -102,17 +100,17 @@ namespace Affected.Cli.Tests
             Repository.UpdateDirectoryPackageProps(
                 b => b.UpdatePackageVersion(packageName, null));
 
-            Assert.Single(Context.ChangedFiles);
-            Assert.Single(Context.ChangedNuGetPackages);
-            Assert.Single(Context.AffectedProjects);
+            Assert.Single(AffectedSummary.FilesThatChanged);
+            Assert.Single(AffectedSummary.ChangedPackages);
+            Assert.Single(AffectedSummary.AffectedProjects);
 
-            var projectInfo = Context.AffectedProjects.Single();
-            Assert.Equal(projectName, projectInfo.Name);
-            Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
+            var projectInfo = AffectedSummary.AffectedProjects.Single();
+            Assert.Equal(projectName, projectInfo.GetProjectName());
+            Assert.Equal(msBuildProject.FullPath, projectInfo.GetFullPath());
         }
 
         [Fact]
-        public void When_directory_packages_props_changes_without_dependant_projects_should_throw()
+        public void When_directory_packages_props_changes_without_dependant_projects_nothing_should_be_affected()
         {
             // Create a Directory.Package.props
             var packageName = "Some.Library";
@@ -134,8 +132,8 @@ namespace Affected.Cli.Tests
             Repository.UpdateDirectoryPackageProps(
                 b => b.AddPackageVersion(otherPackageName, "v2.0.0"));
 
-            Assert.Single(Context.ChangedNuGetPackages);
-            Assert.Throws<NoChangesException>(() => Context.AffectedProjects);
+            Assert.Single(AffectedSummary.ChangedPackages);
+            Assert.Empty(AffectedSummary.AffectedProjects);
         }
 
         [Fact]
@@ -161,7 +159,7 @@ namespace Affected.Cli.Tests
             Repository.UpdateDirectoryPackageProps(
                 b => b.UpdatePackageVersion(packageName, "v2.0.0"));
 
-            Assert.Throws<NoChangesException>(() => Context.AffectedProjects);
+            Assert.Empty(AffectedSummary.AffectedProjects);
         }
 
         [Fact]
@@ -205,15 +203,15 @@ namespace Affected.Cli.Tests
 ";
             await Repository.CreateTextFileAsync(propsPath, propsFile);
 
-            Assert.Equal(2, Context.ChangedNuGetPackages.Count());
-            Assert.Single(Context.AffectedProjects);
+            Assert.Equal(2, AffectedSummary.ChangedPackages.Count());
+            Assert.Single(AffectedSummary.AffectedProjects);
         }
-        
+
         [Fact]
         public void When_directory_packages_props_is_added_dependant_projects_should_be_affected()
         {
             var packageName = "Some.Library";
-            
+
             // Create a project with a nuget dependency
             var projectName = "InventoryManagement";
             var msBuildProject = Repository.CreateCsProject(
@@ -227,15 +225,15 @@ namespace Affected.Cli.Tests
             Repository.CreateDirectoryPackageProps(
                 b => b.AddPackageVersion(packageName, "1.0.0"));
 
-            Assert.Single(Context.ChangedFiles);
-            Assert.Single(Context.ChangedNuGetPackages);
-            Assert.Single(Context.AffectedProjects);
+            Assert.Single(AffectedSummary.FilesThatChanged);
+            Assert.Single(AffectedSummary.ChangedPackages);
+            Assert.Single(AffectedSummary.AffectedProjects);
 
-            var projectInfo = Context.AffectedProjects.Single();
-            Assert.Equal(projectName, projectInfo.Name);
-            Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
+            var projectInfo = AffectedSummary.AffectedProjects.Single();
+            Assert.Equal(projectName, projectInfo.GetProjectName());
+            Assert.Equal(msBuildProject.FullPath, projectInfo.GetFullPath());
         }
-        
+
         [Fact]
         public void When_directory_packages_props_is_removed_dependant_projects_should_be_affected()
         {
@@ -243,7 +241,7 @@ namespace Affected.Cli.Tests
             // Create a Directory.Package.props
             Repository.CreateDirectoryPackageProps(
                 b => b.AddPackageVersion(packageName, "1.0.0"));
-            
+
             // Create a project with a nuget dependency
             var projectName = "InventoryManagement";
             var msBuildProject = Repository.CreateCsProject(
@@ -254,14 +252,14 @@ namespace Affected.Cli.Tests
             Repository.StageAndCommit();
 
             Repository.RemoveDirectoryPackageProps();
-            
-            Assert.Single(Context.ChangedFiles);
-            Assert.Single(Context.ChangedNuGetPackages);
-            Assert.Single(Context.AffectedProjects);
 
-            var projectInfo = Context.AffectedProjects.Single();
-            Assert.Equal(projectName, projectInfo.Name);
-            Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
+            Assert.Single(AffectedSummary.FilesThatChanged);
+            Assert.Single(AffectedSummary.ChangedPackages);
+            Assert.Single(AffectedSummary.AffectedProjects);
+
+            var projectInfo = AffectedSummary.AffectedProjects.Single();
+            Assert.Equal(projectName, projectInfo.GetProjectName());
+            Assert.Equal(msBuildProject.FullPath, projectInfo.GetFullPath());
         }
     }
 }

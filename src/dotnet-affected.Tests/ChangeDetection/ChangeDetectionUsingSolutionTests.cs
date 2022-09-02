@@ -28,7 +28,7 @@ namespace Affected.Cli.Tests
                 String.Empty,
                 String.Empty,
                 true,
-                Enumerable.Empty<string>(), 
+                Enumerable.Empty<string>(),
                 Array.Empty<string>(),
                 true,
                 string.Empty,
@@ -45,12 +45,12 @@ namespace Affected.Cli.Tests
             // Create a solution which includes the project
             await this.Repository.CreateSolutionAsync(_solutionPath, msBuildProject.FullPath);
 
-            Assert.Single(Context.ChangedProjects);
-            Assert.Empty(Context.AffectedProjects);
+            Assert.Single(AffectedSummary.ProjectsWithChangedFiles);
+            Assert.Empty(AffectedSummary.AffectedProjects);
 
-            var projectInfo = Context.ChangedProjects.Single();
-            Assert.Equal(projectName, projectInfo.Name);
-            Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
+            var projectInfo = AffectedSummary.ProjectsWithChangedFiles.Single();
+            Assert.Equal(projectName, projectInfo.GetProjectName());
+            Assert.Equal(msBuildProject.FullPath, projectInfo.GetFullPath());
         }
 
         [Fact]
@@ -67,16 +67,16 @@ namespace Affected.Cli.Tests
             var outsiderproject = "OutsiderProject";
             this.Repository.CreateCsProject(outsiderproject);
 
-            Assert.Single(Context.ChangedProjects);
-            Assert.Empty(Context.AffectedProjects);
+            Assert.Single(AffectedSummary.ProjectsWithChangedFiles);
+            Assert.Empty(AffectedSummary.AffectedProjects);
 
-            var projectInfo = Context.ChangedProjects.Single();
-            Assert.Equal(projectName, projectInfo.Name);
-            Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
+            var projectInfo = AffectedSummary.ProjectsWithChangedFiles.Single();
+            Assert.Equal(projectName, projectInfo.GetProjectName());
+            Assert.Equal(msBuildProject.FullPath, projectInfo.GetFullPath());
         }
 
         [Fact]
-        public async Task When_project_outside_solution_has_changed_should_throw_nothing_changed()
+        public async Task When_project_outside_solution_has_changed_nothing_should_be_affected()
         {
             // Create a project
             var projectName = "InventoryManagement";
@@ -92,7 +92,7 @@ namespace Affected.Cli.Tests
             var outsiderName = "OutsiderProject";
             this.Repository.CreateCsProject(outsiderName);
 
-            Assert.Throws<NoChangesException>(() => Context.AffectedProjects);
+            Assert.Empty(AffectedSummary.AffectedProjects);
         }
     }
 }

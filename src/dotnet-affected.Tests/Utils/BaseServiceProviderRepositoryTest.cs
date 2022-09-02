@@ -13,8 +13,9 @@ namespace Affected.Cli.Tests
 
         protected ServiceProvider ServiceProvider => _serviceProviderLazy.Value;
 
-        protected ICommandExecutionContext Context =>
-            this.ServiceProvider.GetRequiredService<ICommandExecutionContext>();
+        private readonly Lazy<AffectedSummary> _affectedSummaryLazy;
+
+        protected AffectedSummary AffectedSummary => _affectedSummaryLazy.Value;
 
         protected BaseServiceProviderRepositoryTest()
         {
@@ -25,16 +26,12 @@ namespace Affected.Cli.Tests
 
                 return services.BuildServiceProvider(true);
             });
-        }
 
-        protected override void Dispose(bool dispose)
-        {
-            if (dispose)
+            this._affectedSummaryLazy = new Lazy<AffectedSummary>(() =>
             {
-                this.ServiceProvider?.Dispose();
-            }
-
-            base.Dispose(dispose);
+                var executor = this.ServiceProvider.GetRequiredService<IAffectedExecutor>();
+                return executor.Execute();
+            });
         }
 
         protected override void ConfigureServices(IServiceCollection services)

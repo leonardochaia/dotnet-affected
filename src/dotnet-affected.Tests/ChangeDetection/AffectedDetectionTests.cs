@@ -32,16 +32,16 @@ namespace Affected.Cli.Tests
             var targetFilePath = Path.Combine(projectName, "file.cs");
             await this.Repository.CreateTextFileAsync(targetFilePath, "// Initial content");
 
-            Assert.Single(Context.ChangedProjects);
-            Assert.Single(Context.AffectedProjects);
+            Assert.Single(AffectedSummary.ProjectsWithChangedFiles);
+            Assert.Single(AffectedSummary.AffectedProjects);
 
-            var changedProject = Context.ChangedProjects.Single();
-            Assert.Equal(projectName, changedProject.Name);
-            Assert.Equal(msBuildProject.FullPath, changedProject.FilePath);
+            var changedProject = AffectedSummary.ProjectsWithChangedFiles.Single();
+            Assert.Equal(projectName, changedProject.GetProjectName());
+            Assert.Equal(msBuildProject.FullPath, changedProject.GetFullPath());
 
-            var affectedProject = Context.AffectedProjects.Single();
-            Assert.Equal(dependantProjectName, affectedProject.Name);
-            Assert.Equal(dependantMsBuildProject.FullPath, affectedProject.FilePath);
+            var affectedProject = AffectedSummary.AffectedProjects.Single();
+            Assert.Equal(dependantProjectName, affectedProject.GetProjectName());
+            Assert.Equal(dependantMsBuildProject.FullPath, affectedProject.GetFullPath());
         }
 
         [Fact]
@@ -70,20 +70,18 @@ namespace Affected.Cli.Tests
             var targetFilePath = Path.Combine(sharedProjectName, "file.cs");
             await this.Repository.CreateTextFileAsync(targetFilePath, "// Initial content");
 
-            Assert.Single(Context.ChangedProjects);
-            Assert.Equal(2, Context.AffectedProjects.Count());
+            Assert.Single(AffectedSummary.ProjectsWithChangedFiles);
+            Assert.Equal(2, AffectedSummary.AffectedProjects.Count());
 
-            var changedProject = Context.ChangedProjects.Single();
-            Assert.Equal(sharedProjectName, changedProject.Name);
-            Assert.Equal(sharedMsBuildProject.FullPath, changedProject.FilePath);
+            var changedProject = AffectedSummary.ProjectsWithChangedFiles.Single();
+            Assert.Equal(sharedProjectName, changedProject.GetProjectName());
+            Assert.Equal(sharedMsBuildProject.FullPath, changedProject.GetFullPath());
 
-            var firstAffectedProject = Context.AffectedProjects.First();
-            Assert.Equal(projectName, firstAffectedProject.Name);
-            Assert.Equal(msBuildProject.FullPath, firstAffectedProject.FilePath);
+            Assert.Contains(AffectedSummary.AffectedProjects,
+                p => p.GetFullPath() == msBuildProject.FullPath);
 
-            var secondAffectedProject = Context.AffectedProjects.ElementAt(1);
-            Assert.Equal(dependantProjectName, secondAffectedProject.Name);
-            Assert.Equal(dependantMsBuildProject.FullPath, secondAffectedProject.FilePath);
+            Assert.Contains(AffectedSummary.AffectedProjects,
+                p => p.GetFullPath() == dependantMsBuildProject.FullPath);
         }
     }
 }

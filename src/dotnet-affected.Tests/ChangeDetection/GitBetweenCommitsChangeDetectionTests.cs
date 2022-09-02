@@ -32,7 +32,6 @@ namespace Affected.Cli.Tests
                 true,
                 string.Empty,
                 string.Empty)));
-
         }
 
         [Fact]
@@ -43,21 +42,23 @@ namespace Affected.Cli.Tests
             var msBuildProject = Repository.CreateCsProject(projectName);
 
             // Make a commit and keep track of the sha
-            this._fromCommit = Repository.StageAndCommit().Sha;
-            
+            this._fromCommit = Repository.StageAndCommit()
+                .Sha;
+
             // Create a file with some changes
             var targetFilePath = Path.Combine(projectName, "file.cs");
             await this.Repository.CreateTextFileAsync(targetFilePath, "// Initial content");
 
             // Commit the changes
-            this._toCommit = Repository.StageAndCommit().Sha;
-            
-            Assert.Single(Context.ChangedProjects);
-            Assert.Empty(Context.AffectedProjects);
+            this._toCommit = Repository.StageAndCommit()
+                .Sha;
 
-            var projectInfo = Context.ChangedProjects.Single();
-            Assert.Equal(projectName, projectInfo.Name);
-            Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
+            Assert.Single(AffectedSummary.ProjectsWithChangedFiles);
+            Assert.Empty(AffectedSummary.AffectedProjects);
+
+            var projectInfo = AffectedSummary.ProjectsWithChangedFiles.Single();
+            Assert.Equal(projectName, projectInfo.GetProjectName());
+            Assert.Equal(msBuildProject.FullPath, projectInfo.GetFullPath());
         }
     }
 }

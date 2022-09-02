@@ -5,14 +5,14 @@ namespace Affected.Cli.Views
 {
     internal class AffectedInfoView : StackLayoutView
     {
-        public AffectedInfoView(ICommandExecutionContext context)
+        public AffectedInfoView(AffectedSummary summary)
         {
-            Add(new ContentView($"{context.ChangedFiles.Count()} files have changed " +
-                                $"inside {context.ChangedProjects.Count()} projects"));
-            Add(new ContentView($"{context.ChangedNuGetPackages.Count()} NuGet Packages have changed"));
-            Add(new ContentView($"{context.AffectedProjects.Count()} projects are affected by these changes"));
-            
-            Add(new WithChangesAndAffectedView(context));
+            Add(new ContentView($"{summary.FilesThatChanged.Count()} files have changed " +
+                                $"inside {summary.ProjectsWithChangedFiles.Count()} projects"));
+            Add(new ContentView($"{summary.ChangedPackages.Count()} NuGet Packages have changed"));
+            Add(new ContentView($"{summary.AffectedProjects.Count()} projects are affected by these changes"));
+
+            Add(new WithChangesAndAffectedView(summary));
         }
     }
 }

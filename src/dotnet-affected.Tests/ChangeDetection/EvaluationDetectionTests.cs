@@ -38,7 +38,7 @@ namespace Affected.Cli.Tests
             // Update the dummy file
             await Repository.CreateTextFileAsync(dummyFilePath, "// New Contents");
 
-            Assert.Throws<NoChangesException>(() => Context.AffectedProjects);
+            Assert.Empty(AffectedSummary.AffectedProjects);
         }
     }
 }

@@ -19,13 +19,13 @@ namespace Affected.Cli.Tests
             var projectName = "InventoryManagement";
             var msBuildProject = Repository.CreateCsProject(projectName);
 
-            Assert.Single(Context.ChangedFiles);
-            Assert.Single(Context.ChangedProjects);
-            Assert.Empty(Context.AffectedProjects);
+            Assert.Single(AffectedSummary.FilesThatChanged);
+            Assert.Single(AffectedSummary.ProjectsWithChangedFiles);
+            Assert.Empty(AffectedSummary.AffectedProjects);
 
-            var projectInfo = Context.ChangedProjects.Single();
-            Assert.Equal(projectName, projectInfo.Name);
-            Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
+            var projectInfo = AffectedSummary.ProjectsWithChangedFiles.Single();
+            Assert.Equal(projectName, projectInfo.GetProjectName());
+            Assert.Equal(msBuildProject.FullPath, projectInfo.GetFullPath());
         }
 
         [Fact]
@@ -39,19 +39,13 @@ namespace Affected.Cli.Tests
             var targetFilePath = Path.Combine(projectName, "file.cs");
             await this.Repository.CreateTextFileAsync(targetFilePath, "// Initial content");
 
-            Assert.Equal(2, Context.ChangedFiles.Count());
-            Assert.Single(Context.ChangedProjects);
-            Assert.Empty(Context.AffectedProjects);
+            Assert.Equal(2, AffectedSummary.FilesThatChanged.Count());
+            Assert.Single(AffectedSummary.ProjectsWithChangedFiles);
+            Assert.Empty(AffectedSummary.AffectedProjects);
 
-            var projectInfo = Context.ChangedProjects.Single();
-            Assert.Equal(projectName, projectInfo.Name);
-            Assert.Equal(msBuildProject.FullPath, projectInfo.FilePath);
-        }
-
-        [Fact]
-        public void When_nothing_has_changed_should_throw_nothing_has_changed()
-        {
-            Assert.Throws<NoChangesException>(() => Context.AffectedProjects);
+            var projectInfo = AffectedSummary.ProjectsWithChangedFiles.Single();
+            Assert.Equal(projectName, projectInfo.GetProjectName());
+            Assert.Equal(msBuildProject.FullPath, projectInfo.GetFullPath());
         }
     }
 }
