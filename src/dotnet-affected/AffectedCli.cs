@@ -30,7 +30,7 @@ namespace Affected.Cli
                     {
                         var data = sp.GetRequiredService<CommandExecutionData>();
                         var options = data.ToAffectedOptions();
-                        var graph = new ProjectGraphRef(options).Value;
+                        var graph = new ProjectGraphFactory(options).BuildProjectGraph();
                         IChangesProvider changesProvider = data.AssumeChanges?.Any() == true
                             ? new AssumptionChangesProvider(graph, data.AssumeChanges)
                             : new GitChangesProvider();

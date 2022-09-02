@@ -6,12 +6,12 @@ namespace Affected.Cli
     /// <summary>
     /// Resolves the <see cref="ProjectGraph"/> for the directory provided in user input.
     /// </summary>
-    public class ProjectGraphRef : IProjectGraphRef
+    public class ProjectGraphFactory
     {
         private readonly IDiscoveryOptions _options;
         private readonly Lazy<ProjectGraph> _graph;
 
-        public ProjectGraphRef(IDiscoveryOptions options)
+        public ProjectGraphFactory(IDiscoveryOptions options)
         {
             _options = options;
 
@@ -22,13 +22,11 @@ namespace Affected.Cli
             _graph = new Lazy<ProjectGraph>(BuildProjectGraph);
         }
 
-        public ProjectGraph Value => this._graph.Value;
-
         /// <summary>
         /// Builds a <see cref="ProjectGraph"/> from all discovered projects.
         /// </summary>
         /// <returns>A new Project Graph.</returns>
-        private ProjectGraph BuildProjectGraph()
+        public ProjectGraph BuildProjectGraph()
         {
             // Discover all projects and build the graph
             var allProjects = BuildProjectDiscoverer()

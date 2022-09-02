@@ -17,7 +17,7 @@ namespace Affected.Cli.Tests
 
         private IChangedProjectsProvider Provider => new ChangedProjectsProvider(Graph, Options);
 
-        private ProjectGraph Graph => _graph ??= new ProjectGraphRef(Options).Value;
+        private ProjectGraph Graph => _graph ??= new ProjectGraphFactory(Options).BuildProjectGraph();
 
         [Fact]
         public async Task FindProjectsForFilePaths_ShouldFindSingleProject()

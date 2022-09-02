@@ -35,7 +35,7 @@ namespace Affected.Cli
             this._toRef = options.To;
         }
 
-        private ProjectGraph Graph => _graph ??= new ProjectGraphRef(_options).Value;
+        private ProjectGraph Graph => _graph ??= new ProjectGraphFactory(_options).BuildProjectGraph();
 
         public AffectedSummary Execute()
         {
