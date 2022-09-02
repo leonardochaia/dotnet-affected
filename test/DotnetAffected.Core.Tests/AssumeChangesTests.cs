@@ -1,37 +1,34 @@
-﻿using Affected.Cli.Commands;
-using DotnetAffected.Core;
+﻿using DotnetAffected.Abstractions;
 using DotnetAffected.Testing.Utils;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Linq;
 using Xunit;
 
-namespace Affected.Cli.Tests
+namespace DotnetAffected.Core.Tests
 {
-    public class AssumeChangesTests : BaseServiceProviderCliTest
+    public class AssumeChangesTests : BaseRepositoryTest
     {
         private readonly string _projectName = "InventoryManagement";
 
-        protected override void ConfigureServices(IServiceCollection services)
-        {
-            base.ConfigureServices(services);
+        private readonly Lazy<AffectedSummary> _affectedSummaryLazy;
 
-            services.Replace(ServiceDescriptor.Singleton(new CommandExecutionData(
-                this.Repository.Path,
-                string.Empty,
-                String.Empty,
-                String.Empty,
-                true,
-                new[]
+        public AssumeChangesTests()
+        {
+            var options = new AffectedOptions(this.Repository.Path);
+            this._affectedSummaryLazy = new Lazy<AffectedSummary>(() =>
+            {
+                var factory = new ProjectGraphFactory(options);
+                var graph = factory.BuildProjectGraph();
+                var changesProvider = new AssumptionChangesProvider(graph, new[]
                 {
                     _projectName
-                },
-                new string[0],
-                true,
-                string.Empty,
-                string.Empty)));
+                });
+                var executor = new AffectedExecutor(options, changesProvider, graph);
+                return executor.Execute();
+            });
         }
+
+        private AffectedSummary AffectedSummary => _affectedSummaryLazy.Value;
 
         [Fact]
         public void When_has_changes_project_should_have_changes()
