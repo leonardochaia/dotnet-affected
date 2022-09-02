@@ -18,6 +18,11 @@ namespace DotnetAffected.Core
         private ProjectGraph? _graph;
         private readonly IChangedProjectsProvider? _changedProjectsProvider;
 
+        /// <summary>
+        /// Creates an executor for a repository path and a graph.
+        /// </summary>
+        /// <param name="repositoryPath"></param>
+        /// <param name="graph"></param>
         public AffectedExecutor(string repositoryPath, ProjectGraph? graph = null)
             : this(new AffectedOptions(repositoryPath), graph)
         {
