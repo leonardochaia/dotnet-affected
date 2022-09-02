@@ -12,7 +12,7 @@ namespace DotnetAffected.Core.Tests
         {
             this._affectedSummaryLazy = new Lazy<AffectedSummary>(() =>
             {
-                var executor = new AffectedExecutor(Options, ChangesProvider);
+                var executor = new AffectedExecutor(Options, changesProvider: ChangesProvider);
                 return executor.Execute();
             });
         }

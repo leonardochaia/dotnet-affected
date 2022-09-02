@@ -19,16 +19,6 @@ namespace DotnetAffected.Core
         private readonly IChangedProjectsProvider? _changedProjectsProvider;
 
         /// <summary>
-        /// Creates an instance of the executor using an existing <see cref="ProjectGraph"/>.
-        /// </summary>
-        /// <param name="options"></param>
-        /// <param name="graph"></param>
-        public AffectedExecutor(AffectedOptions options, ProjectGraph graph)
-            : this(options, null, graph)
-        {
-        }
-
-        /// <summary>
         /// Creates the executor using all parameters.
         /// </summary>
         /// <param name="options"></param>
@@ -37,8 +27,8 @@ namespace DotnetAffected.Core
         /// <param name="changedProjectsProvider"></param>
         public AffectedExecutor(
             AffectedOptions options,
-            IChangesProvider? changesProvider = null,
             ProjectGraph? graph = null,
+            IChangesProvider? changesProvider = null,
             IChangedProjectsProvider? changedProjectsProvider = null)
         {
             _changesProvider = changesProvider ?? new GitChangesProvider();

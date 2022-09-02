@@ -37,8 +37,8 @@ namespace Affected.Cli
                             ? new AssumptionChangesProvider(graph, data.AssumeChanges)
                             : new GitChangesProvider();
                         return new AffectedExecutor(options,
-                            changesProvider,
                             graph,
+                            changesProvider,
                             new PredictionChangedProjectsProvider(graph, options));
                     });
                 })

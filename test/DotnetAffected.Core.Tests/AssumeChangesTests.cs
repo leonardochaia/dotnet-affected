@@ -23,7 +23,7 @@ namespace DotnetAffected.Core.Tests
                 {
                     _projectName
                 });
-                var executor = new AffectedExecutor(options, changesProvider, graph);
+                var executor = new AffectedExecutor(options, graph, changesProvider);
                 return executor.Execute();
             });
         }
