@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <PackageReference Include="LibGit2Sharp" />
+        <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
+        <PackageReference Include="Microsoft.Build.Locator" />
+        <PackageReference Include="xunit" ExcludeAssets="runtime" />
+    </ItemGroup>
+
+</Project>
