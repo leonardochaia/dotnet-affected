@@ -21,9 +21,9 @@ namespace Affected.Cli
 
         public AffectedExecutor(
             AffectedOptions options,
-            IChangesProvider? changesProvider,
-            ProjectGraph? graph,
-            IChangedProjectsProvider? changedProjectsProvider)
+            IChangesProvider? changesProvider = null,
+            ProjectGraph? graph = null,
+            IChangedProjectsProvider? changedProjectsProvider = null)
         {
             _changesProvider = changesProvider ?? new GitChangesProvider();
             _options = options;
