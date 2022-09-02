@@ -10,6 +10,7 @@ namespace Affected.Cli.Commands
     /// </summary>
     internal class CommandExecutionContext : ICommandExecutionContext
     {
+        private readonly CommandExecutionData _data;
         private readonly Lazy<IEnumerable<string>> _changedFiles;
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _changedProjects;
         private readonly Lazy<IEnumerable<ProjectGraphNode>> _affectedProjects;
@@ -17,13 +18,19 @@ namespace Affected.Cli.Commands
         private readonly Lazy<AffectedSummary> _summary;
 
         public CommandExecutionContext(
-            IAffectedExecutor executor)
+            CommandExecutionData data)
         {
+            _data = data;
             // Discovering projects, and finding affected may throw
             // For error handling to be managed properly at the handler level,
             // we use Lazies so that its done on demand when its actually needed
             // instead of happening here on the constructor
-            _summary = new Lazy<AffectedSummary>(executor.Execute);
+            _summary = new Lazy<AffectedSummary>(() =>
+            {
+                var executor = BuildAffectedExecutor();
+
+                return executor.Execute();
+            });
 
             _changedFiles = new Lazy<IEnumerable<string>>(() => _summary.Value.FilesThatChanged);
 
@@ -40,6 +47,20 @@ namespace Affected.Cli.Commands
                 ThrowIfNoChanges();
                 return _summary.Value.AffectedProjects;
             });
+        }
+
+        public AffectedExecutor BuildAffectedExecutor()
+        {
+            var options = _data.ToAffectedOptions();
+            var graph = new ProjectGraphRef(options).Value;
+            IChangesProvider changesProvider = _data.AssumeChanges?.Any() == true
+                ? new AssumptionChangesProvider(graph, _data.AssumeChanges)
+                : new GitChangesProvider();
+            var executor = new AffectedExecutor(options,
+                changesProvider,
+                graph,
+                new ChangedProjectsProvider(graph, options));
+            return executor;
         }
 
         public IEnumerable<string> ChangedFiles => _changedFiles.Value;

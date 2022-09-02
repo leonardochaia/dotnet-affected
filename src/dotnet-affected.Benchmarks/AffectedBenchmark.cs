@@ -1,14 +1,8 @@
-﻿using Affected.Cli.Commands;
-using Affected.Cli.Tests;
+﻿using Affected.Cli.Tests;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Build.Graph;
 using Microsoft.Build.Locator;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
-using System.CommandLine;
-using System.CommandLine.IO;
-using System.CommandLine.Rendering;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -32,12 +26,6 @@ namespace Affected.Cli.Benchmarks
 
         private TemporaryRepository Repository { get; } = new();
 
-        private ProjectGraph Graph { get; set; }
-
-        private ICommandExecutionContext Context { get; set; }
-
-        private ServiceProvider ServiceProvider { get; set; }
-
         [GlobalSetup]
         public async Task GlobalSetup()
         {
@@ -58,33 +46,12 @@ namespace Affected.Cli.Benchmarks
             Console.WriteLine($"Built graph with total of {graph.ProjectNodes.Count()} " +
                               $"projects in {graph.ConstructionMetrics.ConstructionTime}");
 
-            ServiceProvider = AffectedCli
-                .CreateAffectedCommandLineBuilder()
-                .ConfigureServices(services =>
-                {
-                    services.AddSingleton<IConsole, SystemConsole>();
-                    services.AddSingleton<ITerminal, SystemConsoleTerminal>();
-                    services.Replace(ServiceDescriptor.Singleton(new CommandExecutionData(
-                        Repository.Path,
-                        string.Empty,
-                        String.Empty,
-                        String.Empty,
-                        true,
-                        Enumerable.Empty<string>(),
-                        Array.Empty<string>(),
-                        true,
-                        string.Empty,
-                        string.Empty)));
-                })
-                .ComposeServiceCollection()
-                .BuildServiceProvider();
-
-            // REMARKS: Ensure the graph is composed at setup time
-            Graph = ServiceProvider.GetRequiredService<IProjectGraphRef>()
-                .Value;
-
-            Context = ServiceProvider.GetRequiredService<ICommandExecutionContext>();
+            // Create an executor for the repository using the existing graph.
+            var options = new AffectedOptions(Repository.Path);
+            Executor = new AffectedExecutor(options, graph);
         }
+
+        public AffectedExecutor Executor { get; set; }
 
         [GlobalCleanup]
         public void GlobalCleanUp()
@@ -93,10 +60,9 @@ namespace Affected.Cli.Benchmarks
         }
 
         [Benchmark]
-        public int AffectedAlgorithm()
+        public AffectedSummary AffectedAlgorithm()
         {
-            return Context.AffectedProjects.ToList()
-                .Count;
+            return Executor.Execute();
         }
     }
 }

@@ -3,11 +3,18 @@
 namespace Affected.Cli
 {
     /// <summary>
-    /// The output of calculating affected projcets.
+    /// The output of calculating affected projects.
     /// </summary>
     public class AffectedSummary
     {
-        internal AffectedSummary(
+        /// <summary>
+        /// Creates a default Affected Summary.
+        /// </summary>
+        /// <param name="filesThatChanged"></param>
+        /// <param name="projectsWithChangedFiles"></param>
+        /// <param name="affectedProjects"></param>
+        /// <param name="changedPackages"></param>
+        public AffectedSummary(
             string[] filesThatChanged,
             ProjectGraphNode[] projectsWithChangedFiles,
             ProjectGraphNode[] affectedProjects,

@@ -1,33 +1,41 @@
-﻿using Affected.Cli.Commands;
-using Microsoft.Build.Graph;
+﻿using Microsoft.Build.Graph;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Affected.Cli
 {
-    internal class AffectedExecutor : IAffectedExecutor
+    public class AffectedExecutor : IAffectedExecutor
     {
-        private readonly IChangesProviderRef _changesProvider;
+        private readonly IChangesProvider _changesProvider;
         private readonly string _repositoryPath;
         private readonly string _fromRef;
         private readonly string _toRef;
-        private readonly IProjectGraphRef _graph;
-        private readonly IChangedProjectsProvider _changedProjectsProvider;
+        private readonly AffectedOptions _options;
+        private ProjectGraph? _graph;
+        private readonly IChangedProjectsProvider? _changedProjectsProvider;
+
+        public AffectedExecutor(AffectedOptions options, ProjectGraph graph)
+            : this(options, null, graph, null)
+        {
+        }
 
         public AffectedExecutor(
-            CommandExecutionData executionData,
-            IChangesProviderRef changesProvider,
-            IProjectGraphRef graph,
-            IChangedProjectsProvider changedProjectsProvider)
+            AffectedOptions options,
+            IChangesProvider? changesProvider,
+            ProjectGraph? graph,
+            IChangedProjectsProvider? changedProjectsProvider)
         {
-            _changesProvider = changesProvider;
+            _changesProvider = changesProvider ?? new GitChangesProvider();
+            _options = options;
             _graph = graph;
             _changedProjectsProvider = changedProjectsProvider;
 
-            this._repositoryPath = executionData.RepositoryPath;
-            this._fromRef = executionData.From;
-            this._toRef = executionData.To;
+            this._repositoryPath = options.RepositoryPath;
+            this._fromRef = options.From;
+            this._toRef = options.To;
         }
+
+        private ProjectGraph Graph => _graph ??= new ProjectGraphRef(_options).Value;
 
         public AffectedSummary Execute()
         {
@@ -54,7 +62,7 @@ namespace Affected.Cli
         private string[] DetermineChangedFiles()
         {
             // Get all files that have changed
-            return this._changesProvider.Value
+            return this._changesProvider
                 .GetChangedFiles(
                     _repositoryPath,
                     _fromRef,
@@ -65,8 +73,9 @@ namespace Affected.Cli
         private ProjectGraphNode[] FindProjectsContainingFiles(
             IEnumerable<string> changedFiles)
         {
+            var provider = this._changedProjectsProvider ?? new ChangedProjectsProvider(Graph, _options);
             // Match which files belong to which of our known projects
-            return this._changedProjectsProvider.GetReferencingProjects(changedFiles)
+            return provider.GetReferencingProjects(changedFiles)
                 .ToArray();
         }
 
@@ -76,7 +85,7 @@ namespace Affected.Cli
         {
             // Find projects referencing NuGet packages that changed
             var changedPackageNames = changedPackages.Select(p => p.Name);
-            var projectsAffectedByNugetPackages = _graph.Value
+            var projectsAffectedByNugetPackages = Graph
                 .FindNodesReferencingNuGetPackages(changedPackageNames)
                 .ToList();
 
@@ -108,7 +117,7 @@ namespace Affected.Cli
             }
 
             // Get the contents of the file at from/to revisions
-            var (fromFile, toFile) = _changesProvider.Value
+            var (fromFile, toFile) = _changesProvider
                 .GetTextFileContents(
                     _repositoryPath,
                     packagePropsPath,

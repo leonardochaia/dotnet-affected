@@ -1,5 +1,4 @@
-﻿using Affected.Cli.Commands;
-using Microsoft.Build.Graph;
+﻿using Microsoft.Build.Graph;
 using Microsoft.Build.Prediction;
 using Microsoft.Build.Prediction.Predictors;
 using Microsoft.Build.Prediction.Predictors.CopyTask;
@@ -9,9 +8,9 @@ using System.Linq;
 
 namespace Affected.Cli
 {
-    internal class ChangedProjectsProvider : IChangedProjectsProvider
+    public class ChangedProjectsProvider : IChangedProjectsProvider
     {
-        private readonly IProjectGraphRef _graph;
+        private readonly ProjectGraph _graph;
 
         private static readonly ProjectFileAndImportsGraphPredictor[] GraphPredictors = new[]
         {
@@ -52,11 +51,11 @@ namespace Affected.Cli
         private readonly string _repositoryPath;
 
         public ChangedProjectsProvider(
-            IProjectGraphRef graph,
-            CommandExecutionData data)
+            ProjectGraph graph,
+            IDiscoveryOptions options)
         {
             _graph = graph;
-            _repositoryPath = data.RepositoryPath;
+            _repositoryPath = options.RepositoryPath;
         }
 
         public IEnumerable<ProjectGraphNode> GetReferencingProjects(
@@ -64,8 +63,8 @@ namespace Affected.Cli
         {
             var hasReturned = new HashSet<string>();
 
-            var collector = new FilesByProjectGraphCollector(this._graph.Value, this._repositoryPath);
-            _executor.PredictInputsAndOutputs(_graph.Value, collector);
+            var collector = new FilesByProjectGraphCollector(this._graph, this._repositoryPath);
+            _executor.PredictInputsAndOutputs(_graph, collector);
 
             // normalize paths so that they match on windows.
             var normalizedFiles = files

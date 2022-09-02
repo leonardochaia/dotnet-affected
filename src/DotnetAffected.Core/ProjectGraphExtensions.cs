@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Affected.Cli
 {
-    internal static class ProjectGraphExtensions
+    public static class ProjectGraphExtensions
     {
         private static readonly ConcurrentDictionary<string, IEnumerable<ProjectGraphNode>> Cache = new();
 
@@ -62,7 +62,7 @@ namespace Affected.Cli
                     .ToList());
         }
 
-        internal static IEnumerable<ProjectGraphNode> FindNodesReferencingNuGetPackages(
+        public static IEnumerable<ProjectGraphNode> FindNodesReferencingNuGetPackages(
             this ProjectGraph graph,
             IEnumerable<string> nuGetPackageNames)
         {
@@ -83,7 +83,7 @@ namespace Affected.Cli
             }
         }
 
-        internal static ProjectGraphNode? FindNodeByPath(
+        public static ProjectGraphNode? FindNodeByPath(
             this ProjectGraph graph,
             string projectPath)
         {
@@ -91,7 +91,7 @@ namespace Affected.Cli
                 .FirstOrDefault(n => n.ProjectInstance.FullPath == projectPath);
         }
 
-        internal static ProjectGraphNode? FindNodeByName(
+        public static ProjectGraphNode? FindNodeByName(
             this ProjectGraph graph,
             string name)
         {
@@ -100,7 +100,7 @@ namespace Affected.Cli
                     .Equals(name, StringComparison.OrdinalIgnoreCase));
         }
 
-        internal static IEnumerable<ProjectGraphNode> FindNodesByName(
+        public static IEnumerable<ProjectGraphNode> FindNodesByName(
             this ProjectGraph graph,
             IEnumerable<string> names)
         {

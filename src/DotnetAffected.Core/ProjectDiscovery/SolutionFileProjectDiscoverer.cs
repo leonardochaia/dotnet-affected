@@ -1,5 +1,4 @@
-﻿using Affected.Cli.Commands;
-using Microsoft.Build.Construction;
+﻿using Microsoft.Build.Construction;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,9 +6,9 @@ namespace Affected.Cli
 {
     internal class SolutionFileProjectDiscoverer : IProjectDiscoverer
     {
-        public IEnumerable<string> DiscoverProjects(CommandExecutionData data)
+        public IEnumerable<string> DiscoverProjects(IDiscoveryOptions options)
         {
-            var solution = SolutionFile.Parse(data.SolutionPath);
+            var solution = SolutionFile.Parse(options.SolutionPath);
 
             return solution.ProjectsInOrder
                 .Where(x => x.ProjectType != SolutionProjectType.SolutionFolder)

@@ -1,4 +1,5 @@
-﻿using Microsoft.Build.Graph;
+﻿using Affected.Cli.Commands;
+using Microsoft.Build.Graph;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using System.Linq;
@@ -9,12 +10,14 @@ namespace Affected.Cli.Tests
 {
     public class ChangedProjectsPredictorTests : BaseServiceProviderRepositoryTest
     {
-        private IChangedProjectsProvider ChangedProjectsProvider =>
-            this.ServiceProvider.GetRequiredService<IChangedProjectsProvider>();
+        private AffectedOptions Options => this.ServiceProvider.GetRequiredService<CommandExecutionData>()
+            .ToAffectedOptions();
 
-        private ProjectGraph Graph =>
-            this.ServiceProvider.GetRequiredService<IProjectGraphRef>()
-                .Value;
+        private ProjectGraph _graph;
+
+        private IChangedProjectsProvider Provider => new ChangedProjectsProvider(Graph, Options);
+
+        private ProjectGraph Graph => _graph ??= new ProjectGraphRef(Options).Value;
 
         [Fact]
         public async Task FindProjectsForFilePaths_ShouldFindSingleProject()
@@ -28,7 +31,7 @@ namespace Affected.Cli.Tests
             await this.Repository.CreateTextFileAsync(targetFilePath, "// Initial content");
 
             // Act
-            var projects = this.ChangedProjectsProvider.GetReferencingProjects(new[]
+            var projects = this.Provider.GetReferencingProjects(new[]
                 {
                     targetFilePath,
                 })
@@ -55,7 +58,7 @@ namespace Affected.Cli.Tests
             await this.Repository.CreateTextFileAsync(targetFilePath2, "// Other content");
 
             // Act
-            var projects = this.ChangedProjectsProvider.GetReferencingProjects(new[]
+            var projects = this.Provider.GetReferencingProjects(new[]
                 {
                     targetFilePath, targetFilePath2
                 })
@@ -82,7 +85,7 @@ namespace Affected.Cli.Tests
             await this.Repository.CreateTextFileAsync(targetFilePath2, "// Initial content");
 
             // Act
-            var projects = this.ChangedProjectsProvider.GetReferencingProjects(new[]
+            var projects = this.Provider.GetReferencingProjects(new[]
                 {
                     targetFilePath, targetFilePath2
                 })

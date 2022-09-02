@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Affected.Cli
 {
-    internal class GitChangesProvider : IChangesProvider
+    public class GitChangesProvider : IChangesProvider
     {
         public IEnumerable<string> GetChangedFiles(string directory, string from, string to)
         {
@@ -26,7 +26,7 @@ namespace Affected.Cli
             using var repository = new Repository(directory);
 
             var (fromCommit, toCommit) = ParseRevisionRanges(repository, from, to);
-            
+
             pathToFile = Path.GetRelativePath(directory, pathToFile);
 
             // Read file from commit or working directory
@@ -43,7 +43,7 @@ namespace Affected.Cli
         {
             var path = Path.Combine(directory, pathToFile);
             if (!File.Exists(path)) return null;
-            
+
             return File.ReadAllText(path);
         }
 
@@ -51,7 +51,7 @@ namespace Affected.Cli
         {
             var treeEntry = commit[pathToFile];
             if (treeEntry == null) return null;
-            
+
             var blob = (Blob)treeEntry.Target;
 
             using var content = new StreamReader(blob.GetContentStream(), Encoding.UTF8);

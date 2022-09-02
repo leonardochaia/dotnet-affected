@@ -1,26 +1,19 @@
-﻿using Affected.Cli.Commands;
-using Microsoft.Build.Graph;
+﻿using Microsoft.Build.Graph;
 using System;
-using System.CommandLine;
-using System.CommandLine.IO;
 
 namespace Affected.Cli
 {
     /// <summary>
     /// Resolves the <see cref="ProjectGraph"/> for the directory provided in user input.
     /// </summary>
-    internal class ProjectGraphRef : IProjectGraphRef
+    public class ProjectGraphRef : IProjectGraphRef
     {
+        private readonly IDiscoveryOptions _options;
         private readonly Lazy<ProjectGraph> _graph;
-        private readonly CommandExecutionData _executionData;
-        private readonly IConsole _console;
 
-        public ProjectGraphRef(
-            CommandExecutionData executionData,
-            IConsole console)
+        public ProjectGraphRef(IDiscoveryOptions options)
         {
-            _executionData = executionData;
-            _console = console;
+            _options = options;
 
             // Discovering projects, and finding affected may throw
             // For error handling to be managed properly at the handler level,
@@ -39,7 +32,7 @@ namespace Affected.Cli
         {
             // Discover all projects and build the graph
             var allProjects = BuildProjectDiscoverer()
-                .DiscoverProjects(_executionData);
+                .DiscoverProjects(_options);
 
             WriteLine($"Building Dependency Graph");
 
@@ -54,31 +47,19 @@ namespace Affected.Cli
 
         private IProjectDiscoverer BuildProjectDiscoverer()
         {
-            if (string.IsNullOrWhiteSpace(_executionData.SolutionPath))
+            if (string.IsNullOrWhiteSpace(_options.SolutionPath))
             {
-                WriteLine($"Discovering projects from {_executionData.RepositoryPath}");
+                WriteLine($"Discovering projects from {_options.RepositoryPath}");
                 return new DirectoryProjectDiscoverer();
             }
 
-            WriteLine($"Discovering projects from Solution {_executionData.SolutionPath}");
+            WriteLine($"Discovering projects from Solution {_options.SolutionPath}");
             return new SolutionFileProjectDiscoverer();
         }
 
         private void WriteLine(string? message = null)
         {
-            if (!_executionData.Verbose)
-            {
-                return;
-            }
-
-            if (message == null)
-            {
-                _console.Out.WriteLine();
-            }
-            else
-            {
-                _console.Out.WriteLine(message);
-            }
+            // TODO: Logging
         }
     }
 }

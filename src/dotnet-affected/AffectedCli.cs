@@ -19,16 +19,8 @@ namespace Affected.Cli
             return new AffectedCommandLineBuilder(new AffectedRootCommand())
                 .ConfigureServices(services =>
                 {
-                    services.AddSingleton<IProjectGraphRef, ProjectGraphRef>();
-
-                    services.AddTransient<GitChangesProvider>();
-                    services.AddTransient<AssumptionChangesProvider>();
-                    services.AddSingleton<IChangesProviderRef, ChangesProviderRef>();
-
                     services.AddSingleton<ICommandExecutionContext, CommandExecutionContext>();
                     services.AddFromBindingContext<CommandExecutionData>();
-                    services.AddSingleton<IChangedProjectsProvider, ChangedProjectsProvider>();
-                    services.AddSingleton<IAffectedExecutor, AffectedExecutor>();
 
                     services.AddTransient<IOutputFormatter, TextOutputFormatter>();
                     services.AddTransient<IOutputFormatter, TraversalProjectOutputFormatter>();
