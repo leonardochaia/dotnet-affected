@@ -76,8 +76,8 @@ jobs:
       with:
         name: packages
         path: |
-            "$GITHUB_WORKSPACE/*.nupkg"
-            "$GITHUB_WORKSPACE/*.snupkg"
+            "${{ github.workspace }}/*.nupkg"
+            "${{ github.workspace }}/*.snupkg"
 
     - uses: actions/upload-artifact@v3
       name: 'Upload Artifacts'
