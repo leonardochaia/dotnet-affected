@@ -25,6 +25,7 @@ jobs:
       # See more here: https://docs.microsoft.com/en-us/nuget/reference/cli-reference/cli-ref-environment-variables.
       NUGET_XMLDOC_MODE: 'skip'
       DOTNET_MULTILEVEL_LOOKUP: 0
+      CI_BUILD: 'true'
     steps:
     - uses: actions/checkout@v2
       with:
@@ -67,15 +68,17 @@ jobs:
 
     - name: Pack
       if: success() && matrix.os == 'ubuntu-latest'
-      run: dotnet pack --no-restore --no-build --include-symbols -p:SymbolPackageFormat=snupkg -o .
+      run: dotnet pack --no-restore --no-build --include-symbols -p:SymbolPackageFormat=snupkg -o $GITHUB_WORKSPACE/packages
 
     - uses: actions/upload-artifact@v3
+      name: 'Upload Packages'
       if: success() && matrix.os == 'ubuntu-latest'
       with:
         name: packages
-        path: "*.nupkg"
+        path: ${{ github.workspace }}/packages/**/*
 
     - uses: actions/upload-artifact@v3
+      name: 'Upload Artifacts'
       if: success() && matrix.os == 'ubuntu-latest'
       with:
         name: artifacts
