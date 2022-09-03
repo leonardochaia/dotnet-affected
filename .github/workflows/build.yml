@@ -75,9 +75,7 @@ jobs:
       if: success() && matrix.os == 'ubuntu-latest'
       with:
         name: packages
-        path: |
-            "${{ github.workspace }}/*.nupkg"
-            "${{ github.workspace }}/*.snupkg"
+        path: "*nupkg"
 
     - uses: actions/upload-artifact@v3
       name: 'Upload Artifacts'
