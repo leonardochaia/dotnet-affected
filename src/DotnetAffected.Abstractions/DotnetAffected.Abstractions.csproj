@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="$(PackageDefaultsPropsPath)" />
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
+    </ItemGroup>
+</Project>

@@ -1,3 +1,4 @@
+using DotnetAffected.Abstractions;
 using System.CommandLine.Rendering.Views;
 using System.Linq;
 
@@ -5,36 +6,36 @@ namespace Affected.Cli.Views
 {
     internal class WithChangesAndAffectedView : StackLayoutView
     {
-        public WithChangesAndAffectedView(ICommandExecutionContext context)
+        public WithChangesAndAffectedView(AffectedSummary summary)
         {
-            if (!context.ChangedProjects.Any() && !context.AffectedProjects.Any())
+            if (!summary.ProjectsWithChangedFiles.Any() && !summary.AffectedProjects.Any())
             {
                 Add(new NoChangesView());
                 return;
             }
 
-            if (context.ChangedProjects.Any())
+            if (summary.ProjectsWithChangedFiles.Any())
             {
                 Add(new ContentView("Changed Projects"));
-                Add(new ProjectInfoTable(context.ChangedProjects));
+                Add(new ProjectInfoTable(summary.ProjectsWithChangedFiles));
             }
 
-            if (context.ChangedNuGetPackages.Any())
+            if (summary.ChangedPackages.Any())
             {
                 Add(new ContentView(""));
                 Add(new ContentView("Changed NuGet Packages"));
-                Add(new NugetPackagesTable(context.ChangedNuGetPackages));
+                Add(new NugetPackagesTable(summary.ChangedPackages));
             }
 
             Add(new ContentView("\nAffected Projects"));
 
-            if (!context.AffectedProjects.Any())
+            if (!summary.AffectedProjects.Any())
             {
                 Add(new ContentView("No projects where affected by any of the changed projects."));
                 return;
             }
 
-            Add(new ProjectInfoTable(context.AffectedProjects));
+            Add(new ProjectInfoTable(summary.AffectedProjects));
         }
     }
 }

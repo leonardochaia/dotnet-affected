@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="$(PackageDefaultsPropsPath)"/>
+
+    <PropertyGroup>
+        <RootNamespace>DotnetAffected.Core</RootNamespace>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="$(SourcesPath)/DotnetAffected.Abstractions/DotnetAffected.Abstractions.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Build.Prediction"/>
+        <PackageReference Include="LibGit2Sharp"/>
+    </ItemGroup>
+</Project>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DotnetAffected.Core;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -55,6 +56,11 @@ namespace Affected.Cli.Commands
         public IEnumerable<string> AssumeChanges { get; }
 
         public string[] Formatters { get; }
+
+        public AffectedOptions ToAffectedOptions()
+        {
+            return new AffectedOptions(this.RepositoryPath, this.SolutionPath, this.From, this.To);
+        }
 
         private static string DetermineRepositoryPath(string repositoryPath, string solutionPath)
         {

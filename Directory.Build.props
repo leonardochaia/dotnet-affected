@@ -12,7 +12,11 @@
 
     <!-- Some general configuration applied to all projects -->
     <PropertyGroup>
-        <CliPath>$(MSBuildThisFileDirectory)src/dotnet-affected/</CliPath>
+        <SourcesPath>$(MSBuildThisFileDirectory)src/</SourcesPath>
+        <TestPath>$(MSBuildThisFileDirectory)test/</TestPath>
+        <CliPath>$(SourcesPath)dotnet-affected/</CliPath>
+        <PackageDefaultsPropsPath>$(MSBuildThisFileDirectory)package-defaults.props</PackageDefaultsPropsPath>
+        <TestingDefaultsPropsPath>$(MSBuildThisFileDirectory)testing-defaults.props</TestingDefaultsPropsPath>
     </PropertyGroup>
 
     <!-- Configure Versioning Strategy-->

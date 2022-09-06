@@ -1,0 +1,30 @@
+﻿<Project>
+    <PropertyGroup>
+        <Nullable>enable</Nullable>
+
+        <IsPackable>true</IsPackable>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <Authors>Leonardo Chaia</Authors>
+        <Title>$(AssemblyTitle)</Title>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+        <RepositoryUrl>https://github.com/leonardochaia/dotnet-affected.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <ContinuousIntegrationBuild>$(CI_BUILD)</ContinuousIntegrationBuild>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <DebugType>portable</DebugType>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="MinVer" PrivateAssets="All"/>
+    </ItemGroup>
+
+    <ItemGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true'">
+        <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All"/>
+    </ItemGroup>
+</Project>

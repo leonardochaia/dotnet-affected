@@ -1,4 +1,5 @@
 ﻿using Affected.Cli.Views;
+using DotnetAffected.Abstractions;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -39,18 +40,18 @@ namespace Affected.Cli.Commands
 
         public class AffectedCommandHandler : ICommandHandler
         {
-            private readonly ICommandExecutionContext _context;
+            private readonly IAffectedExecutor _executor;
             private readonly IOutputFormatterExecutor _formatterExecutor;
             private readonly CommandExecutionData _data;
             private readonly IConsole _console;
 
             public AffectedCommandHandler(
-                ICommandExecutionContext context,
+                IAffectedExecutor executor,
                 IOutputFormatterExecutor formatterExecutor,
                 CommandExecutionData data,
                 IConsole console)
             {
-                _context = context;
+                _executor = executor;
                 _formatterExecutor = formatterExecutor;
                 _data = data;
                 _console = console;
@@ -58,16 +59,26 @@ namespace Affected.Cli.Commands
 
             public async Task<int> InvokeAsync(InvocationContext ic)
             {
+                var summary = _executor.Execute();
+                summary.ThrowIfNoChanges();
+
                 if (_data.Verbose)
                 {
-                    var infoView = new AffectedInfoView(_context);
+                    var infoView = new AffectedInfoView(summary);
 
                     _console.Append(infoView);
                 }
 
-                // TODO: OutputName & OutputDir
-                await _formatterExecutor.Execute(_context.ChangedProjects.Concat(_context.AffectedProjects),
-                    _data.Formatters, _data.OutputDir, _data.OutputName, _data.DryRun, _data.Verbose);
+                var allProjects = summary.ProjectsWithChangedFiles.Concat(summary.AffectedProjects)
+                    .Select(p => new ProjectInfo(p));
+
+                await _formatterExecutor.Execute(
+                    allProjects,
+                    _data.Formatters,
+                    _data.OutputDir,
+                    _data.OutputName,
+                    _data.DryRun,
+                    _data.Verbose);
 
                 return 0;
             }

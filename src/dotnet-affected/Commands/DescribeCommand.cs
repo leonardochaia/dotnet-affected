@@ -1,4 +1,5 @@
 ﻿using Affected.Cli.Views;
+using DotnetAffected.Abstractions;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Rendering;
@@ -16,18 +17,23 @@ namespace Affected.Cli.Commands
 
         public class CommandHandler : ICommandHandler
         {
-            private readonly ICommandExecutionContext _context;
+            private readonly IAffectedExecutor _executor;
             private readonly IConsole _console;
 
-            public CommandHandler(ICommandExecutionContext context, IConsole console)
+            public CommandHandler(
+                IAffectedExecutor executor,
+                IConsole console)
             {
-                _context = context;
+                _executor = executor;
                 _console = console;
             }
 
             public Task<int> InvokeAsync(InvocationContext ic)
             {
-                var view = new AffectedInfoView(_context);
+                var summary = _executor.Execute();
+                summary.ThrowIfNoChanges();
+
+                var view = new AffectedInfoView(summary);
                 _console.Append(view);
 
                 return Task.FromResult(0);
