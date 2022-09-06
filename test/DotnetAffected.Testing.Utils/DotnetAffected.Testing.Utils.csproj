@@ -3,7 +3,7 @@
 
     <ItemGroup>
         <PackageReference Include="LibGit2Sharp"/>
-        <PackageReference Include="Microsoft.Win32.Registry"/>
+        <PackageReference Condition="'$(TargetFramework)' == 'netcoreapp3.1'" Include="Microsoft.Win32.Registry"/>
         <PackageReference Include="Microsoft.Build.Locator"/>
     </ItemGroup>
 

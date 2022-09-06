@@ -11,6 +11,5 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.Build.Prediction"/>
         <PackageReference Include="LibGit2Sharp"/>
-        <PackageReference Include="Microsoft.Win32.Registry"/>
     </ItemGroup>
 </Project>
