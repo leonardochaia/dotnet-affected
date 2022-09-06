@@ -11,9 +11,10 @@ current working directory.
 1. Detects which MSBuild Projects have changed based on the files that changed.
 2. When using Central Package Management, detects which NuGet Packages have changed.
 3. Detects which projects are affected by projects or packages that have changed.
-4. Outputs a [MSBuild Traversal SDK](https://github.com/microsoft/MSBuildSdks/tree/main/src/Traversal) Project that can
+4. Detects changes to `Directory.Build.props`/`.targets` and other input files.
+5. Outputs a [MSBuild Traversal SDK](https://github.com/microsoft/MSBuildSdks/tree/main/src/Traversal) Project that can
    be used to `dotnet build` and `test` which projects where changed/affected.
-5. Outputs a text file which can be used to deploy only what's needed.
+6. Outputs a text file which can be used to deploy only what's needed.
 
 ## How it works
 
@@ -47,7 +48,6 @@ When 1. changes, everything needs to be built/test, since, transitively, they al
    implemented. [#16](https://github.com/leonardochaia/dotnet-affected/issues/16)
 2. SDK projects only. Supporting non-SDK projects will be
    implemented. [#15](https://github.com/leonardochaia/dotnet-affected/issues/15)
-3. `.props` files and other "global" files that may affect projects are not being detected.
 
 ## Installation
 
