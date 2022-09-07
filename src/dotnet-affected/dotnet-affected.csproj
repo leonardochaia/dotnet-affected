@@ -34,4 +34,15 @@
         <ProjectReference Include="$(SourcesPath)DotnetAffected.Core\DotnetAffected.Core.csproj"/>
     </ItemGroup>
 
+    <UsingTask TaskName="Affected.AffectedTask"
+               AssemblyFile="bin\Debug\net6.0\dotnet-affected.dll"/>
+
+    <Target Name="Affected" Outputs="ProjectReferenceWithConfiguration">
+        <AffectedTask RepositoryPath="../../">
+            <Output TaskParameter="AffectedProjects" PropertyName="AffectedProjects"/>
+        </AffectedTask>
+        <Message Importance="high" Text="These are affected: $(AffectedProjects)"/>
+        <!-- What do I do with $(AffectedProjects? how do I invoke the original `build`/`test`/etc command?-->
+    </Target>
+
 </Project>
