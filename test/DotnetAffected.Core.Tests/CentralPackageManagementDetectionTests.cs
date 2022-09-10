@@ -9,8 +9,7 @@ namespace DotnetAffected.Core.Tests
     /// <summary>
     /// Tests for detecting affected projects when central package management changes
     /// </summary>
-    public class CentralPackageManagementDetectionTests
-        : BaseDotnetAffectedTest
+    public class CentralPackageManagementDetectionTests : BaseDotnetAffectedTest
     {
         [Fact]
         public void When_package_is_updated_dependant_projects_should_be_affected()
@@ -251,10 +250,15 @@ namespace DotnetAffected.Core.Tests
 
             // Commit so there are no changes
             Repository.StageAndCommit();
-
+            
             Repository.RemoveDirectoryPackageProps();
+            msBuildProject.ItemGroups
+                .SelectMany(g => g.Items)
+                .Single(i => i.ElementName == "PackageReference" && i.Include == packageName)
+                .AddMetadata("Version", "1.1.0");
+            msBuildProject.Save();
 
-            Assert.Single(AffectedSummary.FilesThatChanged);
+            Assert.Equal(2, AffectedSummary.FilesThatChanged.Length);
             Assert.Single(AffectedSummary.ChangedPackages);
             Assert.Single(AffectedSummary.AffectedProjects);
 

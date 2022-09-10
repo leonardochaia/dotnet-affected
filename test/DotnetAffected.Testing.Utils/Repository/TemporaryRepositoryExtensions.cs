@@ -101,6 +101,18 @@ namespace DotnetAffected.Testing.Utils
             await File.WriteAllTextAsync(path, contents);
         }
 
+        public static async Task CreateTextFileAsync(
+            this TemporaryRepository repo,
+            ProjectRootElement project,
+            string path,
+            string contents)
+        {
+            path = Path.Combine(repo.Path, project.GetName(), path);
+            var file = File.CreateText(path);
+            await file.DisposeAsync();
+            await File.WriteAllTextAsync(path, contents);
+        }
+        
         /// <summary>
         /// Creates a tree of csproj with a total of <paramref name="totalProjects" />
         /// Each project will try to have <paramref name="childrenPerProject" /> without

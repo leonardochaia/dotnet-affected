@@ -125,21 +125,18 @@ namespace DotnetAffected.Core
             IEnumerable<string> changedFiles)
         {
             // Try to find a Directory.Packages.props file in the list of changed files
+            // We try to take the deepest file, assuming they import up
             var packagePropsPath = changedFiles
-                .SingleOrDefault(f => f.EndsWith("Directory.Packages.props"));
+                .Where(f => f.EndsWith("Directory.Packages.props"))
+                .OrderByDescending(p => p.Length)
+                .Take(1)
+                .FirstOrDefault();
 
             if (packagePropsPath is null)
-            {
                 return Enumerable.Empty<PackageChange>();
-            }
 
-            // Get the contents of the file at from/to revisions
-            var (fromFile, toFile) = _changesProvider
-                .GetTextFileContents(
-                    _repositoryPath,
-                    packagePropsPath,
-                    _fromRef,
-                    _toRef);
+            var fromFile = _changesProvider.LoadDirectoryPackagePropsProject(_repositoryPath, packagePropsPath, _fromRef, false);
+            var toFile = _changesProvider.LoadDirectoryPackagePropsProject(_repositoryPath, packagePropsPath, _toRef, true);
 
             // Parse props files into package and version dictionary
             var fromPackages = NugetHelper.ParseDirectoryPackageProps(fromFile);
@@ -148,5 +145,6 @@ namespace DotnetAffected.Core
             // Compare both dictionaries
             return NugetHelper.DiffPackageDictionaries(fromPackages, toPackages);
         }
+
     }
 }

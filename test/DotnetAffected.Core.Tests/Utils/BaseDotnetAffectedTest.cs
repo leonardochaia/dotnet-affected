@@ -17,7 +17,7 @@ namespace DotnetAffected.Core.Tests
             });
         }
 
-        protected virtual AffectedOptions Options => new AffectedOptions(this.Repository.Path);
+        protected virtual AffectedOptions Options => new AffectedOptions(Repository.Path);
 
         protected virtual IChangesProvider ChangesProvider => new GitChangesProvider();
 
