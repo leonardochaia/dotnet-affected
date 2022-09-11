@@ -5,6 +5,7 @@ using Microsoft.Build.Evaluation.Context;
 using Microsoft.Build.FileSystem;
 using System;
 using System.IO;
+using System.Linq;
 using System.Xml;
 
 namespace DotnetAffected.Core
@@ -18,7 +19,6 @@ namespace DotnetAffected.Core
         {
             FileSystem = fileSystem;
             ProjectCollection = projectCollection ?? ProjectCollection.GlobalProjectCollection;
-            
         }
 
         private ProjectRootElement CreateProjectRootElement(string path)
@@ -39,6 +39,10 @@ namespace DotnetAffected.Core
 
         public Project CreateProject(string projectRootElementFilePath)
         {
+            var loaded = ProjectCollection.GetLoadedProjects(projectRootElementFilePath);
+            if (loaded.Any())
+                return loaded.Single();
+                
             var projectRootElement = CreateProjectRootElement(projectRootElementFilePath);
             return Project
                 .FromProjectRootElement(projectRootElement, new ProjectOptions

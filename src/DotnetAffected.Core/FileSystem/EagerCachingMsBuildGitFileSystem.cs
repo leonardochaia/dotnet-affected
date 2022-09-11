@@ -40,6 +40,8 @@ namespace DotnetAffected.Core.FileSystem
 
         public Project CreateProjectAndEagerLoadChildren(string path)
         {
+            // Do not alter, the list is used to maintain a reference for projects created internally
+            // because the ProjectCollection cache use's a WeakMap to manage cached projects loaded as nested project of a root.
             var projects = new List<Project>();
             _projectFactory ??= new ProjectFactory(this, new ProjectCollection());
 
