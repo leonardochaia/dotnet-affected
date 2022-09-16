@@ -38,6 +38,8 @@ for execution.
 dotnet build ./ci.props
 ```
 
+## Extensibility
+
 You can add/remove projects after the affected projects resolved, in `ci.props`:
 
 ```xml
@@ -59,9 +61,6 @@ We register a `ci.targets` file to load **after** the SDK `targets` file have lo
     </Target>
 </Project>
 ```
-
-
-## Extensibility
 
 Setting the following properties control how `dotnet-affected` SDK works.
 
