@@ -23,7 +23,8 @@ namespace Affected.Cli.Commands
             string[] format,
             bool dryRun,
             string outputDir,
-            string outputName)
+            string outputName,
+            bool msBuildPassthrough)
         {
             this.RepositoryPath = DetermineRepositoryPath(repositoryPath, solutionPath);
             this.SolutionPath = solutionPath;
@@ -35,6 +36,7 @@ namespace Affected.Cli.Commands
             this.DryRun = dryRun;
             this.OutputDir = DetermineOutputDir(this.RepositoryPath, outputDir);
             this.OutputName = outputName;
+            this.MsBuildPassthrough = msBuildPassthrough;
         }
 
         public bool DryRun { get; }
@@ -52,6 +54,8 @@ namespace Affected.Cli.Commands
         public string To { get; }
 
         public bool Verbose { get; }
+
+        public bool MsBuildPassthrough { get; }
 
         public IEnumerable<string> AssumeChanges { get; }
 

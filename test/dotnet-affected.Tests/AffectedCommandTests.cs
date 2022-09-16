@@ -1,5 +1,7 @@
 ﻿using DotnetAffected.Testing.Utils;
+using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -100,6 +102,35 @@ namespace Affected.Cli.Tests
             Assert.Equal(AffectedExitCodes.NothingChanged, exitCode);
 
             Assert.Contains($"No affected projects where found for the current changes", output);
+        }
+        
+        [Theory]
+        [InlineData(1)]
+        [InlineData(3)]
+        public async Task When_in_ms_build_passthrough_mode_with_changes_should_pass_semi_column_delimited_string(int projectCount)
+        {
+            // Create a project
+            var projects = Enumerable.Range(1, projectCount)
+                .Select(i => Repository.CreateCsProject($"InventoryManagement1{i}"))
+                .ToList();
+
+            var (output, exitCode) =
+                await this.InvokeAsync($"-p {Repository.Path} --ms-build-passthrough");
+
+            Assert.Equal(0, exitCode);
+
+            Assert.Equal(string.Join(';', projects.Select(p => p.FullPath)), output);
+        }
+        
+        [Fact]
+        public async Task When_in_ms_build_passthrough_mode_without_changes_should_pass_empty_string()
+        {
+            var (output, exitCode) =
+                await this.InvokeAsync($"-p {Repository.Path} --ms-build-passthrough");
+
+            Assert.Equal(0, exitCode);
+
+            Assert.Equal(String.Empty, output);
         }
     }
 }

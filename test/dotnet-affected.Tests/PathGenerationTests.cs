@@ -54,7 +54,8 @@ namespace Affected.Cli.Tests
                 new string[0],
                 false,
                 string.Empty,
-                string.Empty);
+                string.Empty,
+                false);
 
             Assert.Equal(expected, data.RepositoryPath);
         }
@@ -98,7 +99,8 @@ namespace Affected.Cli.Tests
                 new string[0],
                 false,
                 outputDir,
-                string.Empty);
+                string.Empty,
+                false);
 
             Assert.Equal(expected, data.OutputDir);
         }

@@ -18,23 +18,29 @@ namespace Affected.Cli.Commands
         public class CommandHandler : ICommandHandler
         {
             private readonly IAffectedExecutor _executor;
+            private readonly CommandExecutionData _data;
             private readonly IConsole _console;
 
             public CommandHandler(
                 IAffectedExecutor executor,
+                CommandExecutionData data,
                 IConsole console)
             {
                 _executor = executor;
+                _data = data;
                 _console = console;
             }
 
             public Task<int> InvokeAsync(InvocationContext ic)
             {
-                var summary = _executor.Execute();
-                summary.ThrowIfNoChanges();
+                if (!_data.MsBuildPassthrough)
+                {
+                    var summary = _executor.Execute();
+                    summary.ThrowIfNoChanges();
 
-                var view = new AffectedInfoView(summary);
-                _console.Append(view);
+                    var view = new AffectedInfoView(summary);
+                    _console.Append(view);
+                }
 
                 return Task.FromResult(0);
             }

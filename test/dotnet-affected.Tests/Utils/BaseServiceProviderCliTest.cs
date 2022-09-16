@@ -47,7 +47,8 @@ namespace Affected.Cli.Tests
                 Array.Empty<string>(),
                 true,
                 string.Empty,
-                string.Empty)));
+                string.Empty,
+                false)));
         }
     }
 }

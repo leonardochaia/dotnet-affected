@@ -23,6 +23,7 @@ namespace Affected.Cli.Commands
             this.AddGlobalOption(new SolutionPathOption());
             this.AddGlobalOption(new VerboseOption());
             this.AddGlobalOption(new AssumeChangesOption());
+            this.AddGlobalOption(new MsBuildPassthroughOption());
 
             var fromOption = new FromOption();
             this.AddGlobalOption(fromOption);
@@ -60,25 +61,36 @@ namespace Affected.Cli.Commands
             public async Task<int> InvokeAsync(InvocationContext ic)
             {
                 var summary = _executor.Execute();
-                summary.ThrowIfNoChanges();
 
-                if (_data.Verbose)
+                if (!_data.MsBuildPassthrough)
                 {
-                    var infoView = new AffectedInfoView(summary);
+                    summary.ThrowIfNoChanges();
 
-                    _console.Append(infoView);
+                    if (_data.Verbose)
+                    {
+                        var infoView = new AffectedInfoView(summary);
+
+                        _console.Append(infoView);
+                    }
+                    
+                    var allProjects = summary.ProjectsWithChangedFiles.Concat(summary.AffectedProjects)
+                        .Select(p => new ProjectInfo(p));
+
+                    await _formatterExecutor.Execute(
+                        allProjects,
+                        _data.Formatters,
+                        _data.OutputDir,
+                        _data.OutputName,
+                        _data.DryRun,
+                        _data.Verbose);
                 }
-
-                var allProjects = summary.ProjectsWithChangedFiles.Concat(summary.AffectedProjects)
-                    .Select(p => new ProjectInfo(p));
-
-                await _formatterExecutor.Execute(
-                    allProjects,
-                    _data.Formatters,
-                    _data.OutputDir,
-                    _data.OutputName,
-                    _data.DryRun,
-                    _data.Verbose);
+                else
+                {
+                    var projectsForMsBuild = summary.ProjectsWithChangedFiles
+                        .Concat(summary.AffectedProjects)
+                        .Select(x => x.ProjectInstance.FullPath);
+                    _console.Out.Write(string.Join(';', projectsForMsBuild));
+                }
 
                 return 0;
             }
@@ -136,6 +148,23 @@ namespace Affected.Cli.Commands
             }
         }
 
+        private class MsBuildPassthroughOption : Option<bool>
+        {
+            public MsBuildPassthroughOption()
+                : base(
+                    aliases: new[]
+                    {
+                        "--ms-build-passthrough"
+                    },
+                    getDefaultValue: () => false)
+            {
+                this.Description = @"When enabled, disable file formatted output and changes the console output to an
+output that the MSBuild SDK can read and filter into a list of <ProjectReference> items.";
+                IsHidden = true;
+            }
+        }
+
+        
         private class FromOption : Option<string>
         {
             public FromOption()
