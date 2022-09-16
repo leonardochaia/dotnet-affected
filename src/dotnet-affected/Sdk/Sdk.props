@@ -1,8 +1,8 @@
 <Project>
     <Import Project="$(CustomBeforeAffectedProps)" Condition=" '$(CustomBeforeAffectedProps)' != '' And Exists('$(CustomBeforeAffectedProps)') " />
 
-    <PropertyGroup Condition="'$(AffectedToolExeutionExpression)' == ''">
-        <AffectedToolExeutionExpression>dotnet affected</AffectedToolExeutionExpression>
+    <PropertyGroup Condition="'$(AffectedToolExecutionExpression)' == ''">
+        <AffectedToolExecutionExpression>dotnet affected</AffectedToolExecutionExpression>
     </PropertyGroup>
 
     <Import Project="$(CustomAfterAffectedProps)" Condition=" '$(CustomAfterAffectedProps)' != '' And Exists('$(CustomAfterAffectedProps)') " />

@@ -3,16 +3,16 @@
     <Import Project="$(CustomBeforeAffectedTargets)" Condition=" '$(CustomBeforeAffectedTargets)' != '' And Exists('$(CustomBeforeAffectedTargets)') " />
 
     <Target Name="EnsureAffectedInstalled">
-        <Exec Command="$(AffectedToolExeutionExpression) --help" EchoOff="true" ConsoleToMSBuild="true" StandardOutputImportance="low" StandardErrorImportance="low" IgnoreExitCode="true">
+        <Exec Command="$(AffectedToolExecutionExpression) --help" EchoOff="true" ConsoleToMSBuild="true" StandardOutputImportance="low" StandardErrorImportance="low" IgnoreExitCode="true">
             <Output TaskParameter="ExitCode" PropertyName="_AffectedExitCode" />
         </Exec>
 
-        <Error Condition="$(_AffectedExitCode) != '0'" Text="Could not run the tool using '$(AffectedToolExeutionExpression)'." />
+        <Error Condition="$(_AffectedExitCode) != '0'" Text="Could not run the tool using '$(AffectedToolExecutionExpression)'." />
     </Target>
     
     <Target Name="DetectAffected">
 
-        <Exec Command="$(AffectedToolExeutionExpression) --ms-build-passthrough --repository-path $(MSBuildStartupDirectory)" ConsoleToMSBuild="true" EchoOff="true" >
+        <Exec Command="$(AffectedToolExecutionExpression) --ms-build-passthrough --repository-path $(MSBuildStartupDirectory)" ConsoleToMSBuild="true" EchoOff="true" >
             <Output TaskParameter="ConsoleOutput" PropertyName="_AffectedOutput" />
         </Exec>
 
