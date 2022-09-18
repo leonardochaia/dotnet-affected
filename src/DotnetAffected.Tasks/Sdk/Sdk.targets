@@ -1,0 +1,35 @@
+<Project InitialTargets="DotnetAffectedCheck" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <Import Project="$(CustomBeforeAffectedTargets)" Condition=" '$(CustomBeforeAffectedTargets)' != '' And Exists('$(CustomBeforeAffectedTargets)') " />
+    
+    <PropertyGroup>
+        <_DotnetAffectedTargetFramework>$(TargetFramework)</_DotnetAffectedTargetFramework>
+        <_DotnetAffectedTargetFramework Condition="'$(_DotnetAffectedTargetFramework)' == ''">$(MicrosoftNETBuildTasksTFM)</_DotnetAffectedTargetFramework>
+        <_DotnetAffectedTargetFramework Condition="'$(_DotnetAffectedTargetFramework)' == '' And $([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildVersion)', '17.0.0'))">net6.0</_DotnetAffectedTargetFramework>
+        <_DotnetAffectedTargetFramework Condition="'$(_DotnetAffectedTargetFramework)' == '' And $([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildVersion)', '16.11.0'))">net5.0</_DotnetAffectedTargetFramework>
+        <_DotnetAffectedTargetFramework Condition="'$(_DotnetAffectedTargetFramework)' == ''">netcoreapp3.1</_DotnetAffectedTargetFramework>
+        <_DotnetAffectedTaskAssembly>$(MSBuildThisFileDirectory)\..\tools\$(_DotnetAffectedTargetFramework)\DotnetAffected.Tasks.dll</_DotnetAffectedTaskAssembly>
+    </PropertyGroup>
+
+    <UsingTask TaskName="DotnetAffected.Tasks.AffectedTask" AssemblyFile="$(_DotnetAffectedTaskAssembly)" />
+
+    <Target Name="DotnetAffectedCheck" Condition="'$(UsingDotnetAffectedTasks)' == '' Or '$(UsingDotnetAffectedTasks)' == 'true'">
+
+        <PropertyGroup>
+            <DotnetAffectedRoot Condition="'$(DotnetAffectedRoot)' == ''">$(MSBuildStartupDirectory)</DotnetAffectedRoot>
+        </PropertyGroup>
+        
+        <DotnetAffected.Tasks.AffectedTask Root="$(DotnetAffectedRoot)" Projects="@(ProjectReference)">
+            <Output TaskParameter="ModifiedProjects" PropertyName="_ModifiedProjects" />
+            <Output TaskParameter="ModifiedProjectsCount" PropertyName="DotnetAffectedProjectCount" />
+        </DotnetAffected.Tasks.AffectedTask>
+        
+        <ItemGroup>
+            <ProjectReference Remove="@(ProjectReference)" />
+            <ProjectReference Include="$(_ModifiedProjects)" />
+        </ItemGroup>
+    </Target>
+
+    <Import Project="$(CustomAfterAffectedTargets)" Condition=" '$(CustomAfterAffectedTargets)' != '' And Exists('$(CustomAfterAffectedTargets)') " />
+
+</Project>
