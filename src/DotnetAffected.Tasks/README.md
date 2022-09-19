@@ -43,6 +43,71 @@ or
 dotnet build ./ci.props
 ```
 
+## Context Filtering
+
+With `Context Filtering` you can control which projects are references based on evaluated
+properties from the references project itself.
+
+For every project that a was impacted from the change, you can analyze and filter based on the
+evaluated properties of the project.
+
+First you need to define the properties you want to retrieve from each project
+so you can evaluate them before running it and optionally filter them out.
+
+We group a collection of such properties and call it `AffectedFilterClass`.  
+Each project is then assigned a new instance of `AffectedFilterClass` representing the values in the project.
+
+```xml
+    <ItemGroup>
+        <AffectedFilterClass Include="No Backoffice">
+            <IsBackofficeLibrary />
+            <!-- Add more project properties here... -->
+        </AffectedFilterClass>
+        <!-- Add more AffectedFilterClass items here... -->
+    </ItemGroup>
+```
+
+`Include="No Backoffice"` (ItemSpec) is used to assign an identity for the group so
+we can use it to create smart filtering based on different filter classes.  
+
+Now, for every project, the property `IsBackofficeLibrary` will evaluate and assigned to a new
+object, along with other properties defined.
+
+> If a defined property does not exist in the project, the value in the class is used.
+> I.E you can apply default values!
+> Note that only for properties that **DOES NOT EXISTS**, empty values == exists!
+
+**ci.props**
+
+```xml
+<Project Sdk="DotnetAffected.Tasks;Microsoft.Build.Traversal">
+    <!--
+        Define a filter class, each class will later have multiple instances.
+        The amount of instances is equal to the total amount of projects with changes.
+        Each instance will hold the properties defined, however they will contain the actual
+        values from the project.
+        
+        The "Identity" will be the full path to the project's file.
+        A special property "AffectedFilterClassName" will be used to reflect the "Include" attribute of the class.
+        You can use it to create smart filtering based on different filter classes.
+    -->
+    <ItemGroup>
+        <AffectedFilterClass Include="No Backoffice">
+            <IsBackofficeLibrary />
+            <!-- Add more project properties here... -->
+        </AffectedFilterClass>
+        <!-- Add more AffectedFilterClass items here... -->
+    </ItemGroup>
+
+    <Target Name="_DotnetAffectedCheck" AfterTargets="DotnetAffectedCheck">
+        <ItemGroup>
+            <ProjectReference Remove="@(AffectedFilterInstance)" Condition="'%(AffectedFilterInstance.IsBackofficeLibrary)' == true" />
+        </ItemGroup>
+        <Message Text="Role: %(AffectedFilterInstance.AffectedFilterClassName) | Filtered: %(AffectedFilterInstance.Identity)" Condition="'%(AffectedFilterInstance.IsBackofficeLibrary)' == true" Importance="high" />
+    </Target>
+</Project>
+```
+
 ## Extensibility
 
 You can add/remove projects after the affected projects resolved, ad-hoc in `ci.props`:
