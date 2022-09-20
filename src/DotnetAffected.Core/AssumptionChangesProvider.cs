@@ -1,4 +1,6 @@
 ﻿using DotnetAffected.Abstractions;
+using LibGit2Sharp;
+using Microsoft.Build.Evaluation;
 using Microsoft.Build.Graph;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,10 +36,14 @@ namespace DotnetAffected.Core
                 .FindNodesByName(_assumptions)
                 .Select(n => n.ProjectInstance.FullPath);
         }
-
+        
         /// <inheritdoc />
-        public (string FromText, string ToText) GetTextFileContents(string directory, string pathToFile, string from,
-            string to)
+        public Project? LoadProject(string directory, string pathToFile, string? commitRef, bool fallbackToHead)
+        {
+            throw new System.InvalidOperationException("--assume-changes should not try to access file contents");
+        }
+
+        public Project? LoadDirectoryPackagePropsProject(string directory, string pathToFile, string? commitRef, bool fallbackToHead)
         {
             throw new System.InvalidOperationException("--assume-changes should not try to access file contents");
         }

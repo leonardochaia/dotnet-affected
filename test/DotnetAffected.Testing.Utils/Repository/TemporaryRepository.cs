@@ -7,23 +7,30 @@ namespace DotnetAffected.Testing.Utils
     {
         public TemporaryRepository()
         {
-            this.Directory = new TempWorkingDirectory();
+            Directory = new TempWorkingDirectory();
 
             // git init a repo at the path
-            Repository.Init(this.Path);
+            Repository.Init(Directory.Path);
 
             // open the repository
-            this.Repository = new Repository(this.Path);
+            Repository = new Repository(Directory.Path);
+
+            // We expose the path from a single place to maintain consistency across operating systems.
+            // E.G in OSX calling "System.IO.Path.GetTempPath" will return "/var/x/y/z" which we will
+            // supply to "Repository", however "Repository.Info.WorkingDirectory" will return "/private/var/x/y/z" which
+            // is the same but causes issues when comparing or evaluating.
+            Path = System.IO.Path.TrimEndingDirectorySeparator(Repository.Info.WorkingDirectory);
 
             // Create the first commit
-            this.Commit("Initial Commit");
+            Commit("Initial Commit");
         }
 
         public Repository Repository { get; }
 
-        public TempWorkingDirectory Directory { get; }
+        public string Path { get; }
 
-        public string Path => this.Directory.Path;
+        private TempWorkingDirectory Directory { get; }
+
 
         public Commit StageAndCommit(string message = null)
         {

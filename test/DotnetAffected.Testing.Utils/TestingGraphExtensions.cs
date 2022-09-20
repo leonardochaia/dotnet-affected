@@ -1,6 +1,7 @@
 ﻿using Microsoft.Build.Construction;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace DotnetAffected.Testing.Utils
@@ -13,6 +14,12 @@ namespace DotnetAffected.Testing.Utils
             return element;
         }
 
+        public static string GetName(this ProjectRootElement element)
+        {
+            var fi = new FileInfo(element.FullPath);
+            return fi.Name[..^fi.Extension.Length];
+        }
+        
         public static ProjectRootElement AddProjectDependency(this ProjectRootElement element, string dependencyPath)
         {
             element.AddItem("ProjectReference", dependencyPath);
@@ -33,14 +40,56 @@ namespace DotnetAffected.Testing.Utils
             return element;
         }
 
+        public static ProjectRootElement CreateDirectoryPackageProps(this ProjectRootElement element, bool importParent, Action<ProjectRootElement> customizer)
+        {
+            
+            var fi = new FileInfo(element.FullPath);
+            var path = Path.Combine(fi.DirectoryName ?? "", "Directory.Packages.props");
+            var project = ProjectRootElement.Create(path);
+
+            if (importParent)
+                project.AddImport("$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory).., Directory.Packages.props))" + Path.DirectorySeparatorChar + "Directory.Packages.props");
+
+            customizer?.Invoke(project);
+
+            project.Save();
+
+            return project;
+        }
+
+        public static ProjectRootElement UpdateDirectoryPackageProps(this ProjectRootElement element, Action<ProjectRootElement> customizer)
+        {
+            var fi = new FileInfo(element.FullPath);
+            var path = Path.Combine(fi.DirectoryName ?? "", "Directory.Packages.props");
+            var project = ProjectRootElement.Open(path) ??
+                          throw new InvalidOperationException("Failed to load msbuild project");
+
+            customizer?.Invoke(project);
+
+            project.Save();
+
+            return project;
+        }
+        
+        public static void RemoveDirectoryPackageProps(this ProjectRootElement element)
+        {
+            element.DeleteFile("Directory.Packages.props");
+        }
+
+        public static void DeleteFile(this ProjectRootElement element, string relativePath)
+        {
+            var fi = new FileInfo(element.FullPath);
+            var path = Path.Combine(fi.DirectoryName ?? "", relativePath);
+            File.Delete(path);
+        }
+
         public static ProjectRootElement OptOutFromCentrallyManagedNuGetPackageVersions(this ProjectRootElement element)
         {
             element.AddProperty("ManagePackageVersionsCentrally", "false");
             return element;
         }
 
-        public static ProjectRootElement AddPackageVersion(this ProjectRootElement element, string packageName,
-            string version)
+        public static ProjectRootElement AddPackageVersion(this ProjectRootElement element, string packageName, string version)
         {
             var itemGroup = element.ItemGroups.FirstOrDefault() ?? element.AddItemGroup();
 

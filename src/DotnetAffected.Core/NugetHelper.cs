@@ -1,35 +1,41 @@
 ﻿using DotnetAffected.Abstractions;
+using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Xml;
 
 namespace DotnetAffected.Core
 {
     internal static class NugetHelper
     {
-        public static IEnumerable<(string Package, string Version)> ParseDirectoryPackageProps(string? propsFile)
+        public static IEnumerable<(string Package, string Version)> ParseDirectoryPackageProps(Project? project)
         {
-            if (propsFile == null) return Enumerable.Empty<(string, string)>();
+            if (project == null) return Enumerable.Empty<(string Package, string Version)>();
 
-            Stream GenerateStreamFromString(string s)
+            // A project contains the combination of multiple project files (e.g. DirectoryPackageProps can Import others)
+            // So we might have multiple identical package versions for the same package/condition combination.
+            // We only allow multiple package versions if the condition is different.
+            // For a duplicate set in a project the last value is always the one resolved so we will use a dictionary to
+            // reflect that logic.
+            var packages = new Dictionary<string, (string Package, string Version)>();
+            foreach (var item in project.ItemsIgnoringCondition)
             {
-                var stream = new MemoryStream();
-                var writer = new StreamWriter(stream);
-                writer.Write(s);
-                writer.Flush();
-                stream.Position = 0;
-                return stream;
+                if (item.ItemType == "PackageVersion")
+                {
+                    // we create a unique Id to the combination of all condition expressions from the item up to all relevant parents
+                    var conditions = item.Xml.AllParents
+                        .OfType<ProjectItemGroupElement>()
+                        .Where(e => !string.IsNullOrWhiteSpace(e.Condition))
+                        .Select(e => e.Condition);
+
+                    if (!string.IsNullOrWhiteSpace(item.Xml.Condition))
+                        conditions = new[] { item.Xml.Condition }.Concat(conditions);
+
+                    packages[$"{item.EvaluatedInclude} {string.Join(";", conditions)}"] = (item.EvaluatedInclude, item.Metadata.SingleOrDefault(m => m.Name == "Version")!.EvaluatedValue);
+                }
             }
 
-            using var reader = new XmlTextReader(GenerateStreamFromString(propsFile));
-            var project = new Project(reader);
-
-            return project.ItemsIgnoringCondition
-                .Where(i => i.ItemType == "PackageVersion")
-                .Select(i => (i.EvaluatedInclude,
-                    i.Metadata.SingleOrDefault(m => m.Name == "Version")!.EvaluatedValue));
+            return packages.Values;
         }
 
         public static IEnumerable<PackageChange> DiffPackageDictionaries(

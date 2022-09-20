@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Build.Evaluation;
+using System.Collections.Generic;
 
 namespace DotnetAffected.Abstractions
 {
@@ -17,18 +18,16 @@ namespace DotnetAffected.Abstractions
         IEnumerable<string> GetChangedFiles(string directory, string from, string to);
 
         /// <summary>
-        /// Uses the underlying changes provider to get
-        /// the text contents of a file at <paramref name="from"/> and at <paramref name="to"/>.
+        /// Uses the underlying changes provider to load a <see cref="Project"/> file at <paramref name="commitRef"/>.
         /// </summary>
         /// <param name="directory"></param>
         /// <param name="pathToFile"></param>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
+        /// <param name="commitRef"></param>
+        /// <param name="fallbackToHead">When true, uses the HEAD as the default commit, otherwise uses the current working directory. <br/>
+        /// Applicable only when <paramref name="commitRef"/> is null or empty.</param>
         /// <returns></returns>
-        (string? FromText, string? ToText) GetTextFileContents(
-            string directory,
-            string pathToFile,
-            string from,
-            string to);
+        Project? LoadProject(string directory, string pathToFile, string? commitRef, bool fallbackToHead);
+
+        Project? LoadDirectoryPackagePropsProject(string directory, string pathToFile, string? commitRef, bool fallbackToHead);
     }
 }
