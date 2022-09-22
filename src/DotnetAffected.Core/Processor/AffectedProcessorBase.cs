@@ -8,7 +8,7 @@ namespace DotnetAffected.Core.Processor
     /// <summary>
     /// Processor engine that discover changes in the projects. Files, packages, projects etc...
     /// </summary>
-    public abstract class AffectedProcessorBase
+    internal abstract class AffectedProcessorBase
     {
         /// <summary>
         /// Start processing the repository and discover changes.

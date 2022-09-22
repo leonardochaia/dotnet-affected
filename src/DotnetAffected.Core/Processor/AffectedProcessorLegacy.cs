@@ -15,7 +15,7 @@ namespace DotnetAffected.Core.Processor
     /// The legacy processor compliments <see cref="AffectedProcessor"/> where netcore 3.1 is used as <see cref="AffectedProcessor"/>
     /// does not support it.
     /// </summary>
-    public class AffectedProcessorLegacy : AffectedProcessorBase
+    internal class AffectedProcessorLegacy : AffectedProcessorBase
     {
 
         /// <inheritdoc/>

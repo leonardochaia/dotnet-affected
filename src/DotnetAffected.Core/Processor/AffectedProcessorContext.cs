@@ -8,7 +8,7 @@ namespace DotnetAffected.Core.Processor
     /// <summary>
     /// Context used by <see cref="AffectedProcessorBase"/>
     /// </summary>
-    public class AffectedProcessorContext
+    internal class AffectedProcessorContext
     {
         private ProjectGraph? _graph;
 

@@ -21,7 +21,7 @@ namespace DotnetAffected.Core.Processor
     /// for a given git commit. See <see cref="MsBuildGitFileSystem"/> and <see cref="EagerCachingMsBuildGitFileSystem"/>
     /// </summary>
     /// <remarks>Support Microsoft.Build 16.10 and above (net5.0 and above)</remarks>
-    public class AffectedProcessor : AffectedProcessorBase
+    internal class AffectedProcessor : AffectedProcessorBase
     {
         private static readonly object NugetDataCacheKey = new();
 
