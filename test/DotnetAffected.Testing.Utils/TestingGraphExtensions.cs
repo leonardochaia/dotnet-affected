@@ -71,6 +71,22 @@ namespace DotnetAffected.Testing.Utils
             return project;
         }
         
+        public static void AddOrUpdateProperty(this ProjectRootElement element, string propertyName, string propertyValue)
+        {
+            var matches = element.Properties.Where(p => p.Name == propertyName).ToList();
+            if (matches.Any())
+            {
+                foreach (var pe in matches)
+                    pe.Value = propertyValue;    
+            }
+            else
+            {
+                element.AddProperty(propertyName, propertyValue);
+            }
+            
+        }
+        
+
         public static void RemoveDirectoryPackageProps(this ProjectRootElement element)
         {
             element.DeleteFile("Directory.Packages.props");

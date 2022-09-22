@@ -78,9 +78,13 @@ namespace DotnetAffected.Tasks
                 ModifiedProjects = modifiedProjects.ToArray();
                 ModifiedProjectsCount = ModifiedProjects.Length;
             }
-            catch (Exception e)
+            catch (Exception? e)
             {
-                Log.LogErrorFromException(e);
+                while (e is not null)
+                {
+                    Log.LogErrorFromException(e);
+                    e = e.InnerException;
+                }
             }
 
             return !Log.HasLoggedErrors;

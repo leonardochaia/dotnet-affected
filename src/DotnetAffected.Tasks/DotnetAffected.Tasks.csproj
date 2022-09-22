@@ -71,7 +71,7 @@
         <ItemGroup>
             <NativeLibGitToCopy Include="$(PublishDir)runtimes/**/native/libgit2*.*" />
         </ItemGroup>
-        <Copy SourceFiles="@(NativeLibGitToCopy)" DestinationFiles="@(NativeLibGitToCopy->Replace('libgit2','git2'))" />
+        <Copy SourceFiles="@(NativeLibGitToCopy)" DestinationFiles="@(NativeLibGitToCopy-&gt;Replace('libgit2','git2'))" />
 
         <!--
             Publish .NET Core assets and include them in the package under tools directory.

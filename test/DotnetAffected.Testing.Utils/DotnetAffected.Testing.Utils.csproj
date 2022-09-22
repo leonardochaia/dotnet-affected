@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="$(TestingDefaultsPropsPath)"/>
+    <Import Project="$(TestingDefaultsPropsPath)" />
 
     <ItemGroup>
-        <PackageReference Include="LibGit2Sharp"/>
-        <PackageReference Condition="'$(TargetFramework)' == 'netcoreapp3.1'" Include="Microsoft.Win32.Registry"/>
-        <PackageReference Include="Microsoft.Build.Locator"/>
+        <PackageReference Include="LibGit2Sharp" />
+        <PackageReference Condition="'$(TargetFramework)' == 'netcoreapp3.1'" Include="Microsoft.Win32.Registry" />
+        <PackageReference Include="Microsoft.Build.Locator" />
     </ItemGroup>
 
 </Project>
