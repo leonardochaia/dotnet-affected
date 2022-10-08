@@ -1,0 +1,83 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="$(PackageDefaultsPropsPath)" />
+
+    <PropertyGroup>
+        <RootNamespace>DotnetAffected.Tasks</RootNamespace>
+
+        <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <PackageType>MSBuildSdk</PackageType>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <IsPackable>true</IsPackable>
+
+        <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+        <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+        <PackTasks>true</PackTasks>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="AffectedTask.cs" />
+        <Compile Include="Lib2GitNativePathHelper.cs" />
+        <None Include="Sdk\**" Pack="true" PackagePath="Sdk\" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Build.Prediction" />
+
+        <PackageReference Include="Microsoft.Build.Framework" Publish="false" />
+        <PackageReference Include="Microsoft.Build.Utilities.Core" Publish="false" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ProjectReference Include="$(SourcesPath)/DotnetAffected.Core/DotnetAffected.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!--
+          Update all PackageReference and ProjectReference Items to have
+          PrivateAssets="All" and default Publish to true.
+          This removes the dependency nodes from the generated nuspec and
+          forces the publish output to contain the dlls.
+         -->
+        <PackageReference Update="@(PackageReference)">
+            <PrivateAssets>All</PrivateAssets>
+            <Publish Condition="'%(PackageReference.Publish)' == ''">true</Publish>
+            <ExcludeAssets Condition="'%(PackageReference.Publish)' == 'false'">runtime</ExcludeAssets>
+        </PackageReference>
+        <ProjectReference Update="@(ProjectReference)">
+            <PrivateAssets>All</PrivateAssets>
+            <Publish Condition="'%(ProjectReference.Publish)' == ''">true</Publish>
+        </ProjectReference>
+
+        <!--
+            Do not include assemblies that MSBuild ships with in the package.
+        -->
+        <PackageReference Update="Microsoft.Build" PrivateAssets="All" Publish="false" ExcludeAssets="runtime" />
+        <PackageReference Update="Microsoft.Build.Utilities.Core" PrivateAssets="All" Publish="false" ExcludeAssets="runtime" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddBuildOutputToPackageCore</TargetsForTfmSpecificContentInPackage>
+    </PropertyGroup>
+    
+    <Target Name="_AddBuildOutputToPackageCore" DependsOnTargets="Publish">
+        <!--
+            Create a clone for OSX/Linux libraries that starts with "lib2git".
+            The clone will have the first 3 characters of the filename removed ("lib").
+            This is required to load the libraries since LibGit2Sharp will search for them without the "lib" 
+        -->
+        <ItemGroup>
+            <NativeLibGitToCopy Include="$(PublishDir)runtimes/**/native/libgit2*.*" />
+        </ItemGroup>
+        <Copy SourceFiles="@(NativeLibGitToCopy)" DestinationFiles="@(NativeLibGitToCopy-&gt;Replace('libgit2','git2'))" />
+
+        <!--
+            Publish .NET Core assets and include them in the package under tools directory.
+        -->
+        <ItemGroup>
+            <TfmSpecificPackageFile Include="$(PublishDir)**" PackagePath="tools/$(TargetFramework)/%(RecursiveDir)%(FileName)%(Extension)" />
+        </ItemGroup>
+    </Target>
+</Project>

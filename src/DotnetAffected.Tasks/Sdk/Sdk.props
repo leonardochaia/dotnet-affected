@@ -1,0 +1,29 @@
+<Project>
+
+    <Import Project="$(CustomBeforeAffectedProps)" Condition=" '$(CustomBeforeAffectedProps)' != '' And Exists('$(CustomBeforeAffectedProps)') " />
+
+    <PropertyGroup>
+        <UsingDotnetAffectedTasks Condition="'$(UsingDotnetAffectedTasks)' == ''">true</UsingDotnetAffectedTasks>
+
+        <!--    TargetFramework is not set by default in all project styles, especially traversal like projects
+                However, we need it to properly load the assembly
+                
+                We respect user input, if explicilty set in <TargetFramework>
+                If not, we auto-detect it and assign it to <TargetFramework>
+                
+                Later in .targets, we _DotnetAffectedTargetFramework to load the assembly but if TargetFramework is not empty
+                we will use it, this is to allow late modification for TargetFramework down the pipe
+        -->
+
+        <_DotnetAffectedTargetFramework>$(TargetFramework)</_DotnetAffectedTargetFramework>
+        <_DotnetAffectedTargetFramework Condition="'$(_DotnetAffectedTargetFramework)' == ''">$(MicrosoftNETBuildTasksTFM)</_DotnetAffectedTargetFramework>
+        <_DotnetAffectedTargetFramework Condition="'$(_DotnetAffectedTargetFramework)' == '' And $([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildVersion)', '17.0.0'))">net6.0</_DotnetAffectedTargetFramework>
+        <_DotnetAffectedTargetFramework Condition="'$(_DotnetAffectedTargetFramework)' == '' And $([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildVersion)', '16.11.0'))">net5.0</_DotnetAffectedTargetFramework>
+        <_DotnetAffectedTargetFramework Condition="'$(_DotnetAffectedTargetFramework)' == ''">netcoreapp3.1</_DotnetAffectedTargetFramework>
+
+        <TargetFramework>$(_DotnetAffectedTargetFramework)</TargetFramework>
+    </PropertyGroup>
+
+    <Import Project="$(CustomAfterAffectedProps)" Condition=" '$(CustomAfterAffectedProps)' != '' And Exists('$(CustomAfterAffectedProps)') " />
+
+</Project>

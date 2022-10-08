@@ -1,0 +1,63 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="$(TestingDefaultsPropsPath)" />
+
+    <ItemGroup>
+        <ProjectReference Include="$(TestPath)DotnetAffected.Testing.Utils/DotnetAffected.Testing.Utils.csproj" />
+    </ItemGroup>
+
+    <!-- DispatchToInnerBuilds is the last point before we split into multiple builds executions based on TargetFrameworks
+         We pack Tasks now, if we do it afterwards it will pack multiple timns and break on locks and races 
+    -->
+    <Target Name="_BuildLoacalTasksNuget" BeforeTargets="DispatchToInnerBuilds">
+        <!-- Delete previous package packed and extracted -->
+        <ItemGroup>
+            <_DotnetAffectedNupkg Include="$(MSBuildThisFileDirectory)bin/*DotnetAffected.Tasks.*.nupkg" />
+
+            <_DotnetAffectedPkgFiles Include="$(MSBuildThisFileDirectory)$(OutputPath)/DotnetAffected/**/*.*" />
+            <_DotnetAffectedPkgFiles Include="$(_DotnetAffectedNupkg)" />
+            <_DotnetAffectedPkgFiles Include="$(MSBuildThisFileDirectory)bin/*DotnetAffected.Tasks.*.snupkg" />
+        </ItemGroup>
+        <Delete Files="@(_DotnetAffectedPkgFiles)" />
+        <Exec Command="dotnet pack -c Release --include-symbols $(SourcesPath)DotnetAffected.Tasks/DotnetAffected.Tasks.csproj -o $(MSBuildThisFileDirectory)bin  -maxcpucount:1" />
+    </Target>
+
+    <Target Name="_AfterBuild" BeforeTargets="VSTest">
+        <!--
+            We can't use "ProjectReference" to reference "DotnetAffected.Tasks" since this project does not
+            directly use "DotnetAffected.Tasks as a library.
+            
+            Instead, the tests are executed in a temp directory to execute projects created ad-hoc with MSBuild Sdk references.
+            We also can't use "ProjectReference" to reference "DotnetAffected.Tasks" in the temp projects because it
+            will not it test it as a pacakge but as a build output.
+            
+            Testing as a package, exactly as the user will, is crucial here since we're doing lot's of custom package
+            building for that library.
+            
+            The solutiuon is to pack on build, copy it to the output directory of the test project
+            and extract the nuget so we can reference the Sdk from our temp projects
+            
+            We will inject the path to the Tasks nuget into each temp project build
+        -->
+        
+        <ItemGroup>
+            <_DotnetAffectedNupkg Remove="@(_DotnetAffectedNupkg)" />
+            <_DotnetAffectedNupkg Include="$(MSBuildThisFileDirectory)bin/*DotnetAffected.Tasks.*.nupkg" />
+        </ItemGroup>
+        <!-- Extract the content of the nuget package into the folder "DotnetAffected" in the output folder. -->
+        <Unzip DestinationFolder="$(MSBuildThisFileDirectory)$(OutputPath)/DotnetAffected" SourceFiles="@(_DotnetAffectedNupkg)" />
+    </Target>
+
+    <ItemGroup>
+      <EmbeddedResource Update="Resources\TestProjectScenarios.resx">
+        <Generator>ResXFileCodeGenerator</Generator>
+        <LastGenOutput>TestProjectScenarios.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+    </ItemGroup>
+    <ItemGroup>
+      <Compile Update="Resources\TestProjectScenarios.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>TestProjectScenarios.resx</DependentUpon>
+      </Compile>
+    </ItemGroup>
+</Project>

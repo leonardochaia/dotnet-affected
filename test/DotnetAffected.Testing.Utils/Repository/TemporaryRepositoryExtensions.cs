@@ -30,6 +30,24 @@ namespace DotnetAffected.Testing.Utils
             return project;
         }
 
+        public static ProjectRootElement CreateCsProject(
+            this TemporaryRepository repo,
+            string projectName,
+            string projectTemplateFile,
+            Action<ProjectRootElement> customizer = null)
+        {
+            var path = Path.Combine(repo.Path, projectName, $"{projectName}.csproj");
+            File.Copy(projectTemplateFile, path);
+            var project = ProjectRootElement
+                .Open(path)
+                .SetName(projectName);
+
+            customizer?.Invoke(project);
+
+            project.Save();
+
+            return project;
+        }
         public static ProjectRootElement CreateDirectoryPackageProps(
             this TemporaryRepository repo,
             Action<ProjectRootElement> customizer)

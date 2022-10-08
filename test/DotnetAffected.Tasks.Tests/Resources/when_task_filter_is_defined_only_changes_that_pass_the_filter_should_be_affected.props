@@ -1,0 +1,17 @@
+<Project>
+    <ItemGroup>
+        <AffectedFilterClass Include="IsClientLibrary">
+            <IsClientLibrary />
+        </AffectedFilterClass>
+    </ItemGroup>
+    
+    <Target Name="_BeforePrintAffectedProjects" BeforeTargets="PrintAffectedProjects">
+        <ItemGroup>
+            <ProjectReference Remove="@(ProjectReference)" />
+            <ProjectReference Include="@(AffectedFilterInstance)" Condition="'%(AffectedFilterInstance.IsClientLibrary)' == 'true'" />    
+        </ItemGroup>
+    </Target>
+
+    <Target Name="_AfterPrintAffectedProjects" AfterTargets="PrintAffectedProjects">
+    </Target>
+</Project>
