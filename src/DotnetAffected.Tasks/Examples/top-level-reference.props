@@ -1,0 +1,8 @@
+<Project Sdk="DotnetAffected.Tasks/3.0.0-preview-3;Microsoft.Build.Traversal/3.2.0">
+    <Target Name="_DotnetAffectedCheck" AfterTargets="DotnetAffectedCheck">
+        <Message Text="Found $(DotnetAffectedProjectCount) projects: " Importance="high" />
+        <Message Text="  >> %(ProjectReference.Identity)" Importance="high" />
+    
+        <!-- Post process/filter/whatever before executing the target (i.e. build/test/etc...) -->
+    </Target>
+</Project>

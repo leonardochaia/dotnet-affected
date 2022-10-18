@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.Build.Traversal/3.2.0">
+    <ItemGroup>
+        <!-- If CentralPackageVersionManagement is enabled -->
+        <PackageReference Include="DotnetAffected.Tasks" GeneratePathProperty="true" />
+        <PackageVersion Include="DotnetAffected.Tasks" Version="3.0.0-preview-3" />
+
+        <!-- If CentralPackageVersionManagement is NOT enabled -->
+        <!-- <PackageReference Include="DotnetAffected.Tasks" Version="3.0.0-preview-3" GeneratePathProperty="true" /> -->
+    </ItemGroup>
+
+    <Import Project="$(PKGDotnetAffected_Tasks)/Sdk/Sdk.props" />
+    <Import Project="$(PKGDotnetAffected_Tasks)/Sdk/Sdk.targets" />
+
+    <Target Name="_DotnetAffectedCheck" AfterTargets="DotnetAffectedCheck">
+        <Message Text="Found $(DotnetAffectedProjectCount) projects: " Importance="high" />
+        <Message Text="  >> %(ProjectReference.Identity)" Importance="high" />
+
+        <!-- Post process/filter/whatever before executing the target (i.e. build/test/etc...) -->
+    </Target>
+</Project>

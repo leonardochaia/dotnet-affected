@@ -1,0 +1,16 @@
+<Project Sdk="DotnetAffected.Tasks/3.0.0-preview-3;Microsoft.Build.Traversal/3.2.0">
+    <Target Name="_DotnetAffectedCheck" AfterTargets="DotnetAffectedCheck">
+        <Message Text="Found $(DotnetAffectedProjectCount) projects: " Importance="high" />
+        <Message Text="  >> %(ProjectReference.Identity)" Importance="high" />
+
+        <!-- Post process/filter/whatever before executing the target (i.e. build/test/etc...) -->
+
+        <!-- Add/Remove project references to override affected results. -->
+        <ItemGroup>
+            <ProjectReference Remove="$(MSBuildThisFileDirectory)/src/DevTools/**/*.csproj" />
+        </ItemGroup>
+        <ItemGroup>
+            <ProjectReference Include="$(MSBuildThisFileDirectory)/src/Core/**/*.csproj" />
+        </ItemGroup>
+    </Target>
+</Project>
