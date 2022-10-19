@@ -43,7 +43,7 @@ namespace DotnetAffected.Tasks.Tests
             Assert.Single(Projects);
             Assert.Equal(msBuildProject.FullPath, Projects.Single());
 
-
+#if (NET5_0_OR_GREATER)
             fromCommit = toCommit;
             toCommit = Repository.StageAndCommit().Sha;
             
@@ -54,6 +54,7 @@ namespace DotnetAffected.Tasks.Tests
             Assert.True(ExitSuccess);
             Assert.False(HasProjects);
             Assert.Empty(Projects);
+#endif
         }
         
     }
