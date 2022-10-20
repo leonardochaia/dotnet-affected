@@ -59,4 +59,30 @@
 ]]>
         </value>
     </data>
+    <data name="AssumeChanges" xml:space="preserve">
+        <value><![CDATA[
+<Project>
+    <Target Name="_DotnetAffectedCheck" BeforeTargets="DotnetAffectedCheck">
+        <ItemGroup>
+            <DotnetAffectedAssumeChanges Include="$(MSBuildThisFileDirectory)**/project-*.csproj" />
+            <DotnetAffectedAssumeChanges Include="project3" />
+        </ItemGroup>
+    </Target>
+</Project>
+]]>
+        </value>
+    </data>
+    <data name="GitBetweenCommits" xml:space="preserve">
+        <value><![CDATA[
+<Project>
+    <Target Name="_DotnetAffectedCheck" BeforeTargets="DotnetAffectedCheck">
+        <PropertyGroup>
+            <FromRef>__FromRef__</FromRef>
+            <ToRef>__ToRef__</ToRef>
+        </PropertyGroup>
+    </Target>
+</Project>
+]]>
+        </value>
+    </data>
 </root>

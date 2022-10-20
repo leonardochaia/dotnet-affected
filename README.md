@@ -92,6 +92,31 @@ Commands:
   describe  Prints the current changed and affected projects.
 ```
 
+## SDK based installation
+
+You can execute dotnet-affected directly from the build as an integrated part of the build without running the CLI.  
+
+**File**: `ci.props`
+```xml
+<Project Sdk="DotnetAffected.Tasks/3.0.0-preview-3;Microsoft.Build.Traversal/3.2.0">
+    <Target Name="_DotnetAffectedCheck" AfterTargets="DotnetAffectedCheck">
+        <!-- Print all affected projects -->
+        <Message Text="  >> %(ProjectReference.Identity)" Importance="high" />
+    </Target>
+</Project>
+
+```
+
+Now when you execute
+
+```shell
+dotnet build ci.props
+```
+
+Only the affected projects are built!
+
+For more information see [DotnetAffected.Tasks](./src/DotnetAffected.Tasks/README.md)
+
 ## Locating Git Repository
 
 dotnet-affected needs the path to your Git repository (where the `.git` folder is) so it can run `git diff`. By default,

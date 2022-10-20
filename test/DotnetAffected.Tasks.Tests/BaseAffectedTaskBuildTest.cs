@@ -46,7 +46,8 @@ namespace DotnetAffected.Tasks.Tests
         {
             _output.Clear();
             _errors.Clear();
-            
+            _projects.Clear();
+
             _buildProcess.StartInfo.Arguments = $"msbuild -nodeReuse:false ci.props /t:DotnetAffectedCheck /p:DotnetAffectedNugetDir={Utils.DotnetAffectedNugetDir} /p:TargetFramework={Utils.TargetFramework}";
 
             _buildProcess.OutputDataReceived += (_, eventArgs) =>

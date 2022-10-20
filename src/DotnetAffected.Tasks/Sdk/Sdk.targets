@@ -15,7 +15,11 @@
             <DotnetAffectedRoot Condition="'$(DotnetAffectedRoot)' == ''">$(MSBuildStartupDirectory)</DotnetAffectedRoot>
         </PropertyGroup>
 
-        <DotnetAffected.Tasks.AffectedTask Root="$(DotnetAffectedRoot)" Projects="@(ProjectReference)" FilterClasses="@(AffectedFilterClass)">
+        <DotnetAffected.Tasks.AffectedTask Root="$(DotnetAffectedRoot)"
+                                           AssumeChanges="@(DotnetAffectedAssumeChanges)"
+                                           FromRef="$(DotnetAffectedFromRef)"
+                                           ToRef="$(DotnetAffectedToRef)"
+                                           FilterClasses="@(AffectedFilterClass)">
             <Output TaskParameter="FilterInstances" ItemName="AffectedFilterInstance" />
             <Output TaskParameter="ModifiedProjects" PropertyName="_ModifiedProjects" />
             <Output TaskParameter="ModifiedProjectsCount" PropertyName="DotnetAffectedProjectCount" />

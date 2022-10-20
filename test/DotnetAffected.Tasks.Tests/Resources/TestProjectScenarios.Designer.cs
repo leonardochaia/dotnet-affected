@@ -62,5 +62,17 @@ namespace DotnetAffected.Tasks.Tests.Resources {
                 return ResourceManager.GetString("AffectedFilterClass", resourceCulture);
             }
         }
+        
+        internal static string AssumeChanges {
+            get {
+                return ResourceManager.GetString("AssumeChanges", resourceCulture);
+            }
+        }
+        
+        internal static string GitBetweenCommits {
+            get {
+                return ResourceManager.GetString("GitBetweenCommits", resourceCulture);
+            }
+        }
     }
 }

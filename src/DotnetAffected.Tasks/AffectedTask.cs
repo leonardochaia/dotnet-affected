@@ -7,6 +7,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 namespace DotnetAffected.Tasks
 {
@@ -15,10 +16,11 @@ namespace DotnetAffected.Tasks
         [Required]
         public string Root { get; set; }
     
-        [Required]
-        public ITaskItem[] Projects { get; set; }
-
-        public ITaskItem[] AssumeChanges { get; set; }
+        public ITaskItem[]? AssumeChanges { get; set; }
+        
+        public string? FromRef { get; set; }
+        
+        public string? ToRef { get; set; }
 
         public ITaskItem[]? FilterClasses { get; set; }
 
@@ -35,11 +37,18 @@ namespace DotnetAffected.Tasks
         {
             try
             {
-                var affectedOptions = new AffectedOptions(Root);
+                var affectedOptions = new AffectedOptions(Root, null, FromRef ?? "", ToRef ?? "");
 
+                if (AssumeChanges is not null
+                    && AssumeChanges.Length > 0
+                    && (!string.IsNullOrWhiteSpace(affectedOptions.FromRef) || !string.IsNullOrWhiteSpace(affectedOptions.ToRef)))
+                {
+                    Log.LogWarning("DotnetAffected AssumeChanges is set along with FromRef/ToRef. Only AssumeChanges is used.");
+                }
+                
                 var graph = new ProjectGraphFactory(affectedOptions).BuildProjectGraph();
                 IChangesProvider changesProvider = AssumeChanges?.Any() == true
-                    ? new AssumptionChangesProvider(graph, AssumeChanges.Select(c => c.ItemSpec))
+                    ? new AssumptionChangesProvider(graph, AssumeChanges.Select(c => Path.GetFileNameWithoutExtension(c.ItemSpec)))
                     : new GitChangesProvider();
 
                 var executor = new AffectedExecutor(affectedOptions,
