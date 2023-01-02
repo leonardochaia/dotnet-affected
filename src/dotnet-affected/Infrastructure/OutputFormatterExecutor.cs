@@ -32,7 +32,10 @@ namespace Affected.Cli
             var formatterDictionary = formatters
                 .ToDictionary(t => t, FindFormatter);
 
-            var allProjects = projects.ToList();
+            var allProjects = projects
+                .GroupBy(project => project.FilePath)
+                .Select(group => group.First())
+                .ToList();
 
             foreach (var (type, formatter) in formatterDictionary)
             {
