@@ -13,7 +13,6 @@ chmod +x "$install_script"
 global_json_file="$(dirname "$0")/../global.json"
 dotnet_install_dir="$(dirname "$0")/.dotnet"
 
-# "$install_script" --install-dir "$dotnet_install_dir" --jsonfile "$global_json_file"
-"$install_script" --install-dir "$dotnet_install_dir" --channel 7.0
+"$install_script" --install-dir "$dotnet_install_dir" --jsonfile "$global_json_file"
 "$install_script" --install-dir "$dotnet_install_dir" --channel 6.0
 "$install_script" --install-dir "$dotnet_install_dir" --channel 3.1
