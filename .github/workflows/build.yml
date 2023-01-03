@@ -60,14 +60,14 @@ jobs:
       if: matrix.os == 'windows-latest'
       shell: pwsh
       run: |
-        $dotnetVersion=$(ls -td ./src/dotnet-affected/bin/Debug/* | head -1)
+        $dotnetVersion=$(basename $(ls -td ./src/dotnet-affected/bin/Debug/* | head -1))
         ./src/dotnet-affected/bin/Debug/$dotnetVersion/dotnet-affected -p $Env:GITHUB_WORKSPACE --assume-changes dotnet-affected -v
 
     - name: Run Tool Bash
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
       shell: bash
       run: |
-        dotnetVersion=$(ls -td ./src/dotnet-affected/bin/Debug/* | head -1)
+        dotnetVersion=$(basename $(ls -td ./src/dotnet-affected/bin/Debug/* | head -1))
         ./src/dotnet-affected/bin/Debug/$dotnetVersion/dotnet-affected -p $GITHUB_WORKSPACE --assume-changes dotnet-affected -v
 
     - name: Pack
