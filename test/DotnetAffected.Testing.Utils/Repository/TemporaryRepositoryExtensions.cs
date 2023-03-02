@@ -15,7 +15,32 @@ namespace DotnetAffected.Testing.Utils
             string projectName,
             Action<ProjectRootElement> customizer = null)
         {
-            var path = Path.Combine(repo.Path, projectName, $"{projectName}.csproj");
+            return CreateMsBuildProject(repo, projectName, ".csproj", customizer);
+        }
+
+        public static ProjectRootElement CreateFsProject(
+            this TemporaryRepository repo,
+            string projectName,
+            Action<ProjectRootElement> customizer = null)
+        {
+            return CreateMsBuildProject(repo, projectName, ".fsproj", customizer);
+        }
+
+        public static ProjectRootElement CreateVbProject(
+            this TemporaryRepository repo,
+            string projectName,
+            Action<ProjectRootElement> customizer = null)
+        {
+            return CreateMsBuildProject(repo, projectName, ".vbproj", customizer);
+        }
+
+        public static ProjectRootElement CreateMsBuildProject(
+            this TemporaryRepository repo,
+            string projectName,
+            string fileExtension,
+            Action<ProjectRootElement> customizer = null)
+        {
+            var path = Path.Combine(repo.Path, projectName, $"{projectName}{fileExtension}");
             var project = ProjectRootElement
                 .Create(path)
                 .SetName(projectName);
@@ -30,24 +55,6 @@ namespace DotnetAffected.Testing.Utils
             return project;
         }
 
-        public static ProjectRootElement CreateCsProject(
-            this TemporaryRepository repo,
-            string projectName,
-            string projectTemplateFile,
-            Action<ProjectRootElement> customizer = null)
-        {
-            var path = Path.Combine(repo.Path, projectName, $"{projectName}.csproj");
-            File.Copy(projectTemplateFile, path);
-            var project = ProjectRootElement
-                .Open(path)
-                .SetName(projectName);
-
-            customizer?.Invoke(project);
-
-            project.Save();
-
-            return project;
-        }
         public static ProjectRootElement CreateDirectoryPackageProps(
             this TemporaryRepository repo,
             Action<ProjectRootElement> customizer)
@@ -130,7 +137,7 @@ namespace DotnetAffected.Testing.Utils
             await file.DisposeAsync();
             await File.WriteAllTextAsync(path, contents);
         }
-        
+
         /// <summary>
         /// Creates a tree of csproj with a total of <paramref name="totalProjects" />
         /// Each project will try to have <paramref name="childrenPerProject" /> without

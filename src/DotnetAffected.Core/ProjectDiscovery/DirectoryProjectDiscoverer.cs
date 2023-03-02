@@ -9,8 +9,14 @@ namespace DotnetAffected.Core
     {
         public IEnumerable<string> DiscoverProjects(IDiscoveryOptions options)
         {
-            // TODO: Find *.*proj ?
-            return Directory.GetFiles(options.RepositoryPath, "*.csproj", SearchOption.AllDirectories)
+            var allowedExtensions = new[]
+            {
+                ".csproj", ".fsproj", ".vbproj"
+            };
+            return Directory
+                .GetFiles(options.RepositoryPath, "*", SearchOption.AllDirectories)
+                .Where(file => allowedExtensions.Any(file.ToLower()
+                    .EndsWith))
                 .ToArray();
         }
     }
