@@ -59,12 +59,12 @@ jobs:
     - name: Run Tool PowerShell
       if: matrix.os == 'windows-latest'
       shell: pwsh
-      run: ./src/dotnet-affected/bin/Debug/net5.0/dotnet-affected -p $Env:GITHUB_WORKSPACE --assume-changes dotnet-affected -v
+      run: ./src/dotnet-affected/bin/Debug/net6.0/dotnet-affected -p $Env:GITHUB_WORKSPACE --assume-changes dotnet-affected -v
 
     - name: Run Tool Bash
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
       shell: bash
-      run: ./src/dotnet-affected/bin/Debug/net5.0/dotnet-affected -p $GITHUB_WORKSPACE --assume-changes dotnet-affected -v
+      run: ./src/dotnet-affected/bin/Debug/net6.0/dotnet-affected -p $GITHUB_WORKSPACE --assume-changes dotnet-affected -v
 
     - name: Pack
       if: success() && matrix.os == 'ubuntu-latest'
