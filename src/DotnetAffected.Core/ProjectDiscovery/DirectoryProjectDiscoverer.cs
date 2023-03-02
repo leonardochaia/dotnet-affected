@@ -11,7 +11,7 @@ namespace DotnetAffected.Core
         {
             var allowedExtensions = new[]
             {
-                ".csproj", ".fsproj"
+                ".csproj", ".fsproj", ".vbproj"
             };
             return Directory
                 .GetFiles(options.RepositoryPath, "*", SearchOption.AllDirectories)

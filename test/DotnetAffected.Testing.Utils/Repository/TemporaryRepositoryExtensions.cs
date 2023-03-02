@@ -26,6 +26,14 @@ namespace DotnetAffected.Testing.Utils
             return CreateMsBuildProject(repo, projectName, ".fsproj", customizer);
         }
 
+        public static ProjectRootElement CreateVbProject(
+            this TemporaryRepository repo,
+            string projectName,
+            Action<ProjectRootElement> customizer = null)
+        {
+            return CreateMsBuildProject(repo, projectName, ".vbproj", customizer);
+        }
+
         public static ProjectRootElement CreateMsBuildProject(
             this TemporaryRepository repo,
             string projectName,
