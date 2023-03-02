@@ -155,5 +155,44 @@ namespace DotnetAffected.Core.Tests
             Assert.Equal(dependantProjectName, affectedProject.GetProjectName());
             Assert.Equal(dependantMsBuildProject.FullPath, affectedProject.GetFullPath());
         }
+
+        [Fact]
+        public async Task When_changes_are_made_to_a_non_sdk_project_dependant_projects_should_be_affected()
+        {
+            // Create a project
+            var projectName = "InventoryManagement";
+            var fileCs = "file.cs";
+
+            var projPath = Path.Combine(Repository.Path, $"{projectName}.csproj");
+            var msBuildProject = Repository.CreateNonSdkMsBuildProject(projectName, ".csproj", p =>
+            {
+                p.AddItemGroup()
+                    .AddItem("Compile", fileCs);
+            });
+
+            // Create another project that depends on the first one
+            var dependantProjectName = "InventoryManagement.Tests";
+            var dependantMsBuildProject = this.Repository.CreateNonSdkMsBuildProject(
+                dependantProjectName,
+                ".csproj",
+                p => p.AddProjectDependency(msBuildProject.FullPath));
+
+            // Commit so there are no changes
+            this.Repository.StageAndCommit();
+
+            // Create changes in the first project
+            await this.Repository.CreateTextFileAsync(Path.Join(projectName, fileCs), "// Initial content");
+
+            Assert.Single(AffectedSummary.ProjectsWithChangedFiles);
+            Assert.Single(AffectedSummary.AffectedProjects);
+
+            var changedProject = AffectedSummary.ProjectsWithChangedFiles.Single();
+            Assert.Equal(projectName, changedProject.GetProjectName());
+            Assert.Equal(msBuildProject.FullPath, changedProject.GetFullPath());
+
+            var affectedProject = AffectedSummary.AffectedProjects.Single();
+            Assert.Equal(dependantProjectName, affectedProject.GetProjectName());
+            Assert.Equal(dependantMsBuildProject.FullPath, affectedProject.GetFullPath());
+        }
     }
 }

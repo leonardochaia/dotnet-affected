@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace DotnetAffected.Testing.Utils
 {
@@ -51,6 +52,38 @@ namespace DotnetAffected.Testing.Utils
             customizer?.Invoke(project);
 
             project.Save();
+
+            return project;
+        }
+
+        public static ProjectRootElement CreateNonSdkMsBuildProject(
+            this TemporaryRepository repo,
+            string projectName,
+            string fileExtension,
+            Action<ProjectRootElement> customizer = null)
+        {
+            var projFile = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<Project ToolsVersion=""14.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+  <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
+  <ItemGroup>
+    <Compile Include=""file.cs"" />
+  </ItemGroup>
+  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
+</Project>
+";
+
+            var path = Path.Combine(repo.Path, projectName, $"{projectName}{fileExtension}");
+
+            var stringReader = new StringReader(projFile);
+            var xmlReader = new XmlTextReader(stringReader);
+
+            var project = ProjectRootElement
+                .Create(xmlReader)
+                .SetName(projectName);
+
+            customizer?.Invoke(project);
+
+            project.Save(path);
 
             return project;
         }
