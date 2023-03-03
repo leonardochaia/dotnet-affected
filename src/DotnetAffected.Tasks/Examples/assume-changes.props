@@ -1,15 +1,15 @@
-<Project Sdk="DotnetAffected.Tasks/3.0.0-preview-3;Microsoft.Build.Traversal/3.2.0">
+<Project Sdk="DotnetAffected.Tasks/3.0.0;Microsoft.Build.Traversal/3.2.0">
     <Target Name="_DotnetAffectedCheck" AfterTargets="DotnetAffectedCheck">
         <ItemGroup>
             <!-- All 'csproj' files with the pattern 'project-*' will be used.
                  The project name used to identify them is the filename without '.csproj'. -->
-            <DotnetAffectedAssumeChanges Include="$(MSBuildThisFileDirectory)**/project-*.csproj" />
+            <DotnetAffectedAssumeChanges Include="$(MSBuildThisFileDirectory)**/project-*.csproj"/>
 
             <!-- The project with the resolved "ProjectName" of 'project3' is selected.
                  Note that either the filename is 'project3.csproj' or there is an explicity 'ProjectName' property with that value.
                  
                  Direct projec name references will throw if not found! -->
-            <DotnetAffectedAssumeChanges Include="project3" />
+            <DotnetAffectedAssumeChanges Include="project3"/>
         </ItemGroup>
     </Target>
 </Project>

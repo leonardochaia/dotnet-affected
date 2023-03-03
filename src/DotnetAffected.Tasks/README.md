@@ -1,11 +1,13 @@
 # DotnetAffected.Tasks
 
-`DotnetAffected.Tasks` is an MSBuild project SDK that allows project tree owners the ability to build projects which have changed or if their have a dependency which have changed.
+`DotnetAffected.Tasks` is an MSBuild project SDK that allows project tree owners the ability to build projects which
+have changed or if their have a dependency which have changed.
 
-In an enterprise-level CI build, you want to have a way to control what projects are built in your hosted build system based
-on their modified state.
+In an enterprise-level CI build, you want to have a way to control what projects are built in your hosted build system
+based on their modified state.
 
-`DotnetAffected.Tasks` SDK provides the automated filtering while [Microsoft.Build.Traversal](https://github.com/microsoft/MSBuildSdks/tree/main/src/Traversal) is used
+`DotnetAffected.Tasks` SDK provides the automated filtering
+while [Microsoft.Build.Traversal](https://github.com/microsoft/MSBuildSdks/tree/main/src/Traversal) is used
 for execution.
 
 ## Example
@@ -13,35 +15,29 @@ for execution.
 1. Ensure `DotnetAffected.Tasks` SDK is registered as an SDK  
    This can be done in one of:
     - Adding it to `global.json`
-```json
-{
-  "msbuild-sdks": {
-    "DotnetAffected.Tasks" : "3.0.0"
-  }
-}
-```
-
-or 
-
-```xml
-<Project Sdk="DotnetAffected.Tasks/3.0.0">
-  ...
-```
-
-3. Create a dedicated `props` file **in the root of the git repo**:
-
-```xml
-<Project Sdk="DotnetAffected.Tasks;Microsoft.Build.Traversal">
-</Project>
-```
-
-> The actual filename is for you to choose, here we set it to `ci.props`
-
-7. Run the build/test/clean etc...
-
-```bash
-dotnet build ./ci.props
-```
+    ```json
+    {
+        "msbuild-sdks": {
+            "DotnetAffected.Tasks": "3.0.0"
+        }
+    }
+    ```
+    - Alternatively, you need to specify the version together with SDK name
+    ```xml
+    <Project Sdk="DotnetAffected.Tasks/3.0.0">
+        <!-- ... -->
+    </Project>
+    ```
+2. Create a dedicated `props` file **in the root of the git repo**:
+    ```xml
+    <Project Sdk="DotnetAffected.Tasks;Microsoft.Build.Traversal">
+    </Project>
+    ```
+   The actual filename is for you to choose, here we set it to `ci.props`
+3. Run the build/test/clean/etc using the `ci.props` file.
+    ```bash
+    dotnet build ./ci.props
+    ```
 
 ## Context Filtering
 
@@ -58,17 +54,18 @@ We group a collection of such properties and call it `AffectedFilterClass`.
 Each project is then assigned a new instance of `AffectedFilterClass` representing the values in the project.
 
 ```xml
-    <ItemGroup>
-        <AffectedFilterClass Include="No Backoffice">
-            <IsBackofficeLibrary />
-            <!-- Add more project properties here... -->
-        </AffectedFilterClass>
-        <!-- Add more AffectedFilterClass items here... -->
-    </ItemGroup>
+
+<ItemGroup>
+    <AffectedFilterClass Include="No Backoffice">
+        <IsBackofficeLibrary/>
+        <!-- Add more project properties here... -->
+    </AffectedFilterClass>
+    <!-- Add more AffectedFilterClass items here... -->
+</ItemGroup>
 ```
 
 `Include="No Backoffice"` (ItemSpec) is used to assign an identity for the group so
-we can use it to create smart filtering based on different filter classes.  
+we can use it to create smart filtering based on different filter classes.
 
 Now, for every project, the property `IsBackofficeLibrary` will evaluate and assigned to a new
 object, along with other properties defined.
@@ -80,6 +77,7 @@ object, along with other properties defined.
 **ci.props**
 
 ```xml
+
 <Project Sdk="DotnetAffected.Tasks;Microsoft.Build.Traversal">
     <!--
         Define a filter class, each class will later have multiple instances.
@@ -93,7 +91,7 @@ object, along with other properties defined.
     -->
     <ItemGroup>
         <AffectedFilterClass Include="No Backoffice">
-            <IsBackofficeLibrary />
+            <IsBackofficeLibrary/>
             <!-- Add more project properties here... -->
         </AffectedFilterClass>
         <!-- Add more AffectedFilterClass items here... -->
@@ -101,9 +99,12 @@ object, along with other properties defined.
 
     <Target Name="_DotnetAffectedCheck" AfterTargets="DotnetAffectedCheck">
         <ItemGroup>
-            <ProjectReference Remove="@(AffectedFilterInstance)" Condition="'%(AffectedFilterInstance.IsBackofficeLibrary)' == true" />
+            <ProjectReference Remove="@(AffectedFilterInstance)"
+                              Condition="'%(AffectedFilterInstance.IsBackofficeLibrary)' == true"/>
         </ItemGroup>
-        <Message Text="Role: %(AffectedFilterInstance.AffectedFilterClassName) | Filtered: %(AffectedFilterInstance.Identity)" Condition="'%(AffectedFilterInstance.IsBackofficeLibrary)' == true" Importance="high" />
+        <Message
+            Text="Role: %(AffectedFilterInstance.AffectedFilterClassName) | Filtered: %(AffectedFilterInstance.Identity)"
+            Condition="'%(AffectedFilterInstance.IsBackofficeLibrary)' == true" Importance="high"/>
     </Target>
 </Project>
 ```
@@ -113,12 +114,13 @@ object, along with other properties defined.
 You can add/remove projects after the affected projects resolved, ad-hoc in `ci.props`:
 
 ```xml
+
 <Project Sdk="DotnetAffected.Tasks;Microsoft.Build.Traversal">
     <Target Name="_DotnetAffectedCheck" AfterTargets="DotnetAffectedCheck">
-        <Message Text="Found $(DotnetAffectedProjectCount) projects: " Importance="high" />
+        <Message Text="Found $(DotnetAffectedProjectCount) projects: " Importance="high"/>
 
         <ItemGroup>
-            <ProjectReference Remove="$(MSBuildThisFileDirectory)/src/DevTools/**/*.csproj" />
+            <ProjectReference Remove="$(MSBuildThisFileDirectory)/src/DevTools/**/*.csproj"/>
         </ItemGroup>
     </Target>
 </Project>
@@ -126,10 +128,10 @@ You can add/remove projects after the affected projects resolved, ad-hoc in `ci.
 
 Setting the following properties control how `DotnetAffected.Tasks` SDK works.
 
-| Property                            | Description                                                                                         |
-|-------------------------------------|-----------------------------------------------------------------------------------------------------|
-| `CustomBeforeAffectedProps` | A list of custom MSBuild projects to import **before** `DotnetAffected.Tasks` **props** are declared.   |
-| `CustomAfterAffectedProps`  | A list of custom MSBuild projects to import **after** `DotnetAffected.Tasks` **targets** are declared.  |
+| Property                      | Description                                                                                             |
+|-------------------------------|---------------------------------------------------------------------------------------------------------|
+| `CustomBeforeAffectedProps`   | A list of custom MSBuild projects to import **before** `DotnetAffected.Tasks` **props** are declared.   |
+| `CustomAfterAffectedProps`    | A list of custom MSBuild projects to import **after** `DotnetAffected.Tasks` **targets** are declared.  |
 | `CustomBeforeAffectedTargets` | A list of custom MSBuild projects to import **before** `DotnetAffected.Tasks` **targets** are declared. |
 | `CustomAfterAffectedTargets`  | A list of custom MSBuild projects to import **after** `DotnetAffected.Tasks` **targets** are declared.  |
 
@@ -140,9 +142,11 @@ So instead of using ad-hoc `.targets` code in your `.props` file, you can:
 **ci.props**:
 
 ```xml
+
 <Project Sdk="DotnetAffected.Tasks;Microsoft.Build.Traversal">
     <PropertyGroup>
-        <CustomAfterAffectedTargets>$(CustomAfterAffectedTargets);$(MSBuildThisFileDirectory)ci.targets</CustomAfterAffectedTargets>
+        <CustomAfterAffectedTargets>$(CustomAfterAffectedTargets);$(MSBuildThisFileDirectory)ci.targets
+        </CustomAfterAffectedTargets>
     </PropertyGroup>
 </Project>
 ```
@@ -150,16 +154,18 @@ So instead of using ad-hoc `.targets` code in your `.props` file, you can:
 **ci.targets**:
 
 ```xml
+
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <Target Name="_DotnetAffectedCheck" AfterTargets="DotnetAffectedCheck">
         <ItemGroup>
-            <ProjectReference Remove="$(MSBuildThisFileDirectory)/src/DevTools/**/*.csproj" />
+            <ProjectReference Remove="$(MSBuildThisFileDirectory)/src/DevTools/**/*.csproj"/>
         </ItemGroup>
     </Target>
 </Project>
 ```
 
-Note that all [Microsoft.Build.Traversal](https://github.com/microsoft/MSBuildSdks/tree/main/src/Traversal) extensibility options
+Note that all [Microsoft.Build.Traversal](https://github.com/microsoft/MSBuildSdks/tree/main/src/Traversal)extensibility
+options
 are also valid!
 
 ## Input / Output API
@@ -179,29 +185,32 @@ are also valid!
 | CustomAfterAffectedTargets                                              | Property              | string    | A list of custom MSBuild projects to import **after** `DotnetAffected.Tasks` **targets** are declared.                                                                                                                                                                                                               |
 | [AffectedFilterClass](./Examples/per-project-evaulated-filtering.props) | PropertyGroup         | string    | Definition of properties to extract from each evaluated project instance for post-processing                                                                                                                                                                                                                         |
 
-
 ## How can I use these SDKs?
 
-When using an MSBuild Project SDK obtained via NuGet (such as the SDKs in this repo) a specific version **must** be specified.
+When using an MSBuild Project SDK obtained via NuGet (such as the SDKs in this repo) a specific version **must** be
+specified.
 
 Either append the version to the package name:
 
 ```xml
+
 <Project Sdk="Microsoft.Build.Traversal/2.0.12">
-  ...
+    ...
 ```
 
-Or omit the version from the SDK attribute and specify it in the version in `global.json`, which can be useful to synchronise versions across multiple projects in a solution:
+Or omit the version from the SDK attribute and specify it in the version in `global.json`, which can be useful to
+synchronise versions across multiple projects in a solution:
 
 ```json
 {
-  "msbuild-sdks": {
-    "Microsoft.Build.Traversal" : "2.0.12"
-  }
+    "msbuild-sdks": {
+        "Microsoft.Build.Traversal": "2.0.12"
+    }
 }
 ```
 
-Since MSBuild 15.6, SDKs are downloaded as NuGet packages automatically. Earlier versions of MSBuild 15 required SDKs to be installed.
+Since MSBuild 15.6, SDKs are downloaded as NuGet packages automatically. Earlier versions of MSBuild 15 required SDKs to
+be installed.
 
 For more information, [read the documentation](https://docs.microsoft.com/visualstudio/msbuild/how-to-use-project-sdk).
 
@@ -222,13 +231,13 @@ Either execute it from the root or explicitly set the root in the `.props` file
 **ci.props**
 
 ```xml
+
 <Project Sdk="DotnetAffected.Tasks;Microsoft.Build.Traversal">
     <PropertyGroup>
         <DotnetAffectedRoot>$(MSBuildThisFileDirectory)..\..</DotnetAffectedRoot>
     </PropertyGroup>
 </Project>
 ```
-
 
 ### TargetFramework resolution [Error MSB4062]
 
@@ -237,6 +246,7 @@ If your getting the error:
 ```
 error MSB4062: The "DotnetAffected.Tasks.AffectedTask" task could not be loaded from the assembly ....
 ```
+
 It is most probably due to invalid `TargetFramework` resolution.
 
 Project files that use `DotnetAffected.Tasks` or `Microsoft.Build.Traversal` are framework agnostic
@@ -244,7 +254,7 @@ as they don't actually build projects, they just delegate the build to a differe
 own configuration.
 
 However, `DotnetAffected.Tasks` itself contains code to execute in build time, which
-support TFMs `netcore3.1`, `net5.0` and `net6.0`.
+support TFMs `netcore3.1`, `net6.0` and `net7.0`.
 
 The TFM must be known so the proper TFM facing assembly is used.
 
@@ -252,14 +262,14 @@ In most cases it is automatically resolved using the following logic:
 
 - The value of the build property `MicrosoftNETBuildTasksTFM`
 - The value of the build property `MSBuildVersion`
-  - If >= `17.0.0` it will resolve to `net6.0`
-  - Else if >= `16.11.0` it will resolve to `net5.0` 
-  - Else it will resolve to `netcoreapp3.1`
+    - If >= `17.0.0` it will resolve to `net6.0`
+    - Else if >= `16.11.0` it will resolve to `net5.0`
+    - Else it will resolve to `netcoreapp3.1`
 
 If you have issues, you can override the logic by specifically setting the `<TargetFramework>`.
 
-
 ```xml
+
 <Project Sdk="DotnetAffected.Tasks;Microsoft.Build.Traversal">
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
@@ -268,5 +278,5 @@ If you have issues, you can override the logic by specifically setting the `<Tar
 ```
 
 > `DotnetAffected.Tasks` provides MSBuild integration using `DotnetAffected.Core` under the hood.  
-`DotnetAffected.Core` support TFMs `netcore3.1`, `net5.0` and `net6.0`.
+`DotnetAffected.Core` support TFMs `netcore3.1`, `net6.0` and `net7.0`.
 

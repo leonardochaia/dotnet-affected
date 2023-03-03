@@ -1,4 +1,4 @@
-<Project Sdk="DotnetAffected.Tasks/3.0.0-preview-3;Microsoft.Build.Traversal/3.2.0">
+<Project Sdk="DotnetAffected.Tasks/3.0.0;Microsoft.Build.Traversal/3.2.0">
     <Target Name="_DotnetAffectedCheck" AfterTargets="DotnetAffectedCheck">
         <PropertyGroup>
             <FromRef>3a3266abbed43690112ba42198109b9a7862a634d</FromRef>

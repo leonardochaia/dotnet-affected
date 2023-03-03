@@ -12,14 +12,17 @@ current working directory.
 2. When using Central Package Management, detects which NuGet Packages have changed.
 3. Detects which projects are affected by projects or packages that have changed.
 4. Detects changes to `Directory.Build.props`/`.targets` and other input files.
-5. Outputs a [MSBuild Traversal SDK](https://github.com/microsoft/MSBuildSdks/tree/main/src/Traversal) Project that can
+5. Detects changes to any file referenced by the MSBuild project.
+6. Outputs an [MSBuild Traversal SDK](https://github.com/microsoft/MSBuildSdks/tree/main/src/Traversal) Project that can
    be used to `dotnet build` and `test` which projects where changed/affected.
-6. Outputs a text file which can be used to deploy only what's needed.
+7. Outputs a text file which can be used to deploy only what's needed or feed to other tools.
+8. Supports `.csproj`, `.fsproj` and `.vbproj`.
+9. Supports SDK and non-SDK style projects.
 
 ## How it works
 
-dotnet-affected discovers all `*.csproj` and uses MSBuild to builds a `ProjectGraph` of all projects and which projects
-they depend on.
+dotnet-affected discovers all `.csproj`, `.fsproj` and `.vbproj` from filesystem. Then, uses MSBuild to build
+a `ProjectGraph` of all projects and which projects they depend on.
 
 Then `git diff` is ran, to determine which files have changed. These files are then mapped to which project they belong
 to, and we get a list of which projects have any changes.
@@ -41,13 +44,6 @@ When .2 changes, .3 will be affected so we will build and test .2 and .3. There'
 has not changed.
 
 When 1. changes, everything needs to be built/test, since, transitively, they all depend on .1.
-
-## Caveats
-
-1. Detects `.csproj` only. Supporting other SDK projects will be
-   implemented. [#16](https://github.com/leonardochaia/dotnet-affected/issues/16)
-2. SDK projects only. Supporting non-SDK projects will be
-   implemented. [#15](https://github.com/leonardochaia/dotnet-affected/issues/15)
 
 ## Installation
 
@@ -94,14 +90,16 @@ Commands:
 
 ## SDK based installation
 
-You can execute dotnet-affected directly from the build as an integrated part of the build without running the CLI.  
+Alternatively, dotnet-affected can be executed directly by MSBuild without using the dotnet-affected CLI.
 
 **File**: `ci.props`
+
 ```xml
-<Project Sdk="DotnetAffected.Tasks/3.0.0-preview-3;Microsoft.Build.Traversal/3.2.0">
+
+<Project Sdk="DotnetAffected.Tasks/3.0.0;Microsoft.Build.Traversal/3.2.0">
     <Target Name="_DotnetAffectedCheck" AfterTargets="DotnetAffectedCheck">
         <!-- Print all affected projects -->
-        <Message Text="  >> %(ProjectReference.Identity)" Importance="high" />
+        <Message Text="  >> %(ProjectReference.Identity)" Importance="high"/>
     </Target>
 </Project>
 
@@ -301,7 +299,8 @@ When using GitHub Actions, `leonardochaia/dotnet-affected@v1` can be used to exe
 combined with [nrwl/last-successful-commit-action](https://github.com/nrwl/last-successful-commit-action) to
 build/test only what's affected since last succesful commit.
 
-You can see a complete example for [building branches with GitHub actions here](https://github.com/leonardochaia/dotnet-affected-action#for-building-branches).
+You can see a complete example
+for [building branches with GitHub actions here](https://github.com/leonardochaia/dotnet-affected-action#for-building-branches).
 
 ### Building Pull Requests
 
@@ -312,7 +311,8 @@ dotnet affected generate --from origin/main --to $CURRENT_COMMIT_HASH
 dotnet test affected.proj
 ```
 
-You can see a complete example for [building PRs with GitHub actions here](https://github.com/leonardochaia/dotnet-affected-action#for-building-prs).
+You can see a complete example
+for [building PRs with GitHub actions here](https://github.com/leonardochaia/dotnet-affected-action#for-building-prs).
 
 ## Don't build/test/deploy when no projects have changed
 
@@ -335,9 +335,9 @@ fi
 When using GitHub Actions, conditions can be added to skip steps when nothing has changed or is affected:
 
 ```yaml
-- name: Install dependencies
-  if: success() && steps.affected.outputs.affected != ''
-  run: dotnet restore affected.proj
+-   name: Install dependencies
+    if: success() && steps.affected.outputs.affected != ''
+    run: dotnet restore affected.proj
 ```
 
 [Complete example](https://github.com/leonardochaia/dotnet-affected-action#for-building-prs)
@@ -430,7 +430,7 @@ projects that you have.
 ./eng/install-sdk.sh
 ```
 
-It will install the SDKs at `eng/.dotnet`.
+It will install the SDKs at `./eng/.dotnet`.
 
 ### Activating your console
 

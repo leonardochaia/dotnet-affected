@@ -1,5 +1,5 @@
-<Project Sdk="Microsoft.Build.Traversal/3.2.0;DotnetAffected.Tasks/3.0.0-preview-3">
-    
+<Project Sdk="Microsoft.Build.Traversal/3.2.0;DotnetAffected.Tasks/3.0.0">
+
     <!-- Create class-like shapes that will turn into instances, populated with the respecptive properties from
          evaluated projects which the library has detected for having a change.
          Think of it as an explicit clone to other projects.
@@ -8,32 +8,32 @@
          The 'Include' section defines uniqueness and returned in each instance as the property 'AffectedFilterClassName'. -->
     <ItemGroup>
         <AffectedFilterClass Include="Rule -> IsShippingClientLibrary">
-            <IsShippingClientLibrary />
+            <IsShippingClientLibrary/>
         </AffectedFilterClass>
 
         <AffectedFilterClass Include="Rule -> ForceClientLibrary">
-            <ForceClientLibrary />
+            <ForceClientLibrary/>
         </AffectedFilterClass>
     </ItemGroup>
 
     <Target Name="_DotnetAffectedCheck" AfterTargets="DotnetAffectedCheck">
-        <Message Text="Found $(DotnetAffectedProjectCount) projects: " Importance="high" />
-        <Message Text="  >> %(ProjectReference.Identity)" Importance="high" />
+        <Message Text="Found $(DotnetAffectedProjectCount) projects: " Importance="high"/>
+        <Message Text="  >> %(ProjectReference.Identity)" Importance="high"/>
 
         <ItemGroup>
             <!-- Clean all project reference... -->
-            <ProjectReference Remove="@(ProjectReference)" />
+            <ProjectReference Remove="@(ProjectReference)"/>
             <!-- Add project references that meet the criteria we want -->
             <ProjectReference Include="@(AffectedFilterInstance)"
-                              Condition="'%(AffectedFilterInstance.IsShippingClientLibrary)' == 'true' OR '%(AffectedFilterInstance.ForceClientLibrary)' == 'true'" />
+                              Condition="'%(AffectedFilterInstance.IsShippingClientLibrary)' == 'true' OR '%(AffectedFilterInstance.ForceClientLibrary)' == 'true'"/>
             <!-- Note that '@(AffectedFilterInstance)' has the same references '@(ProjectReference)' before we cleaned it.
                  It might also have duplicates, since we're using 2 filter classes here it has 2 instances per 'ProjectReference' instance. 
                  We don't care, MSBuild will remove duplicates. -->
         </ItemGroup>
 
-        <Message Text="Post Filter Results: " Importance="high" />
+        <Message Text="Post Filter Results: " Importance="high"/>
         <Message Text="  >> [%(AffectedFilterInstance.AffectedFilterClassName)]: %(AffectedFilterInstance.Identity)" Importance="high"
-                 Condition="'%(AffectedFilterInstance.IsShippingClientLibrary)' == 'true' OR '%(AffectedFilterInstance.ForceClientLibrary)' == 'true'" />
+                 Condition="'%(AffectedFilterInstance.IsShippingClientLibrary)' == 'true' OR '%(AffectedFilterInstance.ForceClientLibrary)' == 'true'"/>
     </Target>
 
 </Project>
