@@ -28,6 +28,15 @@ namespace DotnetAffected.Abstractions
         /// <returns></returns>
         Project? LoadProject(string directory, string pathToFile, string? commitRef, bool fallbackToHead);
 
-        Project? LoadDirectoryPackagePropsProject(string directory, string pathToFile, string? commitRef, bool fallbackToHead);
+        /// <summary>
+        /// Uses the underlying changes provider to load a <see cref="Project"/> for Directory.Packages.Prop
+        /// </summary>
+        /// <param name="directory"></param>
+        /// <param name="pathToFile"></param>
+        /// <param name="commitRef"></param>
+        /// <param name="fallbackToHead"></param>
+        /// <returns></returns>
+        Project? LoadDirectoryPackagePropsProject(string directory, string pathToFile, string? commitRef,
+            bool fallbackToHead);
     }
 }

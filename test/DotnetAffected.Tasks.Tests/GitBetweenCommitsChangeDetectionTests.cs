@@ -10,11 +10,9 @@ namespace DotnetAffected.Tasks.Tests
 {
     public class GitBetweenCommitsChangeDetectionTests : BaseAffectedTaskBuildTest
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
         public GitBetweenCommitsChangeDetectionTests(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
         {
-            _testOutputHelper = testOutputHelper;
         }
 
         [Fact]
@@ -25,16 +23,19 @@ namespace DotnetAffected.Tasks.Tests
             var msBuildProject = Repository.CreateCsProject(projectName);
 
             // Make a commit and keep track of the sha
-            var fromCommit = Repository.StageAndCommit().Sha;
+            var fromCommit = Repository.StageAndCommit()
+                .Sha;
 
             // Create a file with some changes
             var targetFilePath = Path.Combine(projectName, "file.cs");
             await this.Repository.CreateTextFileAsync(targetFilePath, "// Initial content");
 
             // Commit the changes
-            var toCommit = Repository.StageAndCommit().Sha;
+            var toCommit = Repository.StageAndCommit()
+                .Sha;
 
-            await Repository.PrepareTaskInfra(TestProjectScenarios.GitBetweenCommits.Replace("__FromRef__", fromCommit).Replace("__ToRef__", toCommit));
+            await Repository.PrepareTaskInfra(TestProjectScenarios.GitBetweenCommits.Replace("__FromRef__", fromCommit)
+                .Replace("__ToRef__", toCommit));
 
             ExecuteCommandAndCollectResults();
 
@@ -45,9 +46,11 @@ namespace DotnetAffected.Tasks.Tests
 
 #if (NET5_0_OR_GREATER)
             fromCommit = toCommit;
-            toCommit = Repository.StageAndCommit().Sha;
-            
-            await Repository.PrepareTaskInfra(TestProjectScenarios.GitBetweenCommits.Replace("__FromRef__", fromCommit).Replace("__ToRef__", toCommit));
+            toCommit = Repository.StageAndCommit()
+                .Sha;
+
+            await Repository.PrepareTaskInfra(TestProjectScenarios.GitBetweenCommits.Replace("__FromRef__", fromCommit)
+                .Replace("__ToRef__", toCommit));
 
             ExecuteCommandAndCollectResults();
 
@@ -56,6 +59,5 @@ namespace DotnetAffected.Tasks.Tests
             Assert.Empty(Projects);
 #endif
         }
-        
     }
 }

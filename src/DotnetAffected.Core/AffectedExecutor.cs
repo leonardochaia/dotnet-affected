@@ -9,7 +9,7 @@ namespace DotnetAffected.Core
     /// </summary>
     public class AffectedExecutor : IAffectedExecutor
     {
-        private AffectedProcessorContext _context;
+        private readonly AffectedProcessorContext _context;
 
         /// <summary>
         /// Creates an executor for a repository path and a graph.
@@ -36,7 +36,7 @@ namespace DotnetAffected.Core
         {
             _context = new AffectedProcessorContext(options, graph, changesProvider, changedProjectsProvider);
         }
-        
+
         /// <inheritdoc />
         public AffectedSummary Execute() => GitChangesProvider.MsBuildFileSystemSupported
             ? new AffectedProcessor().Process(_context)

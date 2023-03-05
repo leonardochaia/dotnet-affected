@@ -4,13 +4,11 @@ using Xunit;
 
 namespace DotnetAffected.Core.Tests
 {
-    
     /// <summary>
     /// Tests for detecting affected projects when central package management changes with nested package files
     /// </summary>
     public class CentralPackageManagementDetectionNestedTests : BaseDotnetAffectedTest
     {
-
         /// <summary>
         /// This test demonstrate the main difference when nest project evaluation is supported in DPP. <br/>
         ///
@@ -85,16 +83,16 @@ namespace DotnetAffected.Core.Tests
             msBuildProject.RemoveDirectoryPackageProps();
             msBuildProject
                 .CreateDirectoryPackageProps(true, b => b.AddPackageVersion(otherPackageName, "3.5.0"));
-            
+
             Repository.RemoveDirectoryPackageProps();
             Repository.CreateDirectoryPackageProps(b => b.AddPackageVersion(packageName, "2.0.0"));
 
             Assert.Equal(2, AffectedSummary.ChangedPackages.Length);
             Assert.Single(AffectedSummary.AffectedProjects);
-            
+
             var someLibChanges = AffectedSummary.ChangedPackages.Single(c => c.Name == packageName);
             var otherLibChanges = AffectedSummary.ChangedPackages.Single(c => c.Name == otherPackageName);
-            
+
 #if (NET5_0_OR_GREATER)
             Assert.Equal("3.0.0", someLibChanges.OldVersions.Single());
             Assert.Equal("2.5.0", otherLibChanges.OldVersions.Single());
@@ -151,13 +149,13 @@ namespace DotnetAffected.Core.Tests
                     itemGroup.Condition = "'$(TargetFramework)' == 'net5.0'";
                     var item = itemGroup.AddItem("PackageVersion", packageName);
                     item.AddMetadata("Version", "5.0.0", expressAsAttribute: true);
-                    
+
                     itemGroup = b.AddItemGroup();
                     itemGroup.Condition = "'$(TargetFramework)' == 'net6.0'";
                     item = itemGroup.AddItem("PackageVersion", packageName);
                     item.AddMetadata("Version", "6.0.0", expressAsAttribute: true);
                 });
-            
+
             // Create a project with a nuget dependency
             var projectName = "InventoryManagement";
             var msBuildProject = Repository.CreateCsProject(
@@ -174,7 +172,7 @@ namespace DotnetAffected.Core.Tests
                     itemGroup.Condition = "'$(TargetFramework)' == 'net5.0'";
                     var item = itemGroup.AddItem("PackageVersion", packageName);
                     item.AddMetadata("Version", "5.1.0", expressAsAttribute: true);
-                    
+
                     itemGroup = b.AddItemGroup();
                     itemGroup.Condition = "'$(TargetFramework)' == 'net6.0'";
                     item = itemGroup.AddItem("PackageVersion", packageName);
@@ -189,8 +187,14 @@ namespace DotnetAffected.Core.Tests
             Assert.Equal(changedPackage.Name, packageName);
             Assert.Equal(2, changedPackage.OldVersions.Count);
             Assert.Equal(2, changedPackage.NewVersions.Count);
-            Assert.Equal(changedPackage.OldVersions, new []{"5.0.0", "6.0.0"});
-            Assert.Equal(changedPackage.NewVersions, new []{"5.1.0", "6.1.0"});            
+            Assert.Equal(changedPackage.OldVersions, new[]
+            {
+                "5.0.0", "6.0.0"
+            });
+            Assert.Equal(changedPackage.NewVersions, new[]
+            {
+                "5.1.0", "6.1.0"
+            });
         }
 
         [Fact]
@@ -220,11 +224,11 @@ namespace DotnetAffected.Core.Tests
             var projectInfo = AffectedSummary.AffectedProjects.Single();
             Assert.Equal(projectName, projectInfo.GetProjectName());
             Assert.Equal(msBuildProject.FullPath, projectInfo.GetFullPath());
-            
+
             var changedPackage = AffectedSummary.ChangedPackages.Single();
             Assert.Equal(changedPackage.Name, packageName);
-            Assert.Equal(changedPackage.OldVersions.Single(), "2.0.0");
-            Assert.Equal(changedPackage.NewVersions.Single(), "1.0.0");
+            Assert.Equal("2.0.0", changedPackage.OldVersions.Single());
+            Assert.Equal("1.0.0", changedPackage.NewVersions.Single());
         }
 
         [Fact]
@@ -259,10 +263,10 @@ namespace DotnetAffected.Core.Tests
 
             var changedPackage = AffectedSummary.ChangedPackages.Single();
             Assert.Equal(changedPackage.Name, packageName);
-            Assert.Equal(changedPackage.OldVersions.Single(), "2.0.0");
-            Assert.Equal(changedPackage.NewVersions.Single(), "1.0.0");
+            Assert.Equal("2.0.0", changedPackage.OldVersions.Single());
+            Assert.Equal("1.0.0", changedPackage.NewVersions.Single());
         }
-        
+
         [Fact]
         public void With_nested_conditional_props_file_projects_should_still_be_affected1()
         {
@@ -279,7 +283,7 @@ namespace DotnetAffected.Core.Tests
 
             msBuildProject
                 .CreateDirectoryPackageProps(true, b => b.AddPackageVersion(packageName, "1.0.0"));
-    
+
             // Commit so there are no changes
             Repository.StageAndCommit();
 
@@ -296,15 +300,13 @@ namespace DotnetAffected.Core.Tests
             var projectInfo = AffectedSummary.AffectedProjects.Single();
             Assert.Equal(projectName, projectInfo.GetProjectName());
             Assert.Equal(msBuildProject.FullPath, projectInfo.GetFullPath());
-            
+
             var changedPackage = AffectedSummary.ChangedPackages.Single();
             Assert.Equal(packageName, changedPackage.Name);
             Assert.Equal("1.0.0", changedPackage.OldVersions.Single());
-            Assert.Equal("1.1.0", changedPackage.NewVersions.Single());      
+            Assert.Equal("1.1.0", changedPackage.NewVersions.Single());
         }
 
 #endif // NET5_0_OR_GREATER
-
     }
 }
-

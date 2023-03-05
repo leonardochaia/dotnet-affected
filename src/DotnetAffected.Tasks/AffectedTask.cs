@@ -11,28 +11,28 @@ using System.IO;
 
 namespace DotnetAffected.Tasks
 {
+    /// <inheritdoc />
     public class AffectedTask : Microsoft.Build.Utilities.Task
     {
-        [Required]
-        public string Root { get; set; }
-    
-        public ITaskItem[]? AssumeChanges { get; set; }
-        
+#pragma warning disable CS1591
+        [Required] public string Root { get; set; } = null!;
+
+        public ITaskItem[]? AssumeChanges { get; set; } = null!;
+
         public string? FromRef { get; set; }
-        
+
         public string? ToRef { get; set; }
 
         public ITaskItem[]? FilterClasses { get; set; }
 
-        [Output]
-        public ITaskItem[] FilterInstances { get; private set; }
+        [Output] public ITaskItem[] FilterInstances { get; private set; } = null!;
 
-        [Output]
-        public string[] ModifiedProjects { get; private set; }
+        [Output] public string[] ModifiedProjects { get; private set; } = null!;
 
-        [Output]
-        public int ModifiedProjectsCount { get; private set; }
+        [Output] public int ModifiedProjectsCount { get; private set; }
+#pragma warning restore CS1591
 
+        /// <inheritdoc />
         public override bool Execute()
         {
             try
@@ -41,20 +41,23 @@ namespace DotnetAffected.Tasks
 
                 if (AssumeChanges is not null
                     && AssumeChanges.Length > 0
-                    && (!string.IsNullOrWhiteSpace(affectedOptions.FromRef) || !string.IsNullOrWhiteSpace(affectedOptions.ToRef)))
+                    && (!string.IsNullOrWhiteSpace(affectedOptions.FromRef) ||
+                        !string.IsNullOrWhiteSpace(affectedOptions.ToRef)))
                 {
-                    Log.LogWarning("DotnetAffected AssumeChanges is set along with FromRef/ToRef. Only AssumeChanges is used.");
+                    Log.LogWarning(
+                        "DotnetAffected AssumeChanges is set along with FromRef/ToRef. Only AssumeChanges is used.");
                 }
-                
+
                 var graph = new ProjectGraphFactory(affectedOptions).BuildProjectGraph();
                 IChangesProvider changesProvider = AssumeChanges?.Any() == true
-                    ? new AssumptionChangesProvider(graph, AssumeChanges.Select(c => Path.GetFileNameWithoutExtension(c.ItemSpec)))
+                    ? new AssumptionChangesProvider(graph,
+                        AssumeChanges.Select(c => Path.GetFileNameWithoutExtension(c.ItemSpec)))
                     : new GitChangesProvider();
 
                 var executor = new AffectedExecutor(affectedOptions,
-                                                    graph,
-                                                    changesProvider,
-                                                    new PredictionChangedProjectsProvider(graph, affectedOptions));
+                    graph,
+                    changesProvider,
+                    new PredictionChangedProjectsProvider(graph, affectedOptions));
 
                 var results = executor.Execute();
                 var modifiedProjectInstances = new HashSet<ProjectInstance>();
@@ -77,7 +80,8 @@ namespace DotnetAffected.Tasks
                                 filterInstances.Add(taskItem);
 
                                 foreach (var kvp in filterType)
-                                    taskItem.SetMetadata(kvp.Key, projectInstance.GetProperty(kvp.Key)?.EvaluatedValue ?? kvp.Value);
+                                    taskItem.SetMetadata(kvp.Key, projectInstance.GetProperty(kvp.Key)
+                                        ?.EvaluatedValue ?? kvp.Value);
                             }
                         }
                     }
@@ -98,27 +102,28 @@ namespace DotnetAffected.Tasks
 
             return !Log.HasLoggedErrors;
         }
-        
+
         private Dictionary<string, string>[] BuildFilterClassMetadata()
         {
             Dictionary<string, string> Selector(ITaskItem filter)
             {
                 var t = new Dictionary<string, string>();
-                foreach (var obj in filter.CloneCustomMetadata())
+                foreach (var entry in filter.CloneCustomMetadata()
+                             .Cast<KeyValuePair<string, string>>())
                 {
-                    var entry = (DictionaryEntry)obj;
-                    t[(string)entry.Key] = entry.Value as string ?? "";
+                    t[entry.Key] = entry.Value ?? "";
                 }
 
                 t["AffectedFilterClassName"] = filter.ItemSpec;
                 return t;
             }
 
-           return FilterClasses is null
-               ? Array.Empty<Dictionary<string, string>>()
-               : FilterClasses.Select(Selector).ToArray();
+            return FilterClasses is null
+                ? Array.Empty<Dictionary<string, string>>()
+                : FilterClasses.Select(Selector)
+                    .ToArray();
         }
-        
+
         static AffectedTask()
         {
             Lib2GitNativePathHelper.ResolveCustomNativeLibraryPath();

@@ -47,7 +47,9 @@ namespace DotnetAffected.Core
             return TreeChangesToPaths(changes, directory);
         }
 
-        public Project? LoadDirectoryPackagePropsProject(string directory, string pathToFile, string? commitRef, bool fallbackToHead)
+        /// <inheritdoc />
+        public Project? LoadDirectoryPackagePropsProject(string directory, string pathToFile, string? commitRef,
+            bool fallbackToHead)
         {
             var project = LoadProject(directory, pathToFile, commitRef, fallbackToHead);
             if (project is null && MsBuildFileSystemSupported)
@@ -55,7 +57,8 @@ namespace DotnetAffected.Core
                 var fi = new FileInfo(pathToFile);
                 var parent = fi.Directory?.Parent?.FullName;
                 if (parent is not null && parent.Length >= directory.Length)
-                    return LoadDirectoryPackagePropsProject(directory, Path.Combine(parent, "Directory.Packages.props"), commitRef, fallbackToHead);
+                    return LoadDirectoryPackagePropsProject(directory, Path.Combine(parent, "Directory.Packages.props"),
+                        commitRef, fallbackToHead);
             }
 
             return project;
@@ -72,9 +75,9 @@ namespace DotnetAffected.Core
         private Project? LoadProjectCore(string directory, string pathToFile, string? commitRef, bool fallbackToHead)
         {
             Commit? commit;
-            
+
             using var repository = new Repository(directory);
-            
+
             if (string.IsNullOrWhiteSpace(commitRef))
                 commit = fallbackToHead ? repository.Head.Tip : null;
             else
@@ -85,7 +88,7 @@ namespace DotnetAffected.Core
             // return projectFactory.FileSystem.FileExists(pathToFile)
             //     ? projectFactory.CreateProject(pathToFile)
             //     : null;
-            
+
             /* Workaround for https://github.com/dotnet/msbuild/issues/7956
                For more information, see comments in EagerCachingMsBuildGitFileSystem
                TODO: Delete EagerCachingMsBuildGitFileSystem and this code if/when 7956 is fixed. */
@@ -96,9 +99,9 @@ namespace DotnetAffected.Core
         private Project? LoadProjectLegacy(string directory, string pathToFile, string? commitRef, bool fallbackToHead)
         {
             Commit? commit;
-            
+
             using var repository = new Repository(directory);
-            
+
             if (string.IsNullOrWhiteSpace(commitRef))
                 commit = fallbackToHead ? repository.Head.Tip : null;
             else
@@ -126,14 +129,14 @@ namespace DotnetAffected.Core
                 projectRootElement.FullPath = pathToFile;
                 return Project.FromProjectRootElement(projectRootElement, new ProjectOptions
                 {
-                    LoadSettings = ProjectLoadSettings.Default,
-                    ProjectCollection = projectCollection,
+                    LoadSettings = ProjectLoadSettings.Default, ProjectCollection = projectCollection,
                 });
             }
             else
             {
                 var path = IsWindows
-                    ? Path.GetRelativePath(directory, pathToFile).Replace('\\', '/')
+                    ? Path.GetRelativePath(directory, pathToFile)
+                        .Replace('\\', '/')
                     : Path.GetRelativePath(directory, pathToFile);
                 var treeEntry = commit[path];
                 if (treeEntry == null) return null;
@@ -146,8 +149,7 @@ namespace DotnetAffected.Core
                 projectRootElement.FullPath = pathToFile;
                 return Project.FromProjectRootElement(projectRootElement, new ProjectOptions
                 {
-                    LoadSettings = ProjectLoadSettings.Default,
-                    ProjectCollection = projectCollection,
+                    LoadSettings = ProjectLoadSettings.Default, ProjectCollection = projectCollection,
                 });
             }
         }

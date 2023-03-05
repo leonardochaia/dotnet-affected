@@ -51,7 +51,7 @@ jobs:
       run: dotnet restore
 
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore --no-incremental /WarnAsError
 
     - name: Test
       run: dotnet test --no-build

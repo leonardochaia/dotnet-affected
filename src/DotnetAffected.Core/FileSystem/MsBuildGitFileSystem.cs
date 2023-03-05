@@ -3,6 +3,7 @@ using Microsoft.Build.Evaluation;
 using Microsoft.Build.FileSystem;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Enumeration;
 using System.Text;
@@ -32,12 +33,13 @@ namespace DotnetAffected.Core.FileSystem
             _commit = commit;
         }
 
-        private string NormalizePathToWorkDir(string path) 
+        private string NormalizePathToWorkDir(string path)
             => Path.Combine(_repository.Info.WorkingDirectory, path);
 
         private string NormalizePathToGitDir(string path)
             => GitChangesProvider.IsWindows
-                ? Path.GetRelativePath(_repository.Info.WorkingDirectory, path).Replace('\\', '/')
+                ? Path.GetRelativePath(_repository.Info.WorkingDirectory, path)
+                    .Replace('\\', '/')
                 : Path.GetRelativePath(_repository.Info.WorkingDirectory, path);
 
         /// <summary>
@@ -80,9 +82,10 @@ namespace DotnetAffected.Core.FileSystem
         /// </summary>
         public override TextReader ReadFile(string path)
         {
-            if (UseFileSystem(path))
-                return new StreamReader(NormalizePathToWorkDir(path));
-            return new StreamReader(GetFileStreamGit(_commit, path), Encoding.UTF8);
+            // Read from filesystem or from the commit
+            return UseFileSystem(path)
+                ? new StreamReader(NormalizePathToWorkDir(path))
+                : new StreamReader(GetFileStreamGit(_commit!, path), Encoding.UTF8);
         }
 
         /// <summary>
@@ -100,7 +103,8 @@ namespace DotnetAffected.Core.FileSystem
                 case FileMode.Truncate:
                 case FileMode.Append:
                 case FileMode.OpenOrCreate:
-                    throw new InvalidOperationException($"Git virtual filesystem is readonly. [FileMode: {mode.ToString()}]");
+                    throw new InvalidOperationException(
+                        $"Git virtual filesystem is readonly. [FileMode: {mode.ToString()}]");
                 case FileMode.Open:
                     break;
                 default:
@@ -111,14 +115,15 @@ namespace DotnetAffected.Core.FileSystem
             {
                 case FileAccess.Write:
                 case FileAccess.ReadWrite:
-                    throw new InvalidOperationException($"Git virtual filesystem is readonly. [FileAccess: {access.ToString()}]");
+                    throw new InvalidOperationException(
+                        $"Git virtual filesystem is readonly. [FileAccess: {access.ToString()}]");
                 case FileAccess.Read:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(access), access, null);
             }
 
-            return GetFileStreamGit(_commit, path);
+            return GetFileStreamGit(_commit!, path);
         }
 
         /// <summary>
@@ -141,16 +146,19 @@ namespace DotnetAffected.Core.FileSystem
         /// <summary>
         /// Use this for Directory.EnumerateFiles(path, pattern, option)
         /// </summary>
-        public override IEnumerable<string> EnumerateFiles(string path, string searchPattern = "*", SearchOption searchOption = SearchOption.TopDirectoryOnly)
+        public override IEnumerable<string> EnumerateFiles(string path, string searchPattern = "*",
+            SearchOption searchOption = SearchOption.TopDirectoryOnly)
         {
             if (UseFileSystem(path))
             {
-                foreach (var entry in Directory.EnumerateDirectories(NormalizePathToWorkDir(path), searchPattern, searchOption))
+                foreach (var entry in Directory.EnumerateDirectories(NormalizePathToWorkDir(path), searchPattern,
+                             searchOption))
                     yield return entry;
             }
             else
             {
-                var d = (Tree)_commit[NormalizePathToGitDir(path)].Target;
+                var d = (Tree)_commit![NormalizePathToGitDir(path)]
+                    .Target;
                 foreach (var entry in d)
                 {
                     if (entry.TargetType != TreeEntryTargetType.Blob)
@@ -160,7 +168,9 @@ namespace DotnetAffected.Core.FileSystem
                         yield return $"{path}{Path.DirectorySeparatorChar}{entry.Name}";
                         if (searchOption == SearchOption.AllDirectories)
                         {
-                            foreach (var sub in EnumerateFileSystemEntries($"{path}{Path.DirectorySeparatorChar}{entry.Name}", searchPattern, searchOption))
+                            foreach (var sub in EnumerateFileSystemEntries(
+                                         $"{path}{Path.DirectorySeparatorChar}{entry.Name}", searchPattern,
+                                         searchOption))
                                 yield return sub;
                         }
                     }
@@ -171,16 +181,19 @@ namespace DotnetAffected.Core.FileSystem
         /// <summary>
         /// Use this for Directory.EnumerateFolders(path, pattern, option)
         /// </summary>
-        public override IEnumerable<string> EnumerateDirectories(string path, string searchPattern = "*", SearchOption searchOption = SearchOption.TopDirectoryOnly)
+        public override IEnumerable<string> EnumerateDirectories(string path, string searchPattern = "*",
+            SearchOption searchOption = SearchOption.TopDirectoryOnly)
         {
             if (UseFileSystem(path))
             {
-                foreach (var entry in Directory.EnumerateDirectories(NormalizePathToWorkDir(path), searchPattern, searchOption))
+                foreach (var entry in Directory.EnumerateDirectories(NormalizePathToWorkDir(path), searchPattern,
+                             searchOption))
                     yield return entry;
             }
             else
             {
-                var d = (Tree)_commit[NormalizePathToGitDir(path)].Target;
+                var d = (Tree)_commit![NormalizePathToGitDir(path)]
+                    .Target;
                 foreach (var entry in d)
                 {
                     if (entry.TargetType != TreeEntryTargetType.Tree)
@@ -190,7 +203,9 @@ namespace DotnetAffected.Core.FileSystem
                         yield return $"{path}{Path.DirectorySeparatorChar}{entry.Name}";
                         if (searchOption == SearchOption.AllDirectories)
                         {
-                            foreach (var sub in EnumerateFileSystemEntries($"{path}{Path.DirectorySeparatorChar}{entry.Name}", searchPattern, searchOption))
+                            foreach (var sub in EnumerateFileSystemEntries(
+                                         $"{path}{Path.DirectorySeparatorChar}{entry.Name}", searchPattern,
+                                         searchOption))
                                 yield return sub;
                         }
                     }
@@ -201,16 +216,19 @@ namespace DotnetAffected.Core.FileSystem
         /// <summary>
         /// Use this for Directory.EnumerateFileSystemEntries(path, pattern, option)
         /// </summary>
-        public override IEnumerable<string> EnumerateFileSystemEntries(string path, string searchPattern = "*", SearchOption searchOption = SearchOption.TopDirectoryOnly)
+        public override IEnumerable<string> EnumerateFileSystemEntries(string path, string searchPattern = "*",
+            SearchOption searchOption = SearchOption.TopDirectoryOnly)
         {
             if (UseFileSystem(path))
             {
-                foreach (var entry in Directory.EnumerateFileSystemEntries(NormalizePathToWorkDir(path), searchPattern, searchOption))
+                foreach (var entry in Directory.EnumerateFileSystemEntries(NormalizePathToWorkDir(path), searchPattern,
+                             searchOption))
                     yield return entry;
             }
             else
             {
-                var d = (Tree)_commit[NormalizePathToGitDir(path)].Target;
+                var d = (Tree)_commit![NormalizePathToGitDir(path)]
+                    .Target;
                 foreach (var entry in d)
                 {
                     if (FileSystemName.MatchesWin32Expression(searchPattern.AsSpan(), entry.Name, false))
@@ -218,7 +236,9 @@ namespace DotnetAffected.Core.FileSystem
                         yield return $"{path}{Path.DirectorySeparatorChar}{entry.Name}";
                         if (searchOption == SearchOption.AllDirectories)
                         {
-                            foreach (var sub in EnumerateFileSystemEntries($"{path}{Path.DirectorySeparatorChar}{entry.Name}", searchPattern, searchOption))
+                            foreach (var sub in EnumerateFileSystemEntries(
+                                         $"{path}{Path.DirectorySeparatorChar}{entry.Name}", searchPattern,
+                                         searchOption))
                                 yield return sub;
                         }
                     }
@@ -238,10 +258,9 @@ namespace DotnetAffected.Core.FileSystem
         /// </summary>
         public override DateTime GetLastWriteTimeUtc(string path)
         {
-            if (UseFileSystem(path))
-                return new FileInfo(NormalizePathToWorkDir(path)).LastWriteTimeUtc;
-
-            return _commit.Author.When.UtcDateTime;
+            return UseFileSystem(path)
+                ? new FileInfo(NormalizePathToWorkDir(path)).LastWriteTimeUtc
+                : _commit!.Author.When.UtcDateTime;
         }
 
         /// <summary>
@@ -252,7 +271,7 @@ namespace DotnetAffected.Core.FileSystem
             if (UseFileSystem(path))
                 return File.Exists(NormalizePathToWorkDir(path));
 
-            var treeEntry = _commit[NormalizePathToGitDir(path)];
+            var treeEntry = _commit?[NormalizePathToGitDir(path)];
             if (treeEntry == null)
                 return false;
             switch (treeEntry.Mode)
@@ -279,7 +298,7 @@ namespace DotnetAffected.Core.FileSystem
             if (UseFileSystem(path))
                 return File.Exists(NormalizePathToWorkDir(path));
 
-            var treeEntry = _commit[NormalizePathToGitDir(path)];
+            var treeEntry = _commit?[NormalizePathToGitDir(path)];
             if (treeEntry == null)
                 return false;
             switch (treeEntry.Mode)
@@ -308,7 +327,8 @@ namespace DotnetAffected.Core.FileSystem
                 var p = NormalizePathToWorkDir(path);
                 return File.Exists(p) || Directory.Exists(p);
             }
-            var treeEntry = _commit[NormalizePathToGitDir(path)];
+
+            var treeEntry = _commit?[NormalizePathToGitDir(path)];
             if (treeEntry == null)
                 return false;
             switch (treeEntry.Mode)

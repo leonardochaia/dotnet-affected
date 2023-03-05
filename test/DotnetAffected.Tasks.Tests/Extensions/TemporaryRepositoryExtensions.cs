@@ -9,7 +9,7 @@ namespace DotnetAffected.Tasks.Tests
 {
     public static class TemporaryRepositoryExtensions
     {
-        public static async Task PrepareTaskInfra(this TemporaryRepository repo, string? importResource = null)
+        public static async Task PrepareTaskInfra(this TemporaryRepository repo, string importResource = null)
         {
             await repo.CreateTextFileAsync("Directory.Build.props", TestProjectScenarios.DirectoryBuildProps);
             await repo.CreateTextFileAsync("ci.props", TestProjectScenarios.CiProps);

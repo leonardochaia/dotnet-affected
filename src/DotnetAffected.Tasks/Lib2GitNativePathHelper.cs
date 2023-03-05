@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace DotnetAffected.Tasks
 {
-    public static class Lib2GitNativePathHelper
+    internal static class Lib2GitNativePathHelper
     {
         public static void ResolveCustomNativeLibraryPath()
         {
@@ -14,7 +14,8 @@ namespace DotnetAffected.Tasks
             if (!Directory.Exists(runtimesDirectory))
                 return;
 
-            var processorArchitecture = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
+            var processorArchitecture = RuntimeInformation.ProcessArchitecture.ToString()
+                .ToLowerInvariant();
 
             var (os, libExtension) = GetNativeInfo();
 
@@ -29,11 +30,10 @@ namespace DotnetAffected.Tasks
                         LibGit2Sharp.GlobalSettings.NativeLibraryPath = libFolder;
                         return;
                     }
-
                 }
             }
         }
-        
+
         private static (string Os, string LibExtension) GetNativeInfo()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -45,7 +45,7 @@ namespace DotnetAffected.Tasks
 
             throw new PlatformNotSupportedException();
         }
-         
+
         private static bool IsLibraryLoadable(string libPath)
         {
             if (File.Exists(libPath) && NativeLibrary.TryLoad(libPath, out var ptr))
@@ -53,8 +53,8 @@ namespace DotnetAffected.Tasks
                 NativeLibrary.Free(ptr);
                 return true;
             }
+
             return false;
         }
-
     }
 }
