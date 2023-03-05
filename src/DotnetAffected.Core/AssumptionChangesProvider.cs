@@ -43,6 +43,7 @@ namespace DotnetAffected.Core
             throw new System.InvalidOperationException("--assume-changes should not try to access file contents");
         }
 
+        /// <inheritdoc />
         public Project? LoadDirectoryPackagePropsProject(string directory, string pathToFile, string? commitRef, bool fallbackToHead)
         {
             throw new System.InvalidOperationException("--assume-changes should not try to access file contents");

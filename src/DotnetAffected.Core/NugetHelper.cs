@@ -14,24 +14,21 @@ namespace DotnetAffected.Core
             /// <summary>
             /// Gets or sets the package name.
             /// </summary>
-            public string Name { get; private set; }
-            public string Version { get; private set; }
-            public string Condition { get; private set; }
+            public string Name { get; }
 
-            public string UniqueId { get; private set; }
+            public string Version { get; }
 
-            private PackageRef()
+            public string UniqueId { get; }
+
+            private PackageRef(string name, string version, string condition)
             {
+                Name = name;
+                Version = version;
+                UniqueId = $"{name} {string.Join(";", condition)}";
             }
 
             public static PackageRef Create(ProjectItem item, string? versionOverride = null)
             {
-                var pkg = new PackageRef
-                {
-                    Name = item.EvaluatedInclude,
-                    Version = versionOverride ?? item.Metadata.Single(m => m.Name == "Version").EvaluatedValue,
-                };
-                
                 // we create a unique Id to the combination of all condition expressions from the item up to all relevant parents
                 var conditions = item.Xml.AllParents
                     .OfType<ProjectItemGroupElement>()
@@ -39,12 +36,21 @@ namespace DotnetAffected.Core
                     .Select(e => e.Condition);
 
                 if (!string.IsNullOrWhiteSpace(item.Xml.Condition))
-                    conditions = new[] { item.Xml.Condition }.Concat(conditions);
+                {
+                    conditions = new[]
+                    {
+                        item.Xml.Condition
+                    }.Concat(conditions);
+                }
 
-                pkg.Condition = string.Join(";", conditions);
+                var version = versionOverride ?? item.Metadata.Single(m => m.Name == "Version")
+                    .EvaluatedValue;
 
-                pkg.UniqueId = $"{pkg.Name} {string.Join(";", pkg.Condition)}";
-                return pkg;
+                return new PackageRef(
+                    item.EvaluatedInclude,
+                    version,
+                    string.Join(";", conditions)
+                );
             }
 
             public override bool Equals(object? obj)
@@ -52,13 +58,14 @@ namespace DotnetAffected.Core
 
             public override int GetHashCode() => (UniqueId, Version).GetHashCode();
         }
-        
+
         public static IEnumerable<PackageRef> ParseDirectoryPackageProps(Project? project)
         {
             if (project == null) return Enumerable.Empty<PackageRef>();
 
             var centralPackageManagement = !project.MatchPropertyFlag("ManagePackageVersionsCentrally", false);
-            var enablePackageVersionOverride = centralPackageManagement && !project.MatchPropertyFlag("EnablePackageVersionOverride", false);
+            var enablePackageVersionOverride = centralPackageManagement &&
+                                               !project.MatchPropertyFlag("EnablePackageVersionOverride", false);
             var itemType = centralPackageManagement ? "PackageVersion" : "PackageReference";
 
             // A project contains the combination of multiple project files (e.g. DirectoryPackageProps can Import others)
@@ -75,7 +82,8 @@ namespace DotnetAffected.Core
                     if (item.MatchMetadataFlag("IsImplicitlyDefined", true))
                         continue;
 
-                    var pkg = enablePackageVersionOverride && item.TryGetMetadataValue("VersionOverride", out var versionOverride)
+                    var pkg = enablePackageVersionOverride &&
+                              item.TryGetMetadataValue("VersionOverride", out var versionOverride)
                         ? PackageRef.Create(item, versionOverride)
                         : PackageRef.Create(item);
 
@@ -87,8 +95,8 @@ namespace DotnetAffected.Core
         }
 
         public static bool TryFindDiffPackageDictionaries(IEnumerable<PackageRef> fromPackages,
-                                                          IEnumerable<PackageRef> toPackages,
-                                                          [NotNullWhen(true)] out IEnumerable<PackageChange>? changedPackages)
+            IEnumerable<PackageRef> toPackages,
+            [NotNullWhen(true)] out IEnumerable<PackageChange>? changedPackages)
         {
             var output = new Dictionary<string, PackageChange>();
             foreach (var pkg in fromPackages)
