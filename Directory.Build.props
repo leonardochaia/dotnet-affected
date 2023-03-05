@@ -22,6 +22,6 @@
     <!-- Configure Versioning Strategy-->
     <PropertyGroup>
         <MinVerTagPrefix>v</MinVerTagPrefix>
-        <MinVerDefaultPreReleasePhase>preview</MinVerDefaultPreReleasePhase>
+        <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
     </PropertyGroup>
 </Project>
