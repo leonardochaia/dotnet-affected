@@ -13,11 +13,8 @@ namespace Affected.Cli
         }
 
         public static Task<int> Main(string[] args)
-        {
-            return AffectedCli
-                .CreateAffectedCommandLineBuilder()
+            => AffectedCli.CreateAffectedCommandLineBuilder()
                 .Build()
                 .InvokeAsync(args);
-        }
     }
 }

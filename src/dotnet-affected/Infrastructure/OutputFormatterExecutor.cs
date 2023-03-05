@@ -13,6 +13,11 @@ namespace Affected.Cli
         private readonly IEnumerable<IOutputFormatter> _formatters;
         private readonly IConsole _console;
 
+        public OutputFormatterExecutor(IConsole console)
+            : this(OutputFormatters.All, console)
+        {
+        }
+
         public OutputFormatterExecutor(
             IEnumerable<IOutputFormatter> formatters,
             IConsole console)

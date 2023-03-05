@@ -1,12 +1,19 @@
-﻿using System.CommandLine.Parsing;
+﻿using DotnetAffected.Testing.Utils;
+using System.CommandLine.Parsing;
+using System.CommandLine.Rendering;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
 
 namespace Affected.Cli.Tests
 {
-    public abstract class BaseInvocationTest : BaseCliTest
+    public abstract class BaseInvocationTest : BaseRepositoryTest
     {
         public ITestOutputHelper Helper { get; }
+
+        protected ITerminal Terminal { get; } = new TestTerminal()
+        {
+            OutputMode = OutputMode.PlainText
+        };
 
         public BaseInvocationTest(ITestOutputHelper helper)
         {
@@ -16,7 +23,7 @@ namespace Affected.Cli.Tests
         protected async Task<(string Output, int ExitCode)> InvokeAsync(string args)
         {
             // Create the parser just as we do at Program.cs
-            var parser = this.BuildAffectedCli()
+            var parser = AffectedCli.CreateAffectedCommandLineBuilder()
                 .Build();
 
             // Execute against the testing infra
