@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="$(TestingDefaultsPropsPath)" />
-
     <ItemGroup>
-        <ProjectReference Include="$(TestPath)DotnetAffected.Testing.Utils/DotnetAffected.Testing.Utils.csproj" />
+        <ProjectReference Include="$(TestPath)DotnetAffected.Testing.Utils/DotnetAffected.Testing.Utils.csproj"/>
     </ItemGroup>
 
     <!-- DispatchToInnerBuilds is the last point before we split into multiple builds executions based on TargetFrameworks
@@ -11,14 +9,14 @@
     <Target Name="_BuildLoacalTasksNuget" BeforeTargets="DispatchToInnerBuilds">
         <!-- Delete previous package packed and extracted -->
         <ItemGroup>
-            <_DotnetAffectedNupkg Include="$(MSBuildThisFileDirectory)bin/*DotnetAffected.Tasks.*.nupkg" />
+            <_DotnetAffectedNupkg Include="$(MSBuildThisFileDirectory)bin/*DotnetAffected.Tasks.*.nupkg"/>
 
-            <_DotnetAffectedPkgFiles Include="$(MSBuildThisFileDirectory)$(OutputPath)/DotnetAffected/**/*.*" />
-            <_DotnetAffectedPkgFiles Include="$(_DotnetAffectedNupkg)" />
-            <_DotnetAffectedPkgFiles Include="$(MSBuildThisFileDirectory)bin/*DotnetAffected.Tasks.*.snupkg" />
+            <_DotnetAffectedPkgFiles Include="$(MSBuildThisFileDirectory)$(OutputPath)/DotnetAffected/**/*.*"/>
+            <_DotnetAffectedPkgFiles Include="$(_DotnetAffectedNupkg)"/>
+            <_DotnetAffectedPkgFiles Include="$(MSBuildThisFileDirectory)bin/*DotnetAffected.Tasks.*.snupkg"/>
         </ItemGroup>
-        <Delete Files="@(_DotnetAffectedPkgFiles)" />
-        <Exec Command="dotnet pack -c Release --include-symbols $(SourcesPath)DotnetAffected.Tasks/DotnetAffected.Tasks.csproj -o $(MSBuildThisFileDirectory)bin  -maxcpucount:1" />
+        <Delete Files="@(_DotnetAffectedPkgFiles)"/>
+        <Exec Command="dotnet pack -c Release --include-symbols $(SourcesPath)DotnetAffected.Tasks/DotnetAffected.Tasks.csproj -o $(MSBuildThisFileDirectory)bin  -maxcpucount:1"/>
     </Target>
 
     <Target Name="_AfterBuild" BeforeTargets="VSTest">
@@ -38,26 +36,26 @@
             
             We will inject the path to the Tasks nuget into each temp project build
         -->
-        
+
         <ItemGroup>
-            <_DotnetAffectedNupkg Remove="@(_DotnetAffectedNupkg)" />
-            <_DotnetAffectedNupkg Include="$(MSBuildThisFileDirectory)bin/*DotnetAffected.Tasks.*.nupkg" />
+            <_DotnetAffectedNupkg Remove="@(_DotnetAffectedNupkg)"/>
+            <_DotnetAffectedNupkg Include="$(MSBuildThisFileDirectory)bin/*DotnetAffected.Tasks.*.nupkg"/>
         </ItemGroup>
         <!-- Extract the content of the nuget package into the folder "DotnetAffected" in the output folder. -->
-        <Unzip DestinationFolder="$(MSBuildThisFileDirectory)$(OutputPath)/DotnetAffected" SourceFiles="@(_DotnetAffectedNupkg)" />
+        <Unzip DestinationFolder="$(MSBuildThisFileDirectory)$(OutputPath)/DotnetAffected" SourceFiles="@(_DotnetAffectedNupkg)"/>
     </Target>
 
     <ItemGroup>
-      <EmbeddedResource Update="Resources\TestProjectScenarios.resx">
-        <Generator>ResXFileCodeGenerator</Generator>
-        <LastGenOutput>TestProjectScenarios.Designer.cs</LastGenOutput>
-      </EmbeddedResource>
+        <EmbeddedResource Update="Resources\TestProjectScenarios.resx">
+            <Generator>ResXFileCodeGenerator</Generator>
+            <LastGenOutput>TestProjectScenarios.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
     </ItemGroup>
     <ItemGroup>
-      <Compile Update="Resources\TestProjectScenarios.Designer.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>TestProjectScenarios.resx</DependentUpon>
-      </Compile>
+        <Compile Update="Resources\TestProjectScenarios.Designer.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>TestProjectScenarios.resx</DependentUpon>
+        </Compile>
     </ItemGroup>
 </Project>

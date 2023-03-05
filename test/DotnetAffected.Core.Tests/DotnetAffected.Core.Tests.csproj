@@ -1,6 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="$(TestingDefaultsPropsPath)" />
-
     <ItemGroup>
         <ProjectReference Include="$(SourcesPath)DotnetAffected.Core/DotnetAffected.Core.csproj" />
         <ProjectReference Include="$(TestPath)DotnetAffected.Testing.Utils/DotnetAffected.Testing.Utils.csproj" />

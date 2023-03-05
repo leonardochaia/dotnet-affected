@@ -1,6 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="$(TestingDefaultsPropsPath)"/>
-
     <PropertyGroup>
         <IsTestProject>false</IsTestProject>
     </PropertyGroup>
