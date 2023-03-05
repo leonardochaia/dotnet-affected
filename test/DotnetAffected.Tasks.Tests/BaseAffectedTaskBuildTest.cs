@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Xunit.Abstractions;
 
 namespace DotnetAffected.Tasks.Tests
 {
     public abstract class BaseAffectedTaskBuildTest : BaseRepositoryTest
     {
-        private static readonly Regex ProjectPathRegEx =  new Regex("^\\s*\\[AffectedProject](\\S.+)$", RegexOptions.Compiled);
+        private readonly ITestOutputHelper _helper;
+
+        private static readonly Regex ProjectPathRegEx =
+            new Regex("^\\s*\\[AffectedProject](\\S.+)$", RegexOptions.Compiled);
 
         private readonly Process _buildProcess;
         private readonly List<string> _output = new List<string>();
@@ -25,8 +29,10 @@ namespace DotnetAffected.Tasks.Tests
         protected IEnumerable<string> Projects => _projects.AsEnumerable();
         protected int ExitCode { get; private set; } = -1;
 
-        protected BaseAffectedTaskBuildTest()
+        protected BaseAffectedTaskBuildTest(
+            ITestOutputHelper helper)
         {
+            _helper = helper;
             _buildProcess = new Process();
             _buildProcess.EnableRaisingEvents = false;
             _buildProcess.StartInfo.RedirectStandardError = true;
@@ -36,19 +42,21 @@ namespace DotnetAffected.Tasks.Tests
             _buildProcess.StartInfo.CreateNoWindow = true;
             _buildProcess.StartInfo.WorkingDirectory = Repository.Path;
         }
-        
-        protected override void Dispose(bool dispose)        {
+
+        protected override void Dispose(bool dispose)
+        {
             base.Dispose(dispose);
             _buildProcess.Close();
         }
-        
+
         protected void ExecuteCommandAndCollectResults()
         {
             _output.Clear();
             _errors.Clear();
             _projects.Clear();
 
-            _buildProcess.StartInfo.Arguments = $"msbuild -nodeReuse:false ci.props /t:DotnetAffectedCheck /p:DotnetAffectedNugetDir={Utils.DotnetAffectedNugetDir} /p:TargetFramework={Utils.TargetFramework}";
+            _buildProcess.StartInfo.Arguments =
+                $"msbuild -nodeReuse:false ci.props /t:DotnetAffectedCheck /p:DotnetAffectedNugetDir={Utils.DotnetAffectedNugetDir} /p:TargetFramework={Utils.TargetFramework}";
 
             _buildProcess.OutputDataReceived += (_, eventArgs) =>
             {
@@ -59,7 +67,8 @@ namespace DotnetAffected.Tasks.Tests
                 var match = ProjectPathRegEx.Match(eventArgs.Data);
                 if (match.Success)
                 {
-                    var proj = match.Groups[1].Value;
+                    var proj = match.Groups[1]
+                        .Value;
                     if (!string.IsNullOrWhiteSpace(proj))
                         _projects.Add(proj);
                 }
@@ -77,10 +86,12 @@ namespace DotnetAffected.Tasks.Tests
             _buildProcess.WaitForExit();
 
             ExitCode = _buildProcess.ExitCode;
-            
+
+            _helper.WriteLine($"Standard output: \n" +
+                              string.Join("\n", _output));
+
             _buildProcess.CancelOutputRead();
             _buildProcess.CancelErrorRead();
-
         }
     }
 }

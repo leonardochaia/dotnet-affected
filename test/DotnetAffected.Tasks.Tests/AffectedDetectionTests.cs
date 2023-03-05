@@ -9,11 +9,9 @@ namespace DotnetAffected.Tasks.Tests
 {
     public class AffectedDetectionTests : BaseAffectedTaskBuildTest
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public AffectedDetectionTests(ITestOutputHelper testOutputHelper)
+        public AffectedDetectionTests(ITestOutputHelper helper)
+            : base(helper)
         {
-            _testOutputHelper = testOutputHelper;
         }
 
         [Fact]
@@ -21,12 +19,12 @@ namespace DotnetAffected.Tasks.Tests
         {
             var project1 = Repository.CreateCsProject("project-1");
             var project2 = Repository.CreateCsProject("project-2");
-            
+
             await Repository.PrepareTaskInfra();
 
             // Commit so there are no changes
             Repository.StageAndCommit();
-            
+
             await Repository.CreateTextFileAsync(project1, $"file-0.cs", $"// contents 0");
 
             ExecuteCommandAndCollectResults();
@@ -37,7 +35,7 @@ namespace DotnetAffected.Tasks.Tests
             Assert.Single(Projects);
             Assert.Equal(project1.FullPath, Projects.Single());
         }
-        
+
         [Fact]
         public async Task When_task_filter_is_defined_only_changes_that_pass_the_filter_should_be_affected()
         {
@@ -56,7 +54,7 @@ namespace DotnetAffected.Tasks.Tests
 
             // Commit so there are no changes
             Repository.StageAndCommit();
-            
+
             await Repository.CreateTextFileAsync(project1, $"file-0.cs", $"// contents 0");
             await Repository.CreateTextFileAsync(project2, $"file-0.cs", $"// contents 0");
 

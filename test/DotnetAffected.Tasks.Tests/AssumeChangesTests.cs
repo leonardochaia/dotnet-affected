@@ -9,11 +9,9 @@ namespace DotnetAffected.Tasks.Tests
 {
     public class AssumeChangesTests : BaseAffectedTaskBuildTest
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public AssumeChangesTests(ITestOutputHelper testOutputHelper)
+        public AssumeChangesTests(ITestOutputHelper helper)
+            : base(helper)
         {
-            _testOutputHelper = testOutputHelper;
         }
 
         [Fact]
@@ -27,7 +25,7 @@ namespace DotnetAffected.Tasks.Tests
 
             // Commit so there are no changes
             Repository.StageAndCommit();
-            
+
             ExecuteCommandAndCollectResults();
 
             //Assert
@@ -35,6 +33,5 @@ namespace DotnetAffected.Tasks.Tests
             Assert.True(HasProjects);
             Assert.Equal(3, Projects.Count());
         }
-        
     }
 }
