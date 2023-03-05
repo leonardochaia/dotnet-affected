@@ -109,9 +109,9 @@ namespace DotnetAffected.Tasks
             {
                 var t = new Dictionary<string, string>();
                 foreach (var entry in filter.CloneCustomMetadata()
-                             .Cast<DictionaryEntry>())
+                             .Cast<KeyValuePair<string, string>>())
                 {
-                    t[(string)entry.Key] = entry.Value as string ?? "";
+                    t[entry.Key] = entry.Value ?? "";
                 }
 
                 t["AffectedFilterClassName"] = filter.ItemSpec;
