@@ -16,12 +16,11 @@
         <TestPath>$(MSBuildThisFileDirectory)test/</TestPath>
         <CliPath>$(SourcesPath)dotnet-affected/</CliPath>
         <PackageDefaultsPropsPath>$(MSBuildThisFileDirectory)package-defaults.props</PackageDefaultsPropsPath>
-        <TestingDefaultsPropsPath>$(MSBuildThisFileDirectory)testing-defaults.props</TestingDefaultsPropsPath>
     </PropertyGroup>
 
     <!-- Configure Versioning Strategy-->
     <PropertyGroup>
         <MinVerTagPrefix>v</MinVerTagPrefix>
-        <MinVerDefaultPreReleasePhase>preview</MinVerDefaultPreReleasePhase>
+        <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
     </PropertyGroup>
 </Project>
