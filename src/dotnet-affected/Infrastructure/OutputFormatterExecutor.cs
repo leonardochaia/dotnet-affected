@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Affected.Cli
 {
-    internal class OutputFormatterExecutor : IOutputFormatterExecutor
+    internal class OutputFormatterExecutor
     {
         private readonly IEnumerable<IOutputFormatter> _formatters;
         private readonly IConsole _console;

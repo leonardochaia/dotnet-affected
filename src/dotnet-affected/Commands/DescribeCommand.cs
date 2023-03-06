@@ -12,11 +12,7 @@ namespace Affected.Cli.Commands
             this.SetHandler(ctx =>
             {
                 var console = ctx.Console;
-                var data = ctx.GetCommandExecutionData(AffectedRootCommand.DataBinder);
-                var executor = data.BuildAffectedExecutor();
-
-                var summary = executor.Execute();
-                summary.ThrowIfNoChanges();
+                var (_, summary) = ctx.ExecuteAffectedExecutor();
 
                 var view = new AffectedInfoView(summary);
                 console.Append(view);

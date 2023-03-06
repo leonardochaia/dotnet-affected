@@ -15,7 +15,7 @@ namespace Affected.Cli
         public static CommandLineBuilder CreateAffectedCommandLineBuilder()
         {
             return new CommandLineBuilder(new AffectedRootCommand())
-                .UseRenderingErrorHandler(new Dictionary<Type, RenderingErrorConfig>()
+                .UseRenderingErrorHandler(new Dictionary<Type, RenderingErrorConfig>
                 {
                     [typeof(NoChangesException)] = new(AffectedExitCodes.NothingChanged, new NoChangesView()),
                 });

@@ -1,5 +1,4 @@
-﻿using Affected.Cli.Commands;
-using DotnetAffected.Testing.Utils;
+﻿using DotnetAffected.Testing.Utils;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;

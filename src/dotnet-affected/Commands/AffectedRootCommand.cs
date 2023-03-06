@@ -1,5 +1,4 @@
 ﻿using Affected.Cli.Views;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Rendering;
 using System.Linq;
@@ -8,34 +7,22 @@ namespace Affected.Cli.Commands
 {
     internal class AffectedRootCommand : RootCommand
     {
-        private static readonly RepositoryPathOptions RepositoryPathOptions = new();
-        private static readonly SolutionPathOption SolutionPathOption = new();
-        private static readonly VerboseOption VerboseOption = new();
-        private static readonly AssumeChangesOption AssumeChangesOption = new();
-        private static readonly FromOption FromOption = new();
-        private static readonly ToOption ToOption = new(FromOption);
-        private static readonly FormatOption FormatOption = new();
-        private static readonly DryRunOption DryRunOption = new();
-        private static readonly OutputDirOption OutputDirOption = new();
-        private static readonly OutputNameOption OutputNameOption = new();
-
-        public static readonly CommandExecutionDataBinder DataBinder = new(RepositoryPathOptions,
-            SolutionPathOption,
-            FromOption,
-            ToOption, VerboseOption, AssumeChangesOption, FormatOption, DryRunOption, OutputDirOption,
-            OutputNameOption);
+        public static readonly FormatOption FormatOption = new();
+        public static readonly DryRunOption DryRunOption = new();
+        public static readonly OutputDirOption OutputDirOption = new();
+        public static readonly OutputNameOption OutputNameOption = new();
 
         public AffectedRootCommand()
             : base("Determines which projects are affected by a set of changes.")
         {
             this.AddCommand(new DescribeCommand());
 
-            this.AddGlobalOption(RepositoryPathOptions);
-            this.AddGlobalOption(SolutionPathOption);
-            this.AddGlobalOption(VerboseOption);
-            this.AddGlobalOption(AssumeChangesOption);
-            this.AddGlobalOption(FromOption);
-            this.AddGlobalOption(ToOption);
+            this.AddGlobalOption(AffectedGlobalOptions.RepositoryPathOptions);
+            this.AddGlobalOption(AffectedGlobalOptions.SolutionPathOption);
+            this.AddGlobalOption(AffectedGlobalOptions.VerboseOption);
+            this.AddGlobalOption(AffectedGlobalOptions.AssumeChangesOption);
+            this.AddGlobalOption(AffectedGlobalOptions.FromOption);
+            this.AddGlobalOption(AffectedGlobalOptions.ToOption);
 
             this.AddOption(FormatOption);
             this.AddOption(DryRunOption);
@@ -44,117 +31,33 @@ namespace Affected.Cli.Commands
 
             this.SetHandler(async ctx =>
             {
-                var console = ctx.Console;
-                var data = ctx.GetCommandExecutionData(DataBinder);
-                var executor = data.BuildAffectedExecutor();
-
-                var formatterExecutor = new OutputFormatterExecutor(console);
-
-                var summary = executor.Execute();
+                var (options, summary) = ctx.ExecuteAffectedExecutor();
                 summary.ThrowIfNoChanges();
 
-                if (data.Verbose)
+                var verbose = ctx.ParseResult.GetValueForOption(AffectedGlobalOptions.VerboseOption)!;
+                var console = ctx.Console;
+                if (verbose)
                 {
                     var infoView = new AffectedInfoView(summary);
-
                     console.Append(infoView);
                 }
 
-                var allProjects = summary.ProjectsWithChangedFiles.Concat(summary.AffectedProjects)
+                var allProjects = summary
+                    .ProjectsWithChangedFiles
+                    .Concat(summary.AffectedProjects)
                     .Select(p => new ProjectInfo(p));
 
+                // Generate output using formatters
+                var outputOptions = ctx.GetAffectedCommandOutputOptions(options);
+
+                var formatterExecutor = new OutputFormatterExecutor(console);
                 await formatterExecutor.Execute(
                     allProjects,
-                    data.Formatters,
-                    data.OutputDir,
-                    data.OutputName,
-                    data.DryRun,
-                    data.Verbose);
-            });
-        }
-    }
-
-    internal sealed class AssumeChangesOption : Option<IEnumerable<string>>
-    {
-        public AssumeChangesOption()
-            : base("--assume-changes")
-        {
-            this.Description =
-                "Hypothetically assume that given projects have changed instead of using Git diff to determine them.";
-        }
-    }
-
-    internal sealed class RepositoryPathOptions : Option<string>
-    {
-        public RepositoryPathOptions()
-            : base(
-                aliases: new[]
-                {
-                    "--repository-path", "-p"
-                })
-        {
-            this.Description = "Path to the root of the repository, where the .git directory is.\n" +
-                               "[Defaults to current directory, or solution's directory when using --solution-path]";
-        }
-    }
-
-    internal sealed class SolutionPathOption : Option<string>
-    {
-        public SolutionPathOption()
-            : base(new[]
-            {
-                "--solution-path"
-            })
-        {
-            this.Description =
-                "Path to a Solution file (.sln) used to discover projects that may be affected.\n" +
-                "When omitted, will search for project files inside --repository-path.";
-        }
-    }
-
-    internal sealed class VerboseOption : Option<bool>
-    {
-        public VerboseOption()
-            : base(
-                aliases: new[]
-                {
-                    "--verbose", "-v"
-                },
-                getDefaultValue: () => false)
-        {
-            this.Description = "Write useful messages or just the desired output.";
-        }
-    }
-
-    internal sealed class FromOption : Option<string>
-    {
-        public FromOption()
-            : base(new[]
-            {
-                "--from"
-            })
-        {
-            this.Description = "A branch or commit to compare against --to.";
-        }
-    }
-
-    internal sealed class ToOption : Option<string>
-    {
-        public ToOption(FromOption fromOption)
-            : base(new[]
-            {
-                "--to"
-            })
-        {
-            this.Description = "A branch or commit to compare against --from";
-
-            this.AddValidator(optionResult =>
-            {
-                if (optionResult.FindResultFor(fromOption) is null)
-                {
-                    optionResult.ErrorMessage =
-                        $"{fromOption.Aliases.First()} is required when using {this.Aliases.First()}";
-                }
+                    outputOptions.Formatters,
+                    outputOptions.OutputDir,
+                    outputOptions.OutputName,
+                    outputOptions.DryRun,
+                    verbose);
             });
         }
     }
