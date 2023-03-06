@@ -2,7 +2,6 @@
 using Microsoft.Build.Graph;
 using Microsoft.Build.Prediction;
 using Microsoft.Build.Prediction.Predictors;
-using Microsoft.Build.Prediction.Predictors.CopyTask;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,23 +21,14 @@ namespace DotnetAffected.Core
             new ProjectFileAndImportsGraphPredictor()
         };
 
-        private static readonly IProjectPredictor[] ProjectPredictors = new[]
-        {
-            new AvailableItemNameItemsPredictor(), new ContentItemsPredictor(), new NoneItemsPredictor(),
-            (IProjectPredictor)new CopyTaskPredictor(), new CompileItemsPredictor(),
-            new IntermediateOutputPathPredictor(), new ProjectFileAndImportsPredictor(),
-            new CodeAnalysisRuleSetPredictor(), new AssemblyOriginatorKeyFilePredictor(),
-            new EmbeddedResourceItemsPredictor(), new ReferenceItemsPredictor(), new ArtifactsSdkPredictor(),
-            new StyleCopPredictor(), new ManifestsPredictor(), new VSCTCompileItemsPredictor(),
-            new EditorConfigFilesItemsPredictor(), new ApplicationIconPredictor(),
-            new GeneratePackageOnBuildPredictor(), new DocumentationFilePredictor(), new XamlAppDefPredictor(),
-            new TypeScriptCompileItemsPredictor(), new ApplicationDefinitionItemsPredictor(), new PageItemsPredictor(),
-            new ResourceItemsPredictor(), new SplashScreenItemsPredictor(), new TsConfigPredictor(),
-            new MasmItemsPredictor(), new ClIncludeItemsPredictor(), new SqlBuildPredictor(),
-            new AdditionalIncludeDirectoriesPredictor(), new AnalyzerItemsPredictor(),
-            new ModuleDefinitionFilePredictor(), new CppContentFilesProjectOutputGroupPredictor(),
-            new LinkItemsPredictor()
-        };
+        /// <summary>
+        /// Keeps a list of all predictors that predict input files.
+        /// When Microsoft.Build.Prediction is updated, this list needs to be reviewed.
+        /// </summary>
+        private static readonly IProjectPredictor[] ProjectPredictors = Microsoft.Build.Prediction.ProjectPredictors
+            .AllProjectPredictors
+            .Where(p => p.GetType() != typeof(OutDirOrOutputPathPredictor))
+            .ToArray();
 
         private readonly ProjectGraphPredictionExecutor _executor = new ProjectGraphPredictionExecutor(
             GraphPredictors,

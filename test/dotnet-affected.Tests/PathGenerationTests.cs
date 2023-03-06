@@ -1,9 +1,9 @@
 ﻿using Affected.Cli.Commands;
+using DotnetAffected.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Xunit;
 
 namespace Affected.Cli.Tests
@@ -44,19 +44,8 @@ namespace Affected.Cli.Tests
             string solutionPath,
             string expected)
         {
-            var data = new CommandExecutionData(
-                repositoryPath,
-                solutionPath,
-                string.Empty,
-                string.Empty,
-                false,
-                Enumerable.Empty<string>(),
-                new string[0],
-                false,
-                string.Empty,
-                string.Empty);
-
-            Assert.Equal(expected, data.RepositoryPath);
+            var options = new AffectedOptions(repositoryPath, solutionPath);
+            Assert.Equal(expected, options.RepositoryPath);
         }
 
         private class OutputDirPathsClassData : IEnumerable<object[]>
@@ -88,17 +77,12 @@ namespace Affected.Cli.Tests
             string outputDir,
             string expected)
         {
-            var data = new CommandExecutionData(
+            var data = new AffectedCommandOutputOptions(
                 repositoryPath,
-                String.Empty,
-                string.Empty,
-                string.Empty,
-                false,
-                Enumerable.Empty<string>(),
-                new string[0],
-                false,
                 outputDir,
-                string.Empty);
+                "affected",
+                Array.Empty<string>(),
+                true);
 
             Assert.Equal(expected, data.OutputDir);
         }

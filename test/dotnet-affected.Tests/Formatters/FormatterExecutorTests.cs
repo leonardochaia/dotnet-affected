@@ -1,15 +1,20 @@
 ﻿using DotnetAffected.Testing.Utils;
-using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Affected.Cli.Tests.Formatters
 {
     public class FormatterExecutorTests
-        : BaseServiceProviderCliTest
+        : BaseInvocationTest
     {
+        public FormatterExecutorTests(ITestOutputHelper helper)
+            : base(helper)
+        {
+        }
+
         [Fact]
         public async Task Should_create_file_at_directory()
         {
@@ -19,7 +24,7 @@ namespace Affected.Cli.Tests.Formatters
             var projectName = "InventoryManagement";
             var msBuildProject = this.Repository.CreateCsProject(projectName);
 
-            var executor = this.ServiceProvider.GetRequiredService<IOutputFormatterExecutor>();
+            var executor = new OutputFormatterExecutor(this.Terminal);
             var projects = new[]
             {
                 new ProjectInfo("TestProject", msBuildProject.FullPath)
@@ -37,7 +42,7 @@ namespace Affected.Cli.Tests.Formatters
 
             Assert.Contains(msBuildProject.FullPath, outputContents);
         }
-        
+
         [Fact]
         public async Task Should_write_deduplicated_projects()
         {
@@ -46,7 +51,8 @@ namespace Affected.Cli.Tests.Formatters
             const string projectName = "InventoryManagement";
             const string outputFileName = "affected";
             var msBuildProject = this.Repository.CreateCsProject(projectName);
-            var executor = this.ServiceProvider.GetRequiredService<IOutputFormatterExecutor>();
+
+            var executor = new OutputFormatterExecutor(this.Terminal);
             var projects = new[]
             {
                 new ProjectInfo("DuplicatedTestProject", msBuildProject.FullPath),

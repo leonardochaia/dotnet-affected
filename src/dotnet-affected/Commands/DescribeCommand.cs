@@ -1,43 +1,22 @@
 ﻿using Affected.Cli.Views;
-using DotnetAffected.Abstractions;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.CommandLine.Rendering;
-using System.Threading.Tasks;
 
 namespace Affected.Cli.Commands
 {
     internal class DescribeCommand : Command
     {
         public DescribeCommand()
-            : base("describe")
+            : base("describe", "Prints the current changed and affected projects.")
         {
-            this.Description = "Prints the current changed and affected projects.";
-        }
-
-        public class CommandHandler : ICommandHandler
-        {
-            private readonly IAffectedExecutor _executor;
-            private readonly IConsole _console;
-
-            public CommandHandler(
-                IAffectedExecutor executor,
-                IConsole console)
+            this.SetHandler(ctx =>
             {
-                _executor = executor;
-                _console = console;
-            }
-
-            public Task<int> InvokeAsync(InvocationContext ic)
-            {
-                var summary = _executor.Execute();
-                summary.ThrowIfNoChanges();
+                var console = ctx.Console;
+                var (_, summary) = ctx.ExecuteAffectedExecutor();
 
                 var view = new AffectedInfoView(summary);
-                _console.Append(view);
-
-                return Task.FromResult(0);
-            }
+                console.Append(view);
+            });
         }
     }
 }

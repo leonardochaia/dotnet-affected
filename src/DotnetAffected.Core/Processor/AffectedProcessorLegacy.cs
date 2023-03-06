@@ -1,7 +1,6 @@
 ﻿using DotnetAffected.Abstractions;
 using Microsoft.Build.Graph;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace DotnetAffected.Core.Processor

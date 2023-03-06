@@ -8,10 +8,15 @@ using System.Threading.Tasks;
 
 namespace Affected.Cli
 {
-    internal class OutputFormatterExecutor : IOutputFormatterExecutor
+    internal class OutputFormatterExecutor
     {
         private readonly IEnumerable<IOutputFormatter> _formatters;
         private readonly IConsole _console;
+
+        public OutputFormatterExecutor(IConsole console)
+            : this(OutputFormatters.All, console)
+        {
+        }
 
         public OutputFormatterExecutor(
             IEnumerable<IOutputFormatter> formatters,
@@ -58,7 +63,7 @@ namespace Affected.Cli
                 if (dryRun)
                 {
                     _console.Out.WriteLine($"DRY-RUN: WRITE {outputPath}");
-                    _console.Out.WriteLine($"DRY-RUN: CONTENTS:");
+                    _console.Out.WriteLine("DRY-RUN: CONTENTS:");
                     _console.Out.Write(outputContents);
                     _console.Out.WriteLine();
                 }

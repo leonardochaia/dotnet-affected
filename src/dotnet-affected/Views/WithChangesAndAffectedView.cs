@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Affected.Cli.Views
 {
-    internal class WithChangesAndAffectedView : StackLayoutView
+    internal sealed class WithChangesAndAffectedView : StackLayoutView
     {
         public WithChangesAndAffectedView(AffectedSummary summary)
         {

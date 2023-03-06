@@ -1,5 +1,4 @@
 ﻿using DotnetAffected.Abstractions;
-using LibGit2Sharp;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Graph;
 using System.Collections.Generic;

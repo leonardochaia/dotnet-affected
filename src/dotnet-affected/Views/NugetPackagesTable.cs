@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Affected.Cli.Views
 {
-    internal class NugetPackagesTable : TableView<PackageChange>
+    internal sealed class NugetPackagesTable : TableView<PackageChange>
     {
         public NugetPackagesTable(IEnumerable<PackageChange> nugetPackages)
         {
