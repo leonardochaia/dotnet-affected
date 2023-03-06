@@ -16,7 +16,6 @@
         <PackageReference Condition="'$(TargetFramework)' == 'netcoreapp3.1'" Include="Microsoft.Win32.Registry"/>
         <PackageReference Include="System.CommandLine"/>
         <PackageReference Include="System.CommandLine.Rendering"/>
-        <PackageReference Include="System.CommandLine.NamingConventionBinder"/>
     </ItemGroup>
 
     <ItemGroup>

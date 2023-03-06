@@ -1,7 +1,6 @@
 ﻿<Project>
     <ItemGroup>
         <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-        <PackageVersion Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta4.22272.1" />
         <PackageVersion Include="System.CommandLine.Rendering" Version="0.4.0-alpha.22272.1" />
         <PackageVersion Include="LibGit2Sharp" Version="0.27.0-preview-0182" />
         <PackageVersion Include="MinVer" Version="4.3.0" />
