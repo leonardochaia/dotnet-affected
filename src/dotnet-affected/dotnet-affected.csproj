@@ -17,7 +17,6 @@
         <PackageReference Include="System.CommandLine"/>
         <PackageReference Include="System.CommandLine.Rendering"/>
         <PackageReference Include="System.CommandLine.NamingConventionBinder"/>
-        <PackageReference Include="System.Configuration.ConfigurationManager"/>
     </ItemGroup>
 
     <ItemGroup>
