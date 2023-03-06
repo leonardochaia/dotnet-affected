@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Affected.Cli.Views
 {
-    internal class ProjectInfoTable : TableView<IProjectInfo>
+    internal sealed class ProjectInfoTable : TableView<IProjectInfo>
     {
         public ProjectInfoTable(IEnumerable<ProjectGraphNode> nodes)
         {

@@ -42,7 +42,7 @@ namespace Affected.Cli.Commands
             this.AddOption(OutputDirOption);
             this.AddOption(OutputNameOption);
 
-            this.SetHandler(async (ctx) =>
+            this.SetHandler(async ctx =>
             {
                 var console = ctx.Console;
                 var data = ctx.GetCommandExecutionData(DataBinder);
@@ -74,7 +74,7 @@ namespace Affected.Cli.Commands
         }
     }
 
-    internal class AssumeChangesOption : Option<IEnumerable<string>>
+    internal sealed class AssumeChangesOption : Option<IEnumerable<string>>
     {
         public AssumeChangesOption()
             : base("--assume-changes")
@@ -84,7 +84,7 @@ namespace Affected.Cli.Commands
         }
     }
 
-    internal class RepositoryPathOptions : Option<string>
+    internal sealed class RepositoryPathOptions : Option<string>
     {
         public RepositoryPathOptions()
             : base(
@@ -98,7 +98,7 @@ namespace Affected.Cli.Commands
         }
     }
 
-    internal class SolutionPathOption : Option<string>
+    internal sealed class SolutionPathOption : Option<string>
     {
         public SolutionPathOption()
             : base(new[]
@@ -112,7 +112,7 @@ namespace Affected.Cli.Commands
         }
     }
 
-    internal class VerboseOption : Option<bool>
+    internal sealed class VerboseOption : Option<bool>
     {
         public VerboseOption()
             : base(
@@ -126,7 +126,7 @@ namespace Affected.Cli.Commands
         }
     }
 
-    internal class FromOption : Option<string>
+    internal sealed class FromOption : Option<string>
     {
         public FromOption()
             : base(new[]
@@ -138,7 +138,7 @@ namespace Affected.Cli.Commands
         }
     }
 
-    internal class ToOption : Option<string>
+    internal sealed class ToOption : Option<string>
     {
         public ToOption(FromOption fromOption)
             : base(new[]
@@ -159,7 +159,7 @@ namespace Affected.Cli.Commands
         }
     }
 
-    internal class FormatOption : Option<string[]>
+    internal sealed class FormatOption : Option<string[]>
     {
         public FormatOption()
             : base(new[]
@@ -176,7 +176,7 @@ namespace Affected.Cli.Commands
         }
     }
 
-    internal class DryRunOption : Option<bool>
+    internal sealed class DryRunOption : Option<bool>
     {
         public DryRunOption()
             : base(new[]
@@ -189,7 +189,7 @@ namespace Affected.Cli.Commands
         }
     }
 
-    internal class OutputDirOption : Option<string>
+    internal sealed class OutputDirOption : Option<string>
     {
         public OutputDirOption()
             : base(new[]
@@ -202,7 +202,7 @@ namespace Affected.Cli.Commands
         }
     }
 
-    internal class OutputNameOption : Option<string>
+    internal sealed class OutputNameOption : Option<string>
     {
         public OutputNameOption()
             : base(new[]

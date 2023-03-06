@@ -94,12 +94,7 @@ namespace Affected.Cli.Commands
                 return repositoryPath;
             }
 
-            if (Path.IsPathFullyQualified(outDir))
-            {
-                return outDir;
-            }
-
-            return Path.Combine(repositoryPath, outDir);
+            return Path.IsPathFullyQualified(outDir) ? outDir : Path.Combine(repositoryPath, outDir);
         }
     }
 }

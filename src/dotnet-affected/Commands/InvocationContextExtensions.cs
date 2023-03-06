@@ -29,7 +29,7 @@ namespace Affected.Cli.Commands
 
             var graph = new ProjectGraphFactory(options).BuildProjectGraph();
 
-            IChangesProvider changesProvider = data.AssumeChanges?.Any() == true
+            IChangesProvider changesProvider = data.AssumeChanges.Any()
                 ? new AssumptionChangesProvider(graph, data.AssumeChanges)
                 : new GitChangesProvider();
 
