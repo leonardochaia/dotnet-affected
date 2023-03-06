@@ -15,6 +15,7 @@ namespace Affected.Cli.Commands
         public AffectedRootCommand()
             : base("Determines which projects are affected by a set of changes.")
         {
+            this.Name = "dotnet-affected";
             this.AddCommand(new DescribeCommand());
 
             this.AddGlobalOption(AffectedGlobalOptions.RepositoryPathOptions);
