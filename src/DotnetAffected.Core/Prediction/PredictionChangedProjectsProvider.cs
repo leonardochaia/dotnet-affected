@@ -2,7 +2,6 @@
 using Microsoft.Build.Graph;
 using Microsoft.Build.Prediction;
 using Microsoft.Build.Prediction.Predictors;
-using Microsoft.Build.Prediction.Predictors.CopyTask;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
