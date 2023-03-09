@@ -6,7 +6,9 @@
         <PackageVersion Include="MinVer" Version="4.3.0" />
 
         <PackageVersion Include="Microsoft.Build.Prediction" Version="1.2.1" />
-        <PackageVersion Include="Microsoft.Build.Locator" Version="1.5.5" />
+
+        <!-- REMARKS: Microsoft.Build.Locator v1.5.5 breaks runtime on Alpine Linux, see #75 -->
+        <PackageVersion Include="Microsoft.Build.Locator" Version="1.4.1" />
 
         <PackageVersion Include="BenchmarkDotNet" Version="0.13.5" />
         <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.12.1" Condition="'$(OS)' == 'Windows_NT'"/>
