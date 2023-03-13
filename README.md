@@ -214,10 +214,14 @@ dotnet affected --from chore/target-net7 --to main
 ```
 
 ## Output Formatting
+The `--format` command line option can be used to choose which output formats will be used.
 
-dotnet-affected currently supports outputting Traversal SDK project files and plain text list of changed and affected
-projects. The `--format` option can be used to choose which format to output.
+dotnet-affected currently supports following **format options**:
+- `traversal`: Traversal SDK project file.
+- `text`: Plain text file containing all affected project paths.
+- `json`: JSON file containing all affected project names and paths.
 
+Example:
 ```text
 $ dotnet affected -v --format text
 Discovering projects from /home/lchaia/dev/dotnet-affected
@@ -242,13 +246,13 @@ $ cat affected.txt                                                              
 /home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj
 ```
 
-## Multiple Output Formats
+### Multiple Output Formats
 
-Multiple formats can be generated at the same time by separating them with spaces. This is quite useful in CI to
-build/test and also get the list of projects to deploy.
+This tool supports generating multiple output files by providing space-seperated format options to the `--format` flag.
 
+Example:
 ```text
-$ dotnet affected -v --format text traversal
+$ dotnet affected -v --format text traversal json
 Discovering projects from /home/lchaia/dev/dotnet-affected
 Building Dependency Graph
 Built Graph with 8 Projects in 0.39s
@@ -264,6 +268,7 @@ Name                   Path
 dotnet-affected.Tests  /home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj
 WRITE: /home/lchaia/dev/dotnet-affected/affected.txt
 WRITE: /home/lchaia/dev/dotnet-affected/affected.proj
+WRITE: /home/lchaia/dev/dotnet-affected/affected.json
 ```
 
 ## Continuous Integration

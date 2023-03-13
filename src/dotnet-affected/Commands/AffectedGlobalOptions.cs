@@ -55,7 +55,7 @@ namespace Affected.Cli.Commands
                 "--to"
             })
         {
-            this.Description = "A branch or commit to compare against --from";
+            this.Description = "A branch or commit to compare against --from.";
 
             this.AddValidator(optionResult =>
             {

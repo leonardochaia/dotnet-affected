@@ -13,7 +13,9 @@ namespace Affected.Cli.Commands
         public static readonly OutputNameOption OutputNameOption = new();
 
         public AffectedRootCommand()
-            : base("Determines which projects are affected by a set of changes.")
+            : base("Determines which projects are affected by a set of changes.\n" +
+                   "For examples and detailed descriptions see: " +
+                   "https://github.com/leonardochaia/dotnet-affected/blob/main/README.md")
         {
             this.Name = "dotnet-affected";
             this.AddCommand(new DescribeCommand());
@@ -71,7 +73,8 @@ namespace Affected.Cli.Commands
                 "--format", "-f"
             })
         {
-            this.Description = "Space separated list of formatters to write the output.";
+            this.Description = "Space-seperated output file formats. Possible values: <traversal, text, json>.";
+            
             this.SetDefaultValue(new[]
             {
                 "traversal"
@@ -88,7 +91,7 @@ namespace Affected.Cli.Commands
                 "--dry-run"
             })
         {
-            this.Description = "Doesn't create files, outputs to stdout instead.";
+            this.Description = "Only output to stdout. No output files will be created.";
             this.SetDefaultValue(false);
         }
     }
@@ -101,8 +104,8 @@ namespace Affected.Cli.Commands
                 "--output-dir"
             })
         {
-            this.Description = "The directory where the output file(s) will be generated\n" +
-                               "If relative, it's relative to the --repository-path";
+            this.Description = "The directory where the output file(s) will be generated.\n" +
+                               "Relative paths will be based on --repository-path.";
         }
     }
 
@@ -114,8 +117,8 @@ namespace Affected.Cli.Commands
                 "--output-name"
             })
         {
-            this.Description = "The name for the file to create for each format.\n" +
-                               "Format extension is appended to this name.";
+            this.Description = "The filename to create.\n" +
+                               "Format file extensions will be appended.";
             this.SetDefaultValue("affected");
         }
     }
