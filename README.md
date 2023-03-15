@@ -271,6 +271,17 @@ WRITE: /home/lchaia/dev/dotnet-affected/affected.proj
 WRITE: /home/lchaia/dev/dotnet-affected/affected.json
 ```
 
+## Excluding Projects
+The `--exclude` command line option can be used to exclude projects which name match the provided regular expression.
+
+Usage: `--exclude [RegularExpression]`
+
+Examples:
+- `dotnet-affected --exclude Test` Filters out all projects where the string 'Test' is in the project name.
+- `dotnet-affected --exclude "dotnet-affected\.Tests"` Filters out all projects where the string 'dotnet-affected.Tests' is in the project name.
+
+Note: If you are using special characters in your regular expression, for example: `., +, *, ?, ^, $, (, ), [, ], {, }, |, \.`, put the regex into quotation marks. Otherwise the command line interpreter could try to interpret them.
+
 ## Continuous Integration
 
 For usage in CI, it's recommended to use the `--from` and `--to` options with the environment variables provided by your
