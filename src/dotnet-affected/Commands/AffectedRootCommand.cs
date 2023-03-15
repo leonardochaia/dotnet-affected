@@ -1,5 +1,6 @@
 ﻿using Affected.Cli.Views;
 using Affected.Cli.Extensions;
+using System;
 using System.CommandLine;
 using System.CommandLine.Rendering;
 using System.Linq;
@@ -47,15 +48,19 @@ namespace Affected.Cli.Commands
                     var infoView = new AffectedInfoView(summary);
                     console.Append(infoView);
                 }
-                
-                // Generate output using formatters
-                var outputOptions = ctx.GetAffectedCommandOutputOptions(options);
-                
+
                 var allProjects = summary
                     .ProjectsWithChangedFiles
                     .Concat(summary.AffectedProjects)
-                    .Select(p => new ProjectInfo(p))
-                    .RegexExclude(project => project.Name, outputOptions.ExcludePattern);
+                    .Select(p => new ProjectInfo(p));
+
+                // Generate output using formatters
+                var outputOptions = ctx.GetAffectedCommandOutputOptions(options);
+
+                if (!String.IsNullOrEmpty(outputOptions.ExcludePattern))
+                {
+                    allProjects = allProjects.RegexExclude(project => project.Name, outputOptions.ExcludePattern);
+                }
 
                 var formatterExecutor = new OutputFormatterExecutor(console);
                 await formatterExecutor.Execute(
