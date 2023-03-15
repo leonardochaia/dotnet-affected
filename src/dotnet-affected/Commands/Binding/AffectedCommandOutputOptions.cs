@@ -11,17 +11,20 @@ namespace Affected.Cli.Commands
             string repositoryPath,
             string? outputDir,
             string outputName,
+            string? excludePattern,
             string[] formatters,
             bool dryRun)
         {
             OutputDir = DetermineOutputDir(repositoryPath, outputDir);
             OutputName = outputName;
+            ExcludePattern = excludePattern;
             Formatters = formatters;
             DryRun = dryRun;
         }
 
         public string OutputDir { get; }
         public string OutputName { get; }
+        public string? ExcludePattern { get; }
         public string[] Formatters { get; }
         public bool DryRun { get; }
 
