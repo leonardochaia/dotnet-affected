@@ -1,9 +1,10 @@
-﻿using Microsoft.Build.Graph;
+﻿using DotnetAffected.Core.Extensions;
+using Microsoft.Build.Graph;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DotnetAffected.Core
+namespace DotnetAffected.Core.Extensions
 {
     /// <summary>
     /// Extension methods over <see cref="ProjectGraphNode"/>.
@@ -87,6 +88,26 @@ namespace DotnetAffected.Core
 
                 yield return node;
             }
+        }
+
+        /// <summary>
+        /// In this method all filters on the ProjectsGraphNodes are applied. Yet only the regex filter is implemented, but this method could grow with more filter functionality.
+        /// Ideas for the future: Filter by projects size? Exclude specific paths? etc.
+        /// </summary>
+        /// <param name="projectGraphNodes">The projectGraphNodes objects to filter</param>
+        /// <param name="options">The affected options which transport the filters</param>
+        /// <returns></returns>
+        public static IEnumerable<ProjectGraphNode> ExcludeProjects(
+            this IEnumerable<ProjectGraphNode> projectGraphNodes,
+            AffectedOptions options)
+        {
+            if (options.RegexExcludeFilter != null)
+            {
+                projectGraphNodes = projectGraphNodes.Exclude(nodes => nodes.GetProjectName(),
+                    options.RegexExcludeFilter);
+            }
+
+            return projectGraphNodes;
         }
     }
 }

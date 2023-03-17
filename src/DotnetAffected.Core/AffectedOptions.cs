@@ -1,4 +1,6 @@
 ﻿using DotnetAffected.Abstractions;
+using DotnetAffected.Core.Extensions;
+using DotnetAffected.Core.Filter;
 using System;
 using System.IO;
 
@@ -14,16 +16,19 @@ namespace DotnetAffected.Core
         /// </summary>
         /// <param name="repositoryPath">Will default to <see cref="Environment.CurrentDirectory"/> if not provided</param>
         /// <param name="solutionPath"></param>
+        /// <param name="excludeFilterString">The regexString which project names to filter out</param>
         /// <param name="fromRef"></param>
         /// <param name="toRef"></param>
         public AffectedOptions(
             string? repositoryPath = null,
             string? solutionPath = null,
+            string? excludeFilterString = null,
             string? fromRef = null,
             string? toRef = null)
         {
             RepositoryPath = DetermineRepositoryPath(repositoryPath, solutionPath);
             SolutionPath = solutionPath;
+            RegexExcludeFilter = excludeFilterString?.BuildRegexFilter();
             FromRef = fromRef ?? string.Empty;
             ToRef = toRef ?? string.Empty;
         }
@@ -37,6 +42,12 @@ namespace DotnetAffected.Core
         /// Gets the path to the solution file, if any.
         /// </summary>
         public string? SolutionPath { get; }
+
+        /// <summary>
+        /// Gets the RegexExcludeFilter if provided.
+        /// Could change in the future to a collection of IFilter, if further filters will be implemented.
+        /// </summary>
+        public RegexFilter? RegexExcludeFilter { get; }
 
         /// <summary>
         /// Gets the reference from which to compare changes to.

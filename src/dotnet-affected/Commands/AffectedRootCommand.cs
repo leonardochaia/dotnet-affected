@@ -1,6 +1,4 @@
 ﻿using Affected.Cli.Views;
-using Affected.Cli.Extensions;
-using System;
 using System.CommandLine;
 using System.CommandLine.Rendering;
 using System.Linq;
@@ -13,7 +11,6 @@ namespace Affected.Cli.Commands
         public static readonly DryRunOption DryRunOption = new();
         public static readonly OutputDirOption OutputDirOption = new();
         public static readonly OutputNameOption OutputNameOption = new();
-        public static readonly ExcludePatternOption ExcludePatternOption = new();
 
         public AffectedRootCommand()
             : base("Determines which projects are affected by a set of changes.\n" +
@@ -25,6 +22,7 @@ namespace Affected.Cli.Commands
 
             this.AddGlobalOption(AffectedGlobalOptions.RepositoryPathOptions);
             this.AddGlobalOption(AffectedGlobalOptions.SolutionPathOption);
+            this.AddGlobalOption(AffectedGlobalOptions.ExcludePatternOption);
             this.AddGlobalOption(AffectedGlobalOptions.VerboseOption);
             this.AddGlobalOption(AffectedGlobalOptions.AssumeChangesOption);
             this.AddGlobalOption(AffectedGlobalOptions.FromOption);
@@ -34,7 +32,6 @@ namespace Affected.Cli.Commands
             this.AddOption(DryRunOption);
             this.AddOption(OutputDirOption);
             this.AddOption(OutputNameOption);
-            this.AddOption(ExcludePatternOption);
 
             this.SetHandler(async ctx =>
             {
@@ -56,11 +53,6 @@ namespace Affected.Cli.Commands
 
                 // Generate output using formatters
                 var outputOptions = ctx.GetAffectedCommandOutputOptions(options);
-
-                if (!String.IsNullOrEmpty(outputOptions.ExcludePattern))
-                {
-                    allProjects = allProjects.RegexExclude(project => project.Name, outputOptions.ExcludePattern);
-                }
 
                 var formatterExecutor = new OutputFormatterExecutor(console);
                 await formatterExecutor.Execute(
@@ -129,18 +121,6 @@ namespace Affected.Cli.Commands
             this.Description = "The filename to create.\n" +
                                "Format file extensions will be appended.";
             this.SetDefaultValue("affected");
-        }
-    }
-    
-    internal sealed class ExcludePatternOption : Option<string>
-    {
-        public ExcludePatternOption()
-            : base(new[]
-            {
-                "--exclude"
-            })
-        {
-            this.Description = "A regex pattern which projects names to exclude.";
         }
     }
 }

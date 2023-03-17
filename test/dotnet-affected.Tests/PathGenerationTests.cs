@@ -81,7 +81,6 @@ namespace Affected.Cli.Tests
                 repositoryPath,
                 outputDir,
                 "affected",
-                null,
                 Array.Empty<string>(),
                 true);
 

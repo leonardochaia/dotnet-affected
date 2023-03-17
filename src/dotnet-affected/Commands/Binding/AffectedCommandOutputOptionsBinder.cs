@@ -19,7 +19,6 @@ namespace Affected.Cli.Commands
                 _options.RepositoryPath,
                 result.GetValueForOption(AffectedRootCommand.OutputDirOption)!,
                 result.GetValueForOption(AffectedRootCommand.OutputNameOption)!,
-                result.GetValueForOption(AffectedRootCommand.ExcludePatternOption)!,
                 result.GetValueForOption(AffectedRootCommand.FormatOption)!,
                 result.GetValueForOption(AffectedRootCommand.DryRunOption)
             );

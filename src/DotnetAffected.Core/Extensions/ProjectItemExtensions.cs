@@ -1,7 +1,7 @@
 ﻿using Microsoft.Build.Evaluation;
 using System.Diagnostics.CodeAnalysis;
 
-namespace DotnetAffected.Core
+namespace DotnetAffected.Core.Extensions
 {
     internal static class ProjectItemExtensions
     {

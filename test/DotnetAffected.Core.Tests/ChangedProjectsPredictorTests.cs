@@ -1,4 +1,5 @@
 ﻿using DotnetAffected.Abstractions;
+using DotnetAffected.Core.Extensions;
 using DotnetAffected.Testing.Utils;
 using Microsoft.Build.Graph;
 using System.IO;

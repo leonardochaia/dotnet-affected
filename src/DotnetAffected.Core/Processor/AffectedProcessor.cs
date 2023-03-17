@@ -1,5 +1,6 @@
 ﻿using DotnetAffected.Abstractions;
 using DotnetAffected.Core.FileSystem;
+using DotnetAffected.Core.Extensions;
 using Microsoft.Build.Graph;
 using System.Collections.Generic;
 using System.IO;
@@ -33,23 +34,19 @@ namespace DotnetAffected.Core.Processor
         }
 
         /// <inheritdoc/>
-        protected override ProjectGraphNode[] DiscoverAffectedProjects(AffectedProcessorContext context)
+        protected override IEnumerable<ProjectGraphNode> DiscoverAffectedProjects(AffectedProcessorContext context)
             => DetermineAffectedProjects(context.ChangedProjects, DiscoverProjectsWithExclusivePackageChanges(context));
 
-        private ProjectGraphNode[] DetermineAffectedProjects(ProjectGraphNode[] changedProjects,
+        private IEnumerable<ProjectGraphNode> DetermineAffectedProjects(ProjectGraphNode[] changedProjects,
             IEnumerable<ProjectGraphNode> projectsWithChangedPackages)
         {
             // Find projects that depend on the changed projects + projects affected by nuget
             var output = changedProjects.FindReferencingProjects()
-                .Concat(projectsWithChangedPackages.SelectMany(p => new[]
-                {
-                    p
-                }.Concat(p.FindReferencingProjects())))
-                .Deduplicate()
+                .Concat(projectsWithChangedPackages.SelectMany(p => new[] {p}.Concat(p.FindReferencingProjects())))
+                .Deduplicate();
                 // .Except(changedProjects)
-                .ToArray();
 
-            return output;
+                return output;
         }
 
         /// <summary>

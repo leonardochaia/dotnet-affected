@@ -1,4 +1,5 @@
 ﻿using DotnetAffected.Abstractions;
+using DotnetAffected.Core.Extensions;
 using Microsoft.Build.Graph;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,24 +22,25 @@ namespace DotnetAffected.Core.Processor
             context.ChangedFiles = DiscoverChangedFiles(context).ToArray();
 
             // Map the files that changed to their corresponding project/s.
-            context.ChangedProjects = DiscoverProjectsForFiles(context).ToArray();
+            context.ChangedProjects = DiscoverProjectsForFiles(context).ExcludeProjects(context.Options).ToArray();
 
             // Get packages that have changed, either from central package management or from the project file
             context.ChangedPackages = DiscoverPackageChanges(context);
 
             // Determine which projects are affected by the projects and packages that have changed.
-            context.AffectedProjects = DiscoverAffectedProjects(context);
+            context.AffectedProjects = DiscoverAffectedProjects(context).ExcludeProjects(context.Options).ToArray();
 
             // Output a summary of the operation.
-            return new AffectedSummary(context.ChangedFiles, context.ChangedProjects, context.AffectedProjects, context.ChangedPackages);
+            return new AffectedSummary(context.ChangedFiles, context.ChangedProjects, context.AffectedProjects,
+                context.ChangedPackages);
         }
-        
+
         /// <summary>
         /// Discover which files have changes
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        protected virtual IEnumerable<string> DiscoverChangedFiles(AffectedProcessorContext context) 
+        protected virtual IEnumerable<string> DiscoverChangedFiles(AffectedProcessorContext context)
             => context.ChangesProvider.GetChangedFiles(context.RepositoryPath, context.FromRef, context.ToRef);
 
         /// <summary>
@@ -49,7 +51,8 @@ namespace DotnetAffected.Core.Processor
         protected virtual IEnumerable<ProjectGraphNode> DiscoverProjectsForFiles(AffectedProcessorContext context)
         {
             // We init now because we want the graph to initialize late (lazy)
-            var provider = context.ChangedProjectsProvider ?? new PredictionChangedProjectsProvider(context.Graph, context.Options);
+            var provider = context.ChangedProjectsProvider ??
+                           new PredictionChangedProjectsProvider(context.Graph, context.Options);
             // Match which files belong to which of our known projects
             return provider.GetReferencingProjects(context.ChangedFiles);
         }
@@ -66,6 +69,6 @@ namespace DotnetAffected.Core.Processor
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        protected abstract ProjectGraphNode[] DiscoverAffectedProjects(AffectedProcessorContext context);
+        protected abstract IEnumerable<ProjectGraphNode> DiscoverAffectedProjects(AffectedProcessorContext context);
     }
 }

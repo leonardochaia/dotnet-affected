@@ -1,4 +1,5 @@
 ﻿using DotnetAffected.Core;
+using DotnetAffected.Core.Filter;
 using System.CommandLine.Binding;
 
 namespace Affected.Cli.Commands
@@ -14,6 +15,7 @@ namespace Affected.Cli.Commands
             return new AffectedOptions(
                 parseResult.GetValueForOption(AffectedGlobalOptions.RepositoryPathOptions),
                 parseResult.GetValueForOption(AffectedGlobalOptions.SolutionPathOption),
+                parseResult.GetValueForOption(AffectedGlobalOptions.ExcludePatternOption),
                 parseResult.GetValueForOption(AffectedGlobalOptions.FromOption),
                 parseResult.GetValueForOption(AffectedGlobalOptions.ToOption)
             );

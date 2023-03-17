@@ -32,4 +32,8 @@
         <ProjectReference Include="$(SourcesPath)DotnetAffected.Core\DotnetAffected.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Extensions" />
+    </ItemGroup>
+
 </Project>

@@ -1,4 +1,5 @@
 ﻿using DotnetAffected.Testing.Utils;
+using DotnetAffected.Core.Extensions;
 using System.Linq;
 using Xunit;
 

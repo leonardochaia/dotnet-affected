@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DotnetAffected.Core
+namespace DotnetAffected.Core.Extensions
 {
     /// <summary>
     /// Extensions methods for <see cref="ProjectGraphNode"/>

@@ -1,4 +1,5 @@
 ﻿using DotnetAffected.Abstractions;
+using DotnetAffected.Core.Extensions;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Graph;
 using System.Collections.Generic;

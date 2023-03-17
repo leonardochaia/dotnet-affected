@@ -1,4 +1,4 @@
-﻿using DotnetAffected.Core;
+﻿using DotnetAffected.Core.Extensions;
 using DotnetAffected.Testing.Utils;
 using Microsoft.Build.Graph;
 using Xunit;

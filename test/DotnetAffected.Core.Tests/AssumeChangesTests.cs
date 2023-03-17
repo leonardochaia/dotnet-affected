@@ -1,5 +1,6 @@
 ﻿using DotnetAffected.Abstractions;
 using DotnetAffected.Testing.Utils;
+using DotnetAffected.Core.Extensions;
 using System;
 using System.Linq;
 using Xunit;

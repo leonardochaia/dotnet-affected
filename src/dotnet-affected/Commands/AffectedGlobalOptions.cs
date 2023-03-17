@@ -21,6 +21,14 @@ namespace Affected.Cli.Commands
             },
             description: "Path to a Solution file (.sln) used to discover projects that may be affected.\n" +
                          "When omitted, will search for project files inside --repository-path.");
+        
+        public static readonly Option<string> ExcludePatternOption = new(
+            aliases: new[]
+                {
+                    "--exclude"
+                },
+                description: "A regex pattern which projects names to exclude.");
+
 
         public static readonly Option<bool> VerboseOption = new(aliases: new[]
             {

@@ -1,4 +1,4 @@
-﻿using DotnetAffected.Core;
+﻿using DotnetAffected.Core.Extensions;
 using Microsoft.Build.Graph;
 
 namespace Affected.Cli

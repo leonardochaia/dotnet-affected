@@ -1,4 +1,5 @@
 ﻿using DotnetAffected.Testing.Utils;
+using DotnetAffected.Core.Extensions;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
