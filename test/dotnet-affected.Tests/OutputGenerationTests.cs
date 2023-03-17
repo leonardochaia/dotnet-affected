@@ -24,7 +24,7 @@ namespace Affected.Cli.Tests
             var msBuildProject = this.Repository.CreateCsProject(projectName);
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {Repository.Path} -f text");
+                await this.InvokeAsync($"-p \"{Repository.Path}\" -f text");
 
             var destination = Path.Combine(Repository.Path, "affected.txt");
             var outputContents = await File.ReadAllTextAsync(destination);
@@ -43,7 +43,7 @@ namespace Affected.Cli.Tests
             var msBuildProject = this.Repository.CreateCsProject(projectName);
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {Repository.Path} -f text --output-dir relative/");
+                await this.InvokeAsync($"-p \"{Repository.Path}\" -f text --output-dir relative/");
 
             var destination = Path.Combine(Repository.Path, "relative/affected.txt");
 
@@ -65,7 +65,7 @@ namespace Affected.Cli.Tests
             this.Repository.CreateCsProject(projectName);
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {Repository.Path} --dry-run --output-name to-build");
+                await this.InvokeAsync($"-p \"{Repository.Path}\" --dry-run --output-name to-build");
 
             Assert.Equal(0, exitCode);
 
@@ -80,7 +80,7 @@ namespace Affected.Cli.Tests
             this.Repository.CreateCsProject(projectName);
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {Repository.Path} --dry-run --output-name to-build.whatever");
+                await this.InvokeAsync($"-p \"{Repository.Path}\" --dry-run --output-name to-build.whatever");
 
             Assert.Equal(0, exitCode);
 

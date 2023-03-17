@@ -37,7 +37,7 @@ namespace DotnetAffected.Tasks
         {
             try
             {
-                var affectedOptions = new AffectedOptions(Root, null, FromRef ?? "", ToRef ?? "");
+                var affectedOptions = new AffectedOptions(Root, null, null, FromRef ?? "", ToRef ?? "");
 
                 if (AssumeChanges is not null
                     && AssumeChanges.Length > 0
