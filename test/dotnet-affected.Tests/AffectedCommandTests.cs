@@ -1,4 +1,5 @@
 ﻿using DotnetAffected.Testing.Utils;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Xunit;
@@ -22,11 +23,11 @@ namespace Affected.Cli.Tests
         public async Task When_any_changes_should_output_traversal_sdk()
         {
             // Create a project
-            var projectName = "InventoryManagement";
+            const string projectName = "InventoryManagement";
             var msBuildProject = this.Repository.CreateCsProject(projectName);
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {Repository.Path} --dry-run");
+                await this.InvokeAsync($"-p \"{Repository.Path}\" --dry-run");
 
             Assert.Equal(0, exitCode);
 
@@ -39,11 +40,11 @@ namespace Affected.Cli.Tests
         public async Task When_any_changes_using_text_formatter_should_output_text()
         {
             // Create a project
-            var projectName = "InventoryManagement";
+            const string projectName = "InventoryManagement";
             var msBuildProject = this.Repository.CreateCsProject(projectName);
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {Repository.Path} --dry-run -f text");
+                await this.InvokeAsync($"-p \"{Repository.Path}\" --dry-run -f text");
 
             Assert.Equal(0, exitCode);
 
@@ -55,11 +56,11 @@ namespace Affected.Cli.Tests
         public async Task When_any_changes_and_verbosity_should_output_changed_and_affected_projects()
         {
             // Create a project
-            var projectName = "InventoryManagement";
+            const string projectName = "InventoryManagement";
             this.Repository.CreateCsProject(projectName);
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {Repository.Path} -f text --verbose");
+                await this.InvokeAsync($"-p \"{Repository.Path}\" -f text --verbose");
 
             Assert.Equal(0, exitCode);
 
@@ -72,11 +73,11 @@ namespace Affected.Cli.Tests
         public async Task When_any_changes_using_multiple_formatter_should_output()
         {
             // Create a project
-            var projectName = "InventoryManagement";
+            const string projectName = "InventoryManagement";
             this.Repository.CreateCsProject(projectName);
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {Repository.Path} --dry-run -f traversal text");
+                await this.InvokeAsync($"-p \"{Repository.Path}\" --dry-run -f traversal text");
 
             Assert.Equal(0, exitCode);
 
@@ -88,18 +89,41 @@ namespace Affected.Cli.Tests
         public async Task When_no_changes_should_exit_with_code()
         {
             // Create a project
-            var projectName = "InventoryManagement";
+            const string projectName = "InventoryManagement";
             this.Repository.CreateCsProject(projectName);
 
             // Commit so there are no changes.
             this.Repository.StageAndCommit();
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {Repository.Path} --dry-run -f text");
+                await this.InvokeAsync($"-p \"{Repository.Path}\" --dry-run -f text");
 
             Assert.Equal(AffectedExitCodes.NothingChanged, exitCode);
 
             Assert.Contains($"No affected projects where found for the current changes", output);
+        }
+
+        [Fact]
+        public async Task When_exclude_provided_should_exclude_projects()
+        {
+            // Create projects
+            const string projectName = "InventoryManagement";
+            this.Repository.CreateCsProject(projectName);
+            this.Repository.CreateCsProject($"{projectName}.Core");
+            this.Repository.CreateCsProject($"{projectName}.Tests");
+            this.Repository.CreateCsProject($"{projectName}.Tests.Core");
+            this.Repository.CreateCsProject($"{projectName}.PerformanceTests");
+            
+            var (output, exitCode) =
+                await this.InvokeAsync($"-p \"{Repository.Path}\" --exclude Tests --dry-run");
+
+            Assert.Equal(AffectedExitCodes.Successful, exitCode);
+            
+            Assert.Contains(projectName, output);
+            Assert.Contains($"{projectName}.Core", output);
+            Assert.DoesNotContain($"{projectName}.Tests", output);
+            Assert.DoesNotContain($"{projectName}.Tests.Core", output);
+            Assert.DoesNotContain($"{projectName}.PerformanceTests", output);
         }
     }
 }
