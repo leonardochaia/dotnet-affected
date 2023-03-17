@@ -27,13 +27,13 @@ namespace Affected.Cli.Tests
             var msBuildProject = this.Repository.CreateCsProject(projectName);
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {Repository.Path} --dry-run");
+                await this.InvokeAsync($"-p \"{Repository.Path}\" --dry-run");
 
             Assert.Equal(0, exitCode);
 
             Assert.Contains($"WRITE {Path.Combine(Repository.Path, "affected.proj")}", output);
             Assert.Contains($"Microsoft.Build.Traversal", output);
-            Assert.Contains($"Include={msBuildProject.FullPath}", output);
+            Assert.Contains($"Include=\"{msBuildProject.FullPath}\"", output);
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace Affected.Cli.Tests
             var msBuildProject = this.Repository.CreateCsProject(projectName);
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {Repository.Path} --dry-run -f text");
+                await this.InvokeAsync($"-p \"{Repository.Path}\" --dry-run -f text");
 
             Assert.Equal(0, exitCode);
 
@@ -60,7 +60,7 @@ namespace Affected.Cli.Tests
             this.Repository.CreateCsProject(projectName);
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {Repository.Path} -f text --verbose");
+                await this.InvokeAsync($"-p \"{Repository.Path}\" -f text --verbose");
 
             Assert.Equal(0, exitCode);
 
@@ -77,7 +77,7 @@ namespace Affected.Cli.Tests
             this.Repository.CreateCsProject(projectName);
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {Repository.Path} --dry-run -f traversal text");
+                await this.InvokeAsync($"-p \"{Repository.Path}\" --dry-run -f traversal text");
 
             Assert.Equal(0, exitCode);
 
@@ -96,7 +96,7 @@ namespace Affected.Cli.Tests
             this.Repository.StageAndCommit();
 
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {Repository.Path} --dry-run -f text");
+                await this.InvokeAsync($"-p \"{Repository.Path}\" --dry-run -f text");
 
             Assert.Equal(AffectedExitCodes.NothingChanged, exitCode);
 
@@ -115,7 +115,7 @@ namespace Affected.Cli.Tests
             this.Repository.CreateCsProject($"{projectName}.PerformanceTests");
             
             var (output, exitCode) =
-                await this.InvokeAsync($"-p {Repository.Path} --exclude Tests --dry-run");
+                await this.InvokeAsync($"-p \"{Repository.Path}\" --exclude Tests --dry-run");
 
             Assert.Equal(AffectedExitCodes.Successful, exitCode);
             
