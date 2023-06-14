@@ -121,6 +121,8 @@ namespace Affected.Cli.Tests
 
             Assert.Contains($"Include=\"{msBuildProject.FullPath}\"", output);
             Assert.DoesNotContain($"PurchasingManagement", output);
+
+            Assert.Contains($"3 projects were excluded", output);
         }
     }
 }

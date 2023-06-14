@@ -12,6 +12,7 @@ namespace Affected.Cli.Views
                                 $"referenced by {summary.ProjectsWithChangedFiles.Count()} projects"));
             Add(new ContentView($"{summary.ChangedPackages.Count()} NuGet Packages have changed"));
             Add(new ContentView($"{summary.AffectedProjects.Count()} projects are affected by these changes"));
+            Add(new ContentView($"{summary.ExcludedProjects.Count()} projects were excluded"));
 
             Add(new WithChangesAndAffectedView(summary));
         }
