@@ -101,5 +101,26 @@ namespace Affected.Cli.Tests
 
             Assert.Contains($"No affected projects where found for the current changes", output);
         }
+
+        [Fact]
+        public async Task When_any_changes_using_exclusion_should_exclude_projects()
+        {
+            // Create a project
+            var projectName = "InventoryManagement";
+            var msBuildProject = this.Repository.CreateCsProject(projectName);
+
+            // Create projects to exclude
+            this.Repository.CreateCsProject("PurchasingManagement");
+            this.Repository.CreateFsProject("PurchasingManagement.Api");
+            this.Repository.CreateVbProject("PurchasingManagement.Api2");
+
+            var (output, exitCode) =
+                await this.InvokeAsync($"-p {Repository.Path} --dry-run --verbose --exclude .Purchasing.");
+
+            Assert.Equal(0, exitCode);
+
+            Assert.Contains($"Include=\"{msBuildProject.FullPath}\"", output);
+            Assert.DoesNotContain($"PurchasingManagement", output);
+        }
     }
 }

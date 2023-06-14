@@ -45,6 +45,13 @@ namespace Affected.Cli.Commands
             description: "A branch or commit to compare against --to.");
 
         public static readonly ToOption ToOption = new(FromOption);
+
+        public static readonly Option<string> ExclusionRegexOption = new(
+            new[]
+            {
+                "--exclude", "-e"
+            },
+            description: "A dotnet Regular Expression used to exclude discovered and affected projects.");
     }
 
     internal sealed class ToOption : Option<string>
