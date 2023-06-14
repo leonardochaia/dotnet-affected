@@ -13,16 +13,19 @@ namespace DotnetAffected.Abstractions
         /// <param name="filesThatChanged"></param>
         /// <param name="projectsWithChangedFiles"></param>
         /// <param name="affectedProjects"></param>
+        /// <param name="excludedProjects"></param>
         /// <param name="changedPackages"></param>
         public AffectedSummary(
             string[] filesThatChanged,
             ProjectGraphNode[] projectsWithChangedFiles,
             ProjectGraphNode[] affectedProjects,
+            ProjectGraphNode[] excludedProjects,
             PackageChange[] changedPackages)
         {
             FilesThatChanged = filesThatChanged;
             ProjectsWithChangedFiles = projectsWithChangedFiles;
             AffectedProjects = affectedProjects;
+            ExcludedProjects = excludedProjects;
             ChangedPackages = changedPackages;
         }
 
@@ -40,6 +43,11 @@ namespace DotnetAffected.Abstractions
         /// Gets a list of projects that are affected by the <see cref="FilesThatChanged"/>.
         /// </summary>
         public ProjectGraphNode[] AffectedProjects { get; }
+
+        /// <summary>
+        /// Gets a list of projects that had changes or were affected but were excluded from discovery.
+        /// </summary>
+        public ProjectGraphNode[] ExcludedProjects { get; }
 
         /// <summary>
         /// Gets the list of packages that changed.

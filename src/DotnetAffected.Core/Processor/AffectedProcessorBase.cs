@@ -23,17 +23,27 @@ namespace DotnetAffected.Core.Processor
                 .ToArray();
 
             // Map the files that changed to their corresponding project/s.
-            context.ChangedProjects = ApplyExclusionPattern(DiscoverProjectsForFiles(context), context.Options)
-                .ToArray();
+            var excludedProjects = new List<ProjectGraphNode>();
+            context.ChangedProjects = ApplyExclusionPattern(
+                DiscoverProjectsForFiles(context),
+                context.Options,
+                excludedProjects);
 
             // Get packages that have changed, either from central package management or from the project file
             context.ChangedPackages = DiscoverPackageChanges(context);
 
             // Determine which projects are affected by the projects and packages that have changed.
-            context.AffectedProjects = DiscoverAffectedProjects(context);
+            context.AffectedProjects = ApplyExclusionPattern(
+                DiscoverAffectedProjects(context),
+                context.Options,
+                excludedProjects);
 
             // Output a summary of the operation.
-            return new AffectedSummary(context.ChangedFiles, context.ChangedProjects, context.AffectedProjects,
+            return new AffectedSummary(
+                context.ChangedFiles,
+                context.ChangedProjects,
+                context.AffectedProjects,
+                excludedProjects.ToArray(),
                 context.ChangedPackages);
         }
 
@@ -63,19 +73,31 @@ namespace DotnetAffected.Core.Processor
         /// Applies the <see cref="AffectedOptions.ExclusionRegex"/> to exclude
         /// projects that matches the regular expression.
         /// </summary>
-        /// <param name="changedProjects">List of projects that changed.</param>
+        /// <param name="inputProjects">List of projects that changed.</param>
         /// <param name="options">Affected options.</param>
+        /// <param name="excludedProjects">Collection of excluded projects</param>
         /// <returns>Project lis excluding the ones that matches the exclusion regex.</returns>
-        protected virtual IEnumerable<ProjectGraphNode> ApplyExclusionPattern(
-            IEnumerable<ProjectGraphNode> changedProjects,
-            AffectedOptions options)
+        protected virtual ProjectGraphNode[] ApplyExclusionPattern(
+            IEnumerable<ProjectGraphNode> inputProjects,
+            AffectedOptions options,
+            ICollection<ProjectGraphNode> excludedProjects)
         {
             var pattern = options.ExclusionRegex;
-            if (string.IsNullOrEmpty(pattern))
-                return changedProjects;
 
+            if (string.IsNullOrEmpty(pattern))
+                return inputProjects.ToArray();
+
+            var changedProjects = new List<ProjectGraphNode>();
             var regex = new Regex(pattern);
-            return changedProjects.Where(p => !regex.IsMatch(p.GetFullPath()));
+            foreach (var project in inputProjects)
+            {
+                if (regex.IsMatch(project.GetFullPath()))
+                    excludedProjects.Add(project);
+                else
+                    changedProjects.Add(project);
+            }
+
+            return changedProjects.ToArray();
         }
 
         /// <summary>
