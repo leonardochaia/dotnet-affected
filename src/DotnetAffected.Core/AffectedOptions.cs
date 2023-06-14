@@ -16,16 +16,19 @@ namespace DotnetAffected.Core
         /// <param name="solutionPath"></param>
         /// <param name="fromRef"></param>
         /// <param name="toRef"></param>
+        /// <param name="exclusionRegex"></param>
         public AffectedOptions(
             string? repositoryPath = null,
             string? solutionPath = null,
             string? fromRef = null,
-            string? toRef = null)
+            string? toRef = null,
+            string? exclusionRegex = null)
         {
             RepositoryPath = DetermineRepositoryPath(repositoryPath, solutionPath);
             SolutionPath = solutionPath;
             FromRef = fromRef ?? string.Empty;
             ToRef = toRef ?? string.Empty;
+            ExclusionRegex = exclusionRegex;
         }
 
         /// <summary>
@@ -47,6 +50,11 @@ namespace DotnetAffected.Core
         /// Gets the reference up to which changes will be compared from.
         /// </summary>
         public string ToRef { get; }
+
+        /// <summary>
+        /// Gets the regular expression to use for excluding projects.
+        /// </summary>
+        public string? ExclusionRegex { get; }
 
         private static string DetermineRepositoryPath(string? repositoryPath, string? solutionPath)
         {
