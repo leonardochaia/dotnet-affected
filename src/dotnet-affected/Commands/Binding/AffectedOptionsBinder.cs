@@ -15,7 +15,8 @@ namespace Affected.Cli.Commands
                 parseResult.GetValueForOption(AffectedGlobalOptions.RepositoryPathOptions),
                 parseResult.GetValueForOption(AffectedGlobalOptions.SolutionPathOption),
                 parseResult.GetValueForOption(AffectedGlobalOptions.FromOption),
-                parseResult.GetValueForOption(AffectedGlobalOptions.ToOption)
+                parseResult.GetValueForOption(AffectedGlobalOptions.ToOption),
+                parseResult.GetValueForOption(AffectedGlobalOptions.ExclusionRegexOption)
             );
         }
     }

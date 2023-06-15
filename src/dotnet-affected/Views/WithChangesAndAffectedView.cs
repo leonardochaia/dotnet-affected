@@ -29,13 +29,16 @@ namespace Affected.Cli.Views
 
             Add(new ContentView("\nAffected Projects"));
 
-            if (!summary.AffectedProjects.Any())
-            {
+            if (summary.AffectedProjects.Any())
+                Add(new ProjectInfoTable(summary.AffectedProjects));
+            else
                 Add(new ContentView("No projects where affected by any of the changed projects."));
-                return;
-            }
 
-            Add(new ProjectInfoTable(summary.AffectedProjects));
+            if (summary.ExcludedProjects.Any())
+            {
+                Add(new ContentView("\nExcluded Projects"));
+                Add(new ProjectInfoTable(summary.ExcludedProjects));
+            }
         }
     }
 }

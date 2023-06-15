@@ -26,6 +26,7 @@ namespace Affected.Cli.Commands
             this.AddGlobalOption(AffectedGlobalOptions.AssumeChangesOption);
             this.AddGlobalOption(AffectedGlobalOptions.FromOption);
             this.AddGlobalOption(AffectedGlobalOptions.ToOption);
+            this.AddGlobalOption(AffectedGlobalOptions.ExclusionRegexOption);
 
             this.AddOption(FormatOption);
             this.AddOption(DryRunOption);
@@ -74,7 +75,7 @@ namespace Affected.Cli.Commands
             })
         {
             this.Description = "Space-seperated output file formats. Possible values: <traversal, text, json>.";
-            
+
             this.SetDefaultValue(new[]
             {
                 "traversal"
