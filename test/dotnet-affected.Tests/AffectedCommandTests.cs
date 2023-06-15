@@ -110,7 +110,7 @@ namespace Affected.Cli.Tests
             var msBuildProject = this.Repository.CreateCsProject(projectName);
 
             // Create projects to exclude
-            this.Repository.CreateCsProject("PurchasingManagement");
+            var otherProject = this.Repository.CreateCsProject("PurchasingManagement");
             this.Repository.CreateFsProject("PurchasingManagement.Api");
             this.Repository.CreateVbProject("PurchasingManagement.Api2");
 
@@ -120,9 +120,10 @@ namespace Affected.Cli.Tests
             Assert.Equal(0, exitCode);
 
             Assert.Contains($"Include=\"{msBuildProject.FullPath}\"", output);
-            Assert.DoesNotContain($"PurchasingManagement", output);
+            Assert.DoesNotContain($"Include=\"{otherProject.FullPath}\"", output);
 
             Assert.Contains($"3 projects were excluded", output);
+            Assert.Contains($"Excluded Projects", output);
         }
     }
 }
