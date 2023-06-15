@@ -271,6 +271,39 @@ WRITE: /home/lchaia/dev/dotnet-affected/affected.proj
 WRITE: /home/lchaia/dev/dotnet-affected/affected.json
 ```
 
+## Excluding Projects
+
+Projects can be excluded by using the `--exclude` (shorthand `-e`) argument. It expects a dotnet Regular Expression
+that will be matched against each Project's Full Path.
+
+In the below example, `dotnet-affected.Tests` is excluded due to the regular expression provided.
+```shell
+$ dotnet affected --dry-run --verbose -e .Tests.
+1 files have changed referenced by 1 projects
+0 NuGet Packages have changed
+1 projects are affected by these changes
+1 projects were excluded
+Changed Projects
+Name                        Path                                                                                                    
+dotnet-affected             /home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj                             
+                 
+Affected Projects
+Name                        Path                                                                                                    
+dotnet-affected.Benchmarks  /home/lchaia/dev/dotnet-affected/benchmarks/dotnet-affected.Benchmarks/dotnet-affected.Benchmarks.csproj
+                 
+Excluded Projects
+Name                   Path                                                                                    
+dotnet-affected.Tests  /home/lchaia/dev/dotnet-affected/test/dotnet-affected.Tests/dotnet-affected.Tests.csproj
+DRY-RUN: WRITE /home/lchaia/dev/dotnet-affected/affected.proj
+DRY-RUN: CONTENTS:
+<Project Sdk="Microsoft.Build.Traversal/3.0.3">
+  <ItemGroup>
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/benchmarks/dotnet-affected.Benchmarks/dotnet-affected.Benchmarks.csproj" />
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj" />
+  </ItemGroup>
+</Project>
+```
+
 ## Continuous Integration
 
 For usage in CI, it's recommended to use the `--from` and `--to` options with the environment variables provided by your
