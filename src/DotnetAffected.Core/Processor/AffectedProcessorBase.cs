@@ -43,7 +43,8 @@ namespace DotnetAffected.Core.Processor
                 context.ChangedFiles,
                 context.ChangedProjects,
                 context.AffectedProjects,
-                excludedProjects.ToArray(),
+                excludedProjects.Distinct()
+                    .ToArray(),
                 context.ChangedPackages);
         }
 
