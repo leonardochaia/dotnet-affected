@@ -42,8 +42,9 @@ namespace DotnetAffected.Core
             var loaded = ProjectCollection.GetLoadedProjects(projectRootElementFilePath);
             if (loaded.Any())
                 return loaded.Single();
-                
+
             var projectRootElement = CreateProjectRootElement(projectRootElementFilePath);
+            // TODO
             return Project
                 .FromProjectRootElement(projectRootElement, new ProjectOptions
                 {

@@ -265,6 +265,7 @@ In most cases it is automatically resolved using the following logic:
     - If >= `17.0.0` it will resolve to `net6.0`
     - Else if >= `16.11.0` it will resolve to `net5.0`
     - Else it will resolve to `netcoreapp3.1`
+    - TODO
 
 If you have issues, you can override the logic by specifically setting the `<TargetFramework>`.
 
