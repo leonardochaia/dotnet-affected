@@ -28,8 +28,6 @@ namespace DotnetAffected.Tasks.Tests
 
             switch (majorVersion)
             {
-                case 3:
-                    return "netcoreapp3.1";
                 case >= 5:
                     return $"net{majorVersion}.0";
                 default:

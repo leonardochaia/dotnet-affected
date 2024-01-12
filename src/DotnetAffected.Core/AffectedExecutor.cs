@@ -38,8 +38,6 @@ namespace DotnetAffected.Core
         }
 
         /// <inheritdoc />
-        public AffectedSummary Execute() => GitChangesProvider.MsBuildFileSystemSupported
-            ? new AffectedProcessor().Process(_context)
-            : new AffectedProcessorLegacy().Process(_context);
+        public AffectedSummary Execute() => new AffectedProcessor().Process(_context);
     }
 }
