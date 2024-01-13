@@ -44,7 +44,6 @@ namespace DotnetAffected.Core
                 return loaded.Single();
 
             var projectRootElement = CreateProjectRootElement(projectRootElementFilePath);
-            // TODO
             return Project
                 .FromProjectRootElement(projectRootElement, new ProjectOptions
                 {
