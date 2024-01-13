@@ -68,7 +68,7 @@ jobs:
 
     - name: Pack
       if: success() && matrix.os == 'ubuntu-latest'
-      run: dotnet pack --no-restore --no-build --include-symbols -p:SymbolPackageFormat=snupkg -o $GITHUB_WORKSPACE/packages
+      run: dotnet pack --no-restore --no-build --configuration Debug --include-symbols -p:SymbolPackageFormat=snupkg -o $GITHUB_WORKSPACE/packages
 
     - uses: actions/upload-artifact@v3
       name: 'Upload Packages'
@@ -82,4 +82,4 @@ jobs:
       if: success() && matrix.os == 'ubuntu-latest'
       with:
         name: artifacts
-        path: src/dotnet-affected/bin/Debug/net7.0/
+        path: src/dotnet-affected/bin/Debug/net8.0/

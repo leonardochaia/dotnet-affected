@@ -93,22 +93,12 @@ namespace DotnetAffected.Core.Tests
             var someLibChanges = AffectedSummary.ChangedPackages.Single(c => c.Name == packageName);
             var otherLibChanges = AffectedSummary.ChangedPackages.Single(c => c.Name == otherPackageName);
 
-#if (NET5_0_OR_GREATER)
             Assert.Equal("3.0.0", someLibChanges.OldVersions.Single());
             Assert.Equal("2.5.0", otherLibChanges.OldVersions.Single());
 
             Assert.Equal("2.0.0", someLibChanges.NewVersions.Single());
             Assert.Equal("3.5.0", otherLibChanges.NewVersions.Single());
-#else
-            Assert.Equal("3.0.0", someLibChanges.OldVersions.Single());
-            Assert.Empty(otherLibChanges.OldVersions);
-
-            Assert.Equal("2.0.0", someLibChanges.NewVersions.Single());
-            Assert.Equal("3.5.0", otherLibChanges.NewVersions.Single());
-#endif
         }
-
-#if (NET5_0_OR_GREATER)
 
         [Fact]
         public void When_directory_packages_props_changes_without_dependant_projects_nothing_should_be_affected()
@@ -306,7 +296,5 @@ namespace DotnetAffected.Core.Tests
             Assert.Equal("1.0.0", changedPackage.OldVersions.Single());
             Assert.Equal("1.1.0", changedPackage.NewVersions.Single());
         }
-
-#endif // NET5_0_OR_GREATER
     }
 }

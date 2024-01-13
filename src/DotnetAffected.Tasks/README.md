@@ -254,7 +254,7 @@ as they don't actually build projects, they just delegate the build to a differe
 own configuration.
 
 However, `DotnetAffected.Tasks` itself contains code to execute in build time, which
-support TFMs `netcore3.1`, `net6.0` and `net7.0`.
+support TFMs `net6.0`, `net7.0` and `net8.0`.
 
 The TFM must be known so the proper TFM facing assembly is used.
 
@@ -265,6 +265,7 @@ In most cases it is automatically resolved using the following logic:
     - If >= `17.0.0` it will resolve to `net6.0`
     - Else if >= `16.11.0` it will resolve to `net5.0`
     - Else it will resolve to `netcoreapp3.1`
+    - TODO
 
 If you have issues, you can override the logic by specifically setting the `<TargetFramework>`.
 
@@ -278,5 +279,5 @@ If you have issues, you can override the logic by specifically setting the `<Tar
 ```
 
 > `DotnetAffected.Tasks` provides MSBuild integration using `DotnetAffected.Core` under the hood.  
-`DotnetAffected.Core` support TFMs `netcore3.1`, `net6.0` and `net7.0`.
+`DotnetAffected.Core` support TFMs `net6.0`, `net7.0` and `net8.0`.
 

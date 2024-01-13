@@ -1,16 +1,11 @@
 ﻿using DotnetAffected.Abstractions;
 using DotnetAffected.Core.FileSystem;
 using LibGit2Sharp;
-using Microsoft.Build.Construction;
-using Microsoft.Build.Definition;
 using Microsoft.Build.Evaluation;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Xml;
 
 namespace DotnetAffected.Core
 {
@@ -20,22 +15,6 @@ namespace DotnetAffected.Core
     public class GitChangesProvider : IChangesProvider
     {
         internal static readonly bool IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-
-        private static readonly Lazy<bool> ResolveMsBuildFileSystemSupported = new Lazy<bool>(() =>
-        {
-            var versionInfo = FileVersionInfo.GetVersionInfo(typeof(Project).Assembly.Location);
-            if (versionInfo.FileMajorPart > 16)
-                return true;
-            if (versionInfo.FileMajorPart < 16)
-                return false;
-            return versionInfo.FileMinorPart >= 10;
-        });
-
-        /// <summary>
-        /// When true, the build system supports virtual filesystem which means nested Directory.Packages.props files
-        /// are supported in central package management.
-        /// </summary>
-        public static bool MsBuildFileSystemSupported => ResolveMsBuildFileSystemSupported.Value;
 
         /// <inheritdoc />
         public IEnumerable<string> GetChangedFiles(string directory, string from, string to)
@@ -52,7 +31,7 @@ namespace DotnetAffected.Core
             bool fallbackToHead)
         {
             var project = LoadProject(directory, pathToFile, commitRef, fallbackToHead);
-            if (project is null && MsBuildFileSystemSupported)
+            if (project is null)
             {
                 var fi = new FileInfo(pathToFile);
                 var parent = fi.Directory?.Parent?.FullName;
@@ -67,9 +46,7 @@ namespace DotnetAffected.Core
         /// <inheritdoc />
         public Project? LoadProject(string directory, string pathToFile, string? commitRef, bool fallbackToHead)
         {
-            return MsBuildFileSystemSupported
-                ? LoadProjectCore(directory, pathToFile, commitRef, fallbackToHead)
-                : LoadProjectLegacy(directory, pathToFile, commitRef, fallbackToHead);
+            return LoadProjectCore(directory, pathToFile, commitRef, fallbackToHead);
         }
 
         private Project? LoadProjectCore(string directory, string pathToFile, string? commitRef, bool fallbackToHead)
@@ -94,64 +71,6 @@ namespace DotnetAffected.Core
                TODO: Delete EagerCachingMsBuildGitFileSystem and this code if/when 7956 is fixed. */
             using var fs = new EagerCachingMsBuildGitFileSystem(repository, commit);
             return fs.FileExists(pathToFile) ? fs.CreateProjectAndEagerLoadChildren(pathToFile) : null;
-        }
-
-        private Project? LoadProjectLegacy(string directory, string pathToFile, string? commitRef, bool fallbackToHead)
-        {
-            Commit? commit;
-
-            using var repository = new Repository(directory);
-
-            if (string.IsNullOrWhiteSpace(commitRef))
-                commit = fallbackToHead ? repository.Head.Tip : null;
-            else
-                commit = GetCommitOrThrow(repository, commitRef);
-
-            Stream GenerateStreamFromString(string s)
-            {
-                var stream = new MemoryStream();
-                var writer = new StreamWriter(stream);
-                writer.Write(s);
-                writer.Flush();
-                stream.Position = 0;
-                return stream;
-            }
-
-            var projectCollection = new ProjectCollection();
-
-            if (commit is null)
-            {
-                var path = Path.Combine(directory, pathToFile);
-                if (!File.Exists(path)) return null;
-
-                using var reader = new XmlTextReader(GenerateStreamFromString(File.ReadAllText(path)));
-                var projectRootElement = ProjectRootElement.Create(reader);
-                projectRootElement.FullPath = pathToFile;
-                return Project.FromProjectRootElement(projectRootElement, new ProjectOptions
-                {
-                    LoadSettings = ProjectLoadSettings.Default, ProjectCollection = projectCollection,
-                });
-            }
-            else
-            {
-                var path = IsWindows
-                    ? Path.GetRelativePath(directory, pathToFile)
-                        .Replace('\\', '/')
-                    : Path.GetRelativePath(directory, pathToFile);
-                var treeEntry = commit[path];
-                if (treeEntry == null) return null;
-
-                var blob = (Blob)treeEntry.Target;
-
-                using var content = new StreamReader(blob.GetContentStream(), Encoding.UTF8);
-                using var reader = new XmlTextReader(GenerateStreamFromString(content.ReadToEnd()));
-                var projectRootElement = ProjectRootElement.Create(reader);
-                projectRootElement.FullPath = pathToFile;
-                return Project.FromProjectRootElement(projectRootElement, new ProjectOptions
-                {
-                    LoadSettings = ProjectLoadSettings.Default, ProjectCollection = projectCollection,
-                });
-            }
         }
 
         private static (Commit? From, Commit To) ParseRevisionRanges(
