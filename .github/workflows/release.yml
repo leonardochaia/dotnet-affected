@@ -70,7 +70,7 @@ jobs:
             exit $exitCode
         fi
 
-    - uses: actions/download-artifact@master
+    - uses: actions/download-artifact@v3
       name: Download Package Artifact
       if: success() && (steps.affected.outputs.should_deploy == 'true' || github.event.inputs.skip_affected || steps.last_successful_commit.outputs.commit_hash == '')
       with:
