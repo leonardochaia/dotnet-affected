@@ -28,10 +28,7 @@ namespace DotnetAffected.Core.Tests
             await this.Repository.CreateTextFileAsync(targetFilePath, "// Initial content");
 
             // Act
-            var projects = this.Provider.GetReferencingProjects(new[]
-                {
-                    targetFilePath,
-                })
+            var projects = this.Provider.GetReferencingProjects(new[] { targetFilePath, })
                 .ToArray();
 
             // Assert
@@ -55,10 +52,7 @@ namespace DotnetAffected.Core.Tests
             await this.Repository.CreateTextFileAsync(targetFilePath2, "// Other content");
 
             // Act
-            var projects = this.Provider.GetReferencingProjects(new[]
-                {
-                    targetFilePath, targetFilePath2
-                })
+            var projects = this.Provider.GetReferencingProjects(new[] { targetFilePath, targetFilePath2 })
                 .ToArray();
 
             // Assert
@@ -82,10 +76,7 @@ namespace DotnetAffected.Core.Tests
             await this.Repository.CreateTextFileAsync(targetFilePath2, "// Initial content");
 
             // Act
-            var projects = this.Provider.GetReferencingProjects(new[]
-                {
-                    targetFilePath, targetFilePath2
-                })
+            var projects = this.Provider.GetReferencingProjects(new[] { targetFilePath, targetFilePath2 })
                 .OrderBy(p => p.GetProjectName())
                 .ToArray();
 
@@ -96,6 +87,35 @@ namespace DotnetAffected.Core.Tests
             Assert.Collection(projects,
                 p => Assert.Equal(project1Node, p),
                 p => Assert.Equal(project2Node, p));
+        }
+
+        /// <summary>
+        /// Covers the case where the project references a file outside the project directory
+        /// using paths that are not normalized.
+        /// affected should compare paths normmalized (Path.GetFullPath) so that the comparison works.
+        /// </summary>
+        [Fact]
+        public async Task FindProjectsWithNonFullPathFilePaths_ShouldFindSingleProject()
+        {
+            // Arrange
+            var project1 = Repository.CreateCsProject("context/Project1", p =>
+            {
+                p.AddItem("None", Path.Combine(Repository.Path, "context/Project1", "../../subdir/file.json"));
+            });
+
+            var targetFilePath = Path.Join(this.Repository.Path, "/subdir/", "file.json");
+            Directory.CreateDirectory(Path.Join(this.Repository.Path, "/subdir/"));
+            await this.Repository.CreateTextFileAsync(targetFilePath, "// Initial content");
+
+            // Act
+            var projects = this.Provider.GetReferencingProjects(new[] { targetFilePath, })
+                .ToArray();
+
+            // Assert
+            Assert.Single(projects);
+
+            var project1Node = Graph.FindNodeByPath(project1.FullPath);
+            Assert.Equal(project1Node, projects.Single());
         }
     }
 }
