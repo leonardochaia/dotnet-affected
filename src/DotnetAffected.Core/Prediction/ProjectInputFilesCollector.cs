@@ -25,7 +25,7 @@ namespace DotnetAffected.Core
             // Make the path absolute if needed.
             if (!Path.IsPathRooted(path))
             {
-                path = Path.GetFullPath(Path.Combine(projectInstance.Directory, path));
+                path = Path.Combine(projectInstance.Directory, path);
             }
             else if (!path.StartsWith(_repositoryPath))
             {
@@ -33,7 +33,7 @@ namespace DotnetAffected.Core
                 return;
             }
 
-            this.AllFiles.Add(path);
+            this.AllFiles.Add(Path.GetFullPath(path));
         }
 
         public void AddInputDirectory(string path, ProjectInstance projectInstance, string predictorName)
