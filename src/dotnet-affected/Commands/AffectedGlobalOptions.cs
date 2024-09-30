@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.CommandLine;
 using System.Linq;
 
@@ -14,12 +15,21 @@ namespace Affected.Cli.Commands
             description: "Path to the root of the repository, where the .git directory is.\n" +
                          "[Defaults to current directory, or solution's directory when using --solution-path]");
 
+        [Obsolete]
         public static readonly Option<string> SolutionPathOption = new(
             aliases: new[]
             {
                 "--solution-path"
             },
-            description: "Path to a Solution file (.sln) used to discover projects that may be affected.\n" +
+            description: "[OBSOLETE: use --filter-file-path] Path to a Solution file (.sln) used to discover projects that may be affected.\n" +
+                         "When omitted, will search for project files inside --repository-path.");
+        
+        public static readonly Option<string> FilterFilePathOption = new(
+            aliases: new[]
+            {
+                "--filter-file-path"
+            },
+            description: "Path to a filter file (.sln) used to discover projects that may be affected.\n" +
                          "When omitted, will search for project files inside --repository-path.");
 
         public static readonly Option<bool> VerboseOption = new(aliases: new[]

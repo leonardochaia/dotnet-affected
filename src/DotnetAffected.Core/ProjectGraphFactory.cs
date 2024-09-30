@@ -26,7 +26,7 @@ namespace DotnetAffected.Core
         public ProjectGraph BuildProjectGraph()
         {
             // Discover all projects and build the graph
-            var allProjects = BuildProjectDiscoverer()
+            var allProjects = new ProjectDiscoveryManager()
                 .DiscoverProjects(_options);
 
             WriteLine($"Building Dependency Graph");
@@ -38,18 +38,6 @@ namespace DotnetAffected.Core
                 $"in {output.ConstructionMetrics.ConstructionTime:s\\.ff}s");
 
             return output;
-        }
-
-        private IProjectDiscoverer BuildProjectDiscoverer()
-        {
-            if (string.IsNullOrWhiteSpace(_options.SolutionPath))
-            {
-                WriteLine($"Discovering projects from {_options.RepositoryPath}");
-                return new DirectoryProjectDiscoverer();
-            }
-
-            WriteLine($"Discovering projects from Solution {_options.SolutionPath}");
-            return new SolutionFileProjectDiscoverer();
         }
 
         private void WriteLine(string? message = null)

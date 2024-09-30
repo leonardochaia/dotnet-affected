@@ -13,19 +13,19 @@ namespace DotnetAffected.Core
         /// Creates a new instance of <see cref="AffectedOptions"/>.
         /// </summary>
         /// <param name="repositoryPath">Will default to <see cref="Environment.CurrentDirectory"/> if not provided</param>
-        /// <param name="solutionPath"></param>
+        /// <param name="filterFilePath"></param>
         /// <param name="fromRef"></param>
         /// <param name="toRef"></param>
         /// <param name="exclusionRegex"></param>
         public AffectedOptions(
             string? repositoryPath = null,
-            string? solutionPath = null,
+            string? filterFilePath = null,
             string? fromRef = null,
             string? toRef = null,
             string? exclusionRegex = null)
         {
-            RepositoryPath = DetermineRepositoryPath(repositoryPath, solutionPath);
-            SolutionPath = solutionPath;
+            RepositoryPath = DetermineRepositoryPath(repositoryPath, filterFilePath);
+            FilterFilePath = filterFilePath;
             FromRef = fromRef ?? string.Empty;
             ToRef = toRef ?? string.Empty;
             ExclusionRegex = exclusionRegex;
@@ -37,9 +37,11 @@ namespace DotnetAffected.Core
         public string RepositoryPath { get; }
 
         /// <summary>
-        /// Gets the path to the solution file, if any.
+        /// Gets the path to the filter file, if any.
+        /// This could be a solution file, or any other file supported by the
+        /// <see cref="IProjectDiscoverer"/> implementations.
         /// </summary>
-        public string? SolutionPath { get; }
+        public string? FilterFilePath { get; }
 
         /// <summary>
         /// Gets the reference from which to compare changes to.
@@ -56,7 +58,7 @@ namespace DotnetAffected.Core
         /// </summary>
         public string? ExclusionRegex { get; }
 
-        private static string DetermineRepositoryPath(string? repositoryPath, string? solutionPath)
+        private static string DetermineRepositoryPath(string? repositoryPath, string? filterfilePath)
         {
             // the argument takes precedence.
             if (!string.IsNullOrWhiteSpace(repositoryPath))
@@ -65,20 +67,20 @@ namespace DotnetAffected.Core
             }
 
             // if no arguments, then use current directory
-            if (string.IsNullOrWhiteSpace(solutionPath))
+            if (string.IsNullOrWhiteSpace(filterfilePath))
             {
                 return Environment.CurrentDirectory;
             }
 
-            // When using solution, and no path specified, assume the solution's directory
-            var solutionDirectory = Path.GetDirectoryName(solutionPath);
-            if (string.IsNullOrWhiteSpace(solutionDirectory))
+            // When using a filter file, and no path specified, assume the filter file's directory
+            var filterFileDirectory = Path.GetDirectoryName(filterfilePath);
+            if (string.IsNullOrWhiteSpace(filterFileDirectory))
             {
                 throw new InvalidOperationException(
-                    $"Failed to determine directory from solution path {solutionPath}");
+                    $"Failed to determine directory from filter file path path. Ensure the path exists: {filterfilePath}");
             }
 
-            return solutionDirectory;
+            return filterFileDirectory;
         }
     }
 }
