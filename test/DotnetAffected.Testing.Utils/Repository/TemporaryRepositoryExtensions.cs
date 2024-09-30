@@ -1,4 +1,5 @@
 ﻿using Microsoft.Build.Construction;
+using Microsoft.Build.Evaluation;
 using Microsoft.Build.Graph;
 using System;
 using System.Collections.Generic;
@@ -140,14 +141,45 @@ namespace DotnetAffected.Testing.Utils
             params string[] projectPaths)
         {
             var i = 0;
-            var solutionContents = new SolutionFileBuilder
-            {
-                Projects = projectPaths.ToDictionary(p => i++.ToString())
-            }.BuildSolution();
+            var solutionContents = new SolutionFileBuilder { Projects = projectPaths.ToDictionary(p => i++.ToString()) }
+                .BuildSolution();
 
             var solutionPath = Path.Combine(repo.Path, solutionName);
 
             await File.WriteAllTextAsync(solutionPath, solutionContents);
+        }
+
+        public static Task CreateTraversalProjectAsync(
+            this TemporaryRepository repo,
+            string traversalProjectPath,
+            params string[] projectPaths)
+        {
+            return CreateTraversalProjectAsync(repo, traversalProjectPath, project =>
+            {
+                foreach (var currentProjectPath in projectPaths)
+                {
+                    project.AddItem("ProjectReference", currentProjectPath);
+                }
+            });
+        }
+
+        public static async Task CreateTraversalProjectAsync(
+            this TemporaryRepository repo,
+            string traversalProjectPath,
+            Action<Project> callback)
+        {
+            var projectRootElement = @"<Project Sdk=""Microsoft.Build.Traversal/4.1.0""></Project>";
+            var stringReader = new StringReader(projectRootElement);
+            var xmlReader = new XmlTextReader(stringReader);
+            var root = ProjectRootElement.Create(xmlReader);
+
+            var project = new Project(root);
+            callback.Invoke(project);
+
+            var finalPath = Path.Combine(repo.Path, traversalProjectPath);
+            var contents = project.Xml.RawXml;
+
+            await File.WriteAllTextAsync(finalPath, contents);
         }
 
         public static async Task CreateTextFileAsync(

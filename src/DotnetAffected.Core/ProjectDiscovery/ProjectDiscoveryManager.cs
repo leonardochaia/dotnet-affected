@@ -14,10 +14,15 @@ namespace DotnetAffected.Core
                 return new DirectoryProjectDiscoverer().DiscoverProjects(options);
             }
 
-            // When a filtering file is provided, use an specific discoverer based on its path.
+            // When a filtering file is provided, use a specific discoverer based on its path.
             if (options.FilterFilePath.EndsWith(".sln"))
             {
                 return new SolutionFileProjectDiscoverer().DiscoverProjects(options);
+            }
+            
+            if (options.FilterFilePath.EndsWith(".proj"))
+            {
+                return new MSBuildProjectDiscoverer().DiscoverProjects(options);
             }
 
             throw new NotImplementedException($"Filtering by {options.FilterFilePath} is not yet implemented");
