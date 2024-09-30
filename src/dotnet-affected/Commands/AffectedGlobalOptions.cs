@@ -15,7 +15,6 @@ namespace Affected.Cli.Commands
             description: "Path to the root of the repository, where the .git directory is.\n" +
                          "[Defaults to current directory, or solution's directory when using --solution-path]");
 
-        [Obsolete]
         public static readonly Option<string> SolutionPathOption = new(
             aliases: new[]
             {
