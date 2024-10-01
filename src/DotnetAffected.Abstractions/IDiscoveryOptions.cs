@@ -11,8 +11,9 @@
         string RepositoryPath { get; }
 
         /// <summary>
-        /// Gets the path to the solution file, if any.
+        /// Gets the path to a filtering file, if any.
+        /// This could be any file that the inner <see cref="IProjectDiscoverer"/> supports.
         /// </summary>
-        string? SolutionPath { get; }
+        string? FilterFilePath { get; }
     }
 }

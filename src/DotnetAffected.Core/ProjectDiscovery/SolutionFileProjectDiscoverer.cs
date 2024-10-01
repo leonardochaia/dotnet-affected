@@ -9,7 +9,7 @@ namespace DotnetAffected.Core
     {
         public IEnumerable<string> DiscoverProjects(IDiscoveryOptions options)
         {
-            var solution = SolutionFile.Parse(options.SolutionPath);
+            var solution = SolutionFile.Parse(options.FilterFilePath);
 
             return solution.ProjectsInOrder
                 .Where(x => x.ProjectType != SolutionProjectType.SolutionFolder)
