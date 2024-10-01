@@ -71,7 +71,7 @@ namespace DotnetAffected.Core.Tests
             // Create a traversal project which includes the project
             await this.Repository.CreateTraversalProjectAsync(traversalProjectPath, p =>
             {
-                p.AddItem("ProjectReference", "../../**/**/InventoryManagement.csproj");
+                p.AddItem("ProjectReference", "../**/**/InventoryManagement.csproj");
             });
 
             Assert.Single(AffectedSummary.ProjectsWithChangedFiles);
