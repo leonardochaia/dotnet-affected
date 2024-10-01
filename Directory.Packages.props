@@ -1,14 +1,12 @@
-﻿<Project>
+<Project>
     <ItemGroup>
         <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
         <PackageVersion Include="System.CommandLine.Rendering" Version="0.4.0-alpha.22272.1" />
-        <PackageVersion Include="LibGit2Sharp" Version="0.27.0-preview-0182" />
-        <PackageVersion Include="MinVer" Version="4.3.0" />
+        <PackageVersion Include="LibGit2Sharp" Version="0.30.0" />
+        <PackageVersion Include="MinVer" Version="6.0.0" />
 
-        <PackageVersion Include="Microsoft.Build.Prediction" Version="1.2.1" />
-
-        <!-- REMARKS: Microsoft.Build.Locator v1.5.5 breaks runtime on Alpine Linux, see #75 -->
-        <PackageVersion Include="Microsoft.Build.Locator" Version="1.4.1" />
+        <PackageVersion Include="Microsoft.Build.Prediction" Version="1.2.18" />
+        <PackageVersion Include="Microsoft.Build.Locator" Version="1.7.8" />
 
         <PackageVersion Include="BenchmarkDotNet" Version="0.13.5" />
         <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.12.1" Condition="'$(OS)' == 'Windows_NT'"/>
@@ -24,18 +22,10 @@
         <PackageVersion Include="System.CodeDom" Version="6.0.0" />
     </ItemGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-        <PackageVersion Include="Microsoft.Build" Version="17.5.0" />
-        <PackageVersion Include="Microsoft.Build.Framework" Version="17.5.0" />
-        <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.5.0" />
-        <PackageVersion Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
-        <PackageVersion Include="System.CodeDom" Version="7.0.0" />
-    </ItemGroup>
-
     <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-        <PackageVersion Include="Microsoft.Build" Version="17.5.0" />
-        <PackageVersion Include="Microsoft.Build.Framework" Version="17.5.0" />
-        <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.5.0" />
+        <PackageVersion Include="Microsoft.Build" Version="17.11.4" />
+        <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.4" />
+        <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.4" />
         <PackageVersion Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
         <PackageVersion Include="System.CodeDom" Version="8.0.0" />
     </ItemGroup>
