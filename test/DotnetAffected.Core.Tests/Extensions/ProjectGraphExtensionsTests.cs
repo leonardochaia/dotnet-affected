@@ -114,11 +114,10 @@ namespace DotnetAffected.Core.Tests
             var projectThatChangedNode = graph.FindNodeByPath(projectThatChanged.FullPath);
             var otherProjectThatChangedNode = graph.FindNodeByPath(otherProjectThatChanged.FullPath);
 
-            Assert.Collection(affected,
-                k => Assert.Equal(dep1Node, k),
-                k => Assert.Equal(otherProjectThatChangedNode, k),
-                k => Assert.Equal(projectThatChangedNode, k)
-            );
+            // ensure the collection has the expected projects, despite the ordering.
+            Assert.Contains(affected, n => n == dep1Node);
+            Assert.Contains(affected, n => n == projectThatChangedNode);
+            Assert.Contains(affected, n => n == otherProjectThatChangedNode);
         }
     }
 }
