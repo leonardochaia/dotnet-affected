@@ -65,8 +65,8 @@ namespace DotnetAffected.Core.Tests
             var projectThatChangedNode = graph.FindNodeByPath(projectThatChanged.FullPath);
 
             Assert.Collection(affected,
-                k => Assert.Equal(dep1Node, k),
-                k => Assert.Equal(projectThatChangedNode, k)
+                k => Assert.Equal(dep1Node?.GetFullPath(), k.GetFullPath()),
+                k => Assert.Equal(projectThatChangedNode?.GetFullPath(), k.GetFullPath())
             );
         }
 
@@ -115,9 +115,9 @@ namespace DotnetAffected.Core.Tests
             var otherProjectThatChangedNode = graph.FindNodeByPath(otherProjectThatChanged.FullPath);
 
             // ensure the collection has the expected projects, despite the ordering.
-            Assert.Contains(affected, n => n == dep1Node);
-            Assert.Contains(affected, n => n == projectThatChangedNode);
-            Assert.Contains(affected, n => n == otherProjectThatChangedNode);
+            Assert.Contains(affected, n => n.GetFullPath() == dep1Node?.GetFullPath());
+            Assert.Contains(affected, n => n.GetFullPath() == projectThatChangedNode?.GetFullPath());
+            Assert.Contains(affected, n => n.GetFullPath() == otherProjectThatChangedNode?.GetFullPath());
         }
     }
 }
