@@ -10,16 +10,11 @@ namespace DotnetAffected.Core.Tests
 
         public BaseDotnetAffectedTest()
         {
-            this._affectedSummaryLazy = new Lazy<AffectedSummary>(() =>
-            {
-                var executor = new AffectedExecutor(Options, changesProvider: ChangesProvider);
-                return executor.Execute();
-            });
+            this._affectedSummaryLazy =
+                new Lazy<AffectedSummary>(() => new AffectedExecutor(Options).Execute());
         }
 
         protected virtual AffectedOptions Options => new AffectedOptions(Repository.Path);
-
-        protected virtual IChangesProvider ChangesProvider => new GitChangesProvider();
 
         protected AffectedSummary AffectedSummary => _affectedSummaryLazy.Value;
     }

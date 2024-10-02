@@ -11,8 +11,6 @@ namespace DotnetAffected.Core.Processor
     /// </summary>
     internal class AffectedProcessorContext
     {
-        private ProjectGraph? _graph;
-
         /// <inheritdoc cref="IChangesProvider"/>
         public IChangesProvider ChangesProvider { get; }
 
@@ -32,30 +30,22 @@ namespace DotnetAffected.Core.Processor
         public IChangedProjectsProvider? ChangedProjectsProvider { get; }
 
         /// <inheritdoc cref="ProjectGraph"/>
-        public ProjectGraph Graph => _graph ??= new ProjectGraphFactory(Options).BuildProjectGraph();
+        public ProjectGraph Graph { get; }
 
         internal string[] ChangedFiles { get; set; } = Array.Empty<string>();
         internal ProjectGraphNode[] ChangedProjects { get; set; } = Array.Empty<ProjectGraphNode>();
         internal PackageChange[] ChangedPackages { get; set; } = Array.Empty<PackageChange>();
         internal ProjectGraphNode[] AffectedProjects { get; set; } = Array.Empty<ProjectGraphNode>();
         internal Dictionary<object, object> Data { get; } = new Dictionary<object, object>();
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="options"></param>
-        /// <param name="graph"></param>
-        /// <param name="changesProvider"></param>
-        /// <param name="changedProjectsProvider"></param>
+        
         public AffectedProcessorContext(AffectedOptions options,
-            ProjectGraph? graph = null,
-            IChangesProvider? changesProvider = null,
-            IChangedProjectsProvider? changedProjectsProvider = null)
+            IChangesProvider changesProvider)
         {
-            ChangesProvider = changesProvider ?? new GitChangesProvider();
+            ChangesProvider = changesProvider;
             Options = options;
-            _graph = graph;
-            ChangedProjectsProvider = changedProjectsProvider;
+            Graph = new ProjectGraphFactory(Options)
+                .BuildProjectGraph(changesProvider.CreateMsBuildFileSystem());
+            ChangedProjectsProvider = new PredictionChangedProjectsProvider(Graph, Options);
 
             RepositoryPath = Path.TrimEndingDirectorySeparator(options.RepositoryPath);
             FromRef = options.FromRef;

@@ -1,4 +1,5 @@
 ﻿using DotnetAffected.Abstractions;
+using DotnetAffected.Core.FileSystem;
 using DotnetAffected.Testing.Utils;
 using Microsoft.Build.Graph;
 using System.IO;
@@ -14,7 +15,7 @@ namespace DotnetAffected.Core.Tests
 
         private IChangedProjectsProvider Provider => new PredictionChangedProjectsProvider(Graph, Options);
 
-        private ProjectGraph Graph => _graph ??= new ProjectGraphFactory(Options).BuildProjectGraph();
+        private ProjectGraph Graph => _graph ??= new ProjectGraphFactory(Options).BuildProjectGraph(new DefaultMsBuildFileSystem());
 
         [Fact]
         public async Task FindProjectsForFilePaths_ShouldFindSingleProject()

@@ -23,4 +23,11 @@
         <MinVerTagPrefix>v</MinVerTagPrefix>
         <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
     </PropertyGroup>
+
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0'">
+        <DefineConstants>NET6</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+        <DefineConstants>NET8</DefineConstants>
+    </PropertyGroup>
 </Project>

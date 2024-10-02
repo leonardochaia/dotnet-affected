@@ -1,4 +1,5 @@
 ﻿using Microsoft.Build.Evaluation;
+using Microsoft.Build.FileSystem;
 using System.Collections.Generic;
 
 namespace DotnetAffected.Abstractions
@@ -20,23 +21,17 @@ namespace DotnetAffected.Abstractions
         /// <summary>
         /// Uses the underlying changes provider to load a <see cref="Project"/> file at <paramref name="commitRef"/>.
         /// </summary>
-        /// <param name="directory"></param>
         /// <param name="pathToFile"></param>
         /// <param name="commitRef"></param>
         /// <param name="fallbackToHead">When true, uses the HEAD as the default commit, otherwise uses the current working directory. <br/>
         /// Applicable only when <paramref name="commitRef"/> is null or empty.</param>
         /// <returns></returns>
-        Project? LoadProject(string directory, string pathToFile, string? commitRef, bool fallbackToHead);
+        Project? LoadProject(string pathToFile, string? commitRef, bool fallbackToHead);
 
         /// <summary>
-        /// Uses the underlying changes provider to load a <see cref="Project"/> for Directory.Packages.Prop
+        /// Creates the <see cref="MSBuildFileSystemBase"/> instance pointing to the current repository/commit.
         /// </summary>
-        /// <param name="directory"></param>
-        /// <param name="pathToFile"></param>
-        /// <param name="commitRef"></param>
-        /// <param name="fallbackToHead"></param>
         /// <returns></returns>
-        Project? LoadDirectoryPackagePropsProject(string directory, string pathToFile, string? commitRef,
-            bool fallbackToHead);
+        MSBuildFileSystemBase CreateMsBuildFileSystem();
     }
 }

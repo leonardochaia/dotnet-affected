@@ -2,6 +2,7 @@
 using DotnetAffected.Core.FileSystem;
 using LibGit2Sharp;
 using Microsoft.Build.Evaluation;
+using Microsoft.Build.FileSystem;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,48 +13,29 @@ namespace DotnetAffected.Core
     /// <summary>
     /// Detects changes using Git.
     /// </summary>
-    public class GitChangesProvider : IChangesProvider
+    public class GitChangesProvider : IChangesProvider, IDisposable
     {
+        private readonly AffectedOptions options;
+        private readonly Repository repository;
         internal static readonly bool IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+        public GitChangesProvider(AffectedOptions options)
+        {
+            this.options = options;
+            this.repository = new Repository(options.RepositoryPath);
+        }
 
         /// <inheritdoc />
         public IEnumerable<string> GetChangedFiles(string directory, string from, string to)
         {
-            using var repository = new Repository(directory);
-
-            var changes = GetChangesForRange<TreeChanges>(repository, from, to);
-
-            return TreeChangesToPaths(changes, directory);
+            var changes = GetChangesForRange<TreeChanges>();
+            return TreeChangesToPaths(changes);
         }
 
         /// <inheritdoc />
-        public Project? LoadDirectoryPackagePropsProject(string directory, string pathToFile, string? commitRef,
-            bool fallbackToHead)
-        {
-            var project = LoadProject(directory, pathToFile, commitRef, fallbackToHead);
-            if (project is null)
-            {
-                var fi = new FileInfo(pathToFile);
-                var parent = fi.Directory?.Parent?.FullName;
-                if (parent is not null && parent.Length >= directory.Length)
-                    return LoadDirectoryPackagePropsProject(directory, Path.Combine(parent, "Directory.Packages.props"),
-                        commitRef, fallbackToHead);
-            }
-
-            return project;
-        }
-
-        /// <inheritdoc />
-        public Project? LoadProject(string directory, string pathToFile, string? commitRef, bool fallbackToHead)
-        {
-            return LoadProjectCore(directory, pathToFile, commitRef, fallbackToHead);
-        }
-
-        private Project? LoadProjectCore(string directory, string pathToFile, string? commitRef, bool fallbackToHead)
+        public Project? LoadProject(string pathToFile, string? commitRef, bool fallbackToHead)
         {
             Commit? commit;
-
-            using var repository = new Repository(directory);
 
             if (string.IsNullOrWhiteSpace(commitRef))
                 commit = fallbackToHead ? repository.Head.Tip : null;
@@ -72,33 +54,37 @@ namespace DotnetAffected.Core
             using var fs = new EagerCachingMsBuildGitFileSystem(repository, commit);
             return fs.FileExists(pathToFile) ? fs.CreateProjectAndEagerLoadChildren(pathToFile) : null;
         }
+        
+        /// <inheritdoc />
+        public MSBuildFileSystemBase CreateMsBuildFileSystem()
+        {
+            var (fromCommit, toCommit) = ParseRevisionRanges();
+            
+            return fromCommit is null
+                ? new EagerCachingMsBuildGitFileSystem(repository, toCommit)
+                : new EagerCachingMsBuildGitFileSystem(repository, fromCommit);
+        }
 
-        private static (Commit? From, Commit To) ParseRevisionRanges(
-            Repository repository,
-            string from,
-            string to)
+        private (Commit? From, Commit To) ParseRevisionRanges()
         {
             // Find the To Commit or use HEAD.
-            var toCommit = GetCommitOrHead(repository, to);
+            var toCommit = GetCommitOrHead(repository, options.ToRef);
 
             // No from: compare against working directory
-            if (string.IsNullOrWhiteSpace(from))
+            if (string.IsNullOrWhiteSpace(options.FromRef))
             {
                 // this.WriteLine($"Finding changes from working directory against {to}");
                 return (null, toCommit);
             }
 
-            var fromCommit = GetCommitOrThrow(repository, @from);
+            var fromCommit = GetCommitOrThrow(repository, options.FromRef);
             return (fromCommit, toCommit);
         }
 
-        private static T GetChangesForRange<T>(
-            Repository repository,
-            string from,
-            string to)
+        private T GetChangesForRange<T>()
             where T : class, IDiffResult
         {
-            var (fromCommit, toCommit) = ParseRevisionRanges(repository, from, to);
+            var (fromCommit, toCommit) = ParseRevisionRanges();
 
             return fromCommit is null
                 ? GetChangesAgainstWorkingDirectory<T>(repository, toCommit.Tree)
@@ -153,18 +139,22 @@ namespace DotnetAffected.Core
                 $"Couldn't find Git Commit or Branch with name {name} in repository {repo.Info.Path}");
         }
 
-        private static IEnumerable<string> TreeChangesToPaths(
-            TreeChanges changes,
-            string repositoryRootPath)
+        private IEnumerable<string> TreeChangesToPaths(
+            TreeChanges changes)
         {
             foreach (var change in changes)
             {
                 if (change == null) continue;
 
-                var currentPath = Path.Combine(repositoryRootPath, change.Path);
+                var currentPath = Path.Combine(options.RepositoryPath, change.Path);
 
                 yield return currentPath;
             }
+        }
+
+        public void Dispose()
+        {
+            repository.Dispose();
         }
     }
 }

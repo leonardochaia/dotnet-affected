@@ -111,10 +111,8 @@ namespace DotnetAffected.Core.Processor
 
             foreach (var graphNode in relatedProjects)
             {
-                var fromFile = context.ChangesProvider.LoadProject(context.RepositoryPath,
-                    graphNode.ProjectInstance.FullPath, context.FromRef, false);
-                var toFile = context.ChangesProvider.LoadProject(context.RepositoryPath,
-                    graphNode.ProjectInstance.FullPath, context.ToRef, true);
+                var fromFile = context.ChangesProvider.LoadProject(graphNode.ProjectInstance.FullPath, context.FromRef, false);
+                var toFile = context.ChangesProvider.LoadProject(graphNode.ProjectInstance.FullPath, context.ToRef, true);
 
                 // Parse props files into package and version dictionary
                 var fromPackages = NugetHelper.ParseDirectoryPackageProps(fromFile);

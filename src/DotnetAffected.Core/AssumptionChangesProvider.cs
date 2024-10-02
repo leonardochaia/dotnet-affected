@@ -1,5 +1,7 @@
 ﻿using DotnetAffected.Abstractions;
+using DotnetAffected.Core.FileSystem;
 using Microsoft.Build.Evaluation;
+using Microsoft.Build.FileSystem;
 using Microsoft.Build.Graph;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,14 +19,15 @@ namespace DotnetAffected.Core
         /// <summary>
         /// Creates an <see cref="AssumptionChangesProvider"/>.
         /// </summary>
-        /// <param name="graph"></param>
+        /// <param name="options"></param>
         /// <param name="assumptions"></param>
         public AssumptionChangesProvider(
-            ProjectGraph graph,
+            AffectedOptions options,
             IEnumerable<string> assumptions)
         {
-            _graph = graph;
             _assumptions = assumptions;
+            _graph = new ProjectGraphFactory(options)
+                .BuildProjectGraph(CreateMsBuildFileSystem(), new ProjectCollection());
         }
 
         /// <inheritdoc />
@@ -37,15 +40,15 @@ namespace DotnetAffected.Core
         }
         
         /// <inheritdoc />
-        public Project? LoadProject(string directory, string pathToFile, string? commitRef, bool fallbackToHead)
+        public Project? LoadProject(string pathToFile, string? commitRef, bool fallbackToHead)
         {
             throw new System.InvalidOperationException("--assume-changes should not try to access file contents");
         }
 
         /// <inheritdoc />
-        public Project? LoadDirectoryPackagePropsProject(string directory, string pathToFile, string? commitRef, bool fallbackToHead)
+        public MSBuildFileSystemBase CreateMsBuildFileSystem()
         {
-            throw new System.InvalidOperationException("--assume-changes should not try to access file contents");
+            return new DefaultMsBuildFileSystem();
         }
     }
 }

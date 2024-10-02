@@ -49,7 +49,7 @@ namespace Affected.Cli.Benchmarks
                               $"projects in {graph.ConstructionMetrics.ConstructionTime}");
 
             // Create an executor for the repository using the existing graph.
-            Executor = new AffectedExecutor(Repository.Path, graph);
+            Executor = new AffectedExecutor(new AffectedOptions(Repository.Path));
         }
 
         public AffectedExecutor Executor { get; set; }

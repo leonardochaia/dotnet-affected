@@ -48,16 +48,12 @@ namespace DotnetAffected.Tasks
                         "DotnetAffected AssumeChanges is set along with FromRef/ToRef. Only AssumeChanges is used.");
                 }
 
-                var graph = new ProjectGraphFactory(affectedOptions).BuildProjectGraph();
-                IChangesProvider changesProvider = AssumeChanges?.Any() == true
-                    ? new AssumptionChangesProvider(graph,
+                IChangesProvider? changesProvider = AssumeChanges?.Any() == true
+                    ? new AssumptionChangesProvider(affectedOptions,
                         AssumeChanges.Select(c => Path.GetFileNameWithoutExtension(c.ItemSpec)))
-                    : new GitChangesProvider();
+                    : null;
 
-                var executor = new AffectedExecutor(affectedOptions,
-                    graph,
-                    changesProvider,
-                    new PredictionChangedProjectsProvider(graph, affectedOptions));
+                var executor = new AffectedExecutor(affectedOptions, changesProvider);
 
                 var results = executor.Execute();
                 var modifiedProjectInstances = new HashSet<ProjectInstance>();
