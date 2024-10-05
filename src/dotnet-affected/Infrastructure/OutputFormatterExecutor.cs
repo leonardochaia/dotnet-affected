@@ -59,7 +59,7 @@ namespace Affected.Cli
 
                 var outputFileName = outputName + formatter.NewFileExtension;
                 var outputPath = Path.Combine(outputDirectory, outputFileName);
-
+                
                 if (dryRun)
                 {
                     _console.Out.WriteLine($"DRY-RUN: WRITE {outputPath}");

@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace DotnetAffected.Core
 {
-    public static class AffectedSummaryExtensions
+    internal static class AffectedSummaryExtensions
     {
         /// <summary>
         /// Converts the <see cref="AffectedSummary"/> to a list of IProjectInfo, including all affected, changed and excluded projects.
