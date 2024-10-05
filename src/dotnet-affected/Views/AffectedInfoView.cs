@@ -8,11 +8,11 @@ namespace Affected.Cli.Views
     {
         public AffectedInfoView(AffectedSummary summary)
         {
-            Add(new ContentView($"{summary.FilesThatChanged.Count()} files have changed " +
-                                $"referenced by {summary.ProjectsWithChangedFiles.Count()} projects"));
-            Add(new ContentView($"{summary.ChangedPackages.Count()} NuGet Packages have changed"));
-            Add(new ContentView($"{summary.AffectedProjects.Count()} projects are affected by these changes"));
-            Add(new ContentView($"{summary.ExcludedProjects.Count()} projects were excluded"));
+            Add(new ContentView($"{summary.FilesThatChanged.Length} files have changed " +
+                                $"referenced by {summary.ProjectsWithChangedFiles.Length} projects"));
+            Add(new ContentView($"{summary.ChangedPackages.Length} NuGet Packages have changed"));
+            Add(new ContentView($"{summary.AffectedProjects.Length} projects are affected by these changes"));
+            Add(new ContentView($"{summary.ExcludedProjects.Length} projects were excluded"));
 
             Add(new WithChangesAndAffectedView(summary));
         }

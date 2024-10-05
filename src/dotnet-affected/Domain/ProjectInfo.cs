@@ -11,10 +11,11 @@ namespace Affected.Cli
             this.FilePath = filePath;
         }
 
-        public ProjectInfo(ProjectGraphNode node)
+        public ProjectInfo(ProjectGraphNode node, ProjectStatus status)
         {
             this.Name = node.GetProjectName();
             this.FilePath = node.ProjectInstance.FullPath;
+            this.Status = status;
         }
 
         /// <summary>
@@ -27,5 +28,8 @@ namespace Affected.Cli
         /// Gets the full path to the project's file.
         /// </summary>
         public string FilePath { get; }
+        
+        // <inheritdoc />
+        public ProjectStatus Status { get; }
     }
 }

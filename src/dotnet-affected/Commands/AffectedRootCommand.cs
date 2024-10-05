@@ -1,4 +1,5 @@
 ﻿using Affected.Cli.Views;
+using DotnetAffected.Core;
 using System.CommandLine;
 using System.CommandLine.Rendering;
 using System.Linq;
@@ -47,14 +48,13 @@ namespace Affected.Cli.Commands
                     console.Append(infoView);
                 }
 
-                var allProjects = summary
-                    .ProjectsWithChangedFiles
-                    .Concat(summary.AffectedProjects)
-                    .Select(p => new ProjectInfo(p));
-
                 // Generate output using formatters
                 var outputOptions = ctx.GetAffectedCommandOutputOptions(options);
 
+                var changedProjects = summary.GetChangedProjects();
+                var affectedProjects = summary.GetAffectedProjects();
+                var allProjects = changedProjects.Concat(affectedProjects);
+                
                 var formatterExecutor = new OutputFormatterExecutor(console);
                 await formatterExecutor.Execute(
                     allProjects,
