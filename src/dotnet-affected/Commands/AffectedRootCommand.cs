@@ -92,7 +92,7 @@ namespace Affected.Cli.Commands
             : base(new[] { "--output-strategy" })
         {
             this.Description =
-                "Determines the output strategy. If set to \"combined\", all output will be written to a single file. If set to \"split\", files will be created based on affected, changed, and excluded projects.";
+                "Determines the output strategy. If set to \"combined\", all output will be written to a single file. If set to \"split\", files will be created based on the defined output filters.";
             this.SetDefaultValue(OutputStrategies.Combined);
             this.FromAmong(OutputStrategies.All.ToArray());
             this.AddCompletions(OutputStrategies.All.ToArray());
@@ -104,8 +104,7 @@ namespace Affected.Cli.Commands
         public OutputFilterOption()
             : base(new[] { "--output-filter" })
         {
-            this.Description =
-                "Determines the output strategy. If set to \"combined\", all output will be written to a single file. If set to \"split\", files will be created based on affected, changed, and excluded projects.";
+            this.Description = "Defines what files should be output; affected, changed, or excluded projects.";
             this.SetDefaultValue(new[] { OutputFilters.Affected, OutputFilters.Changed });
             this.FromAmong(OutputFilters.All.ToArray());
             this.AddCompletions(OutputFilters.All.ToArray());
