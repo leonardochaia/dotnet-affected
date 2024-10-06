@@ -1,7 +1,4 @@
 ﻿using Affected.Cli.Views;
-using DotnetAffected.Core;
-using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Rendering;
 using System.Linq;
@@ -39,6 +36,7 @@ namespace Affected.Cli.Commands
             this.AddOption(OutputDirOption);
             this.AddOption(OutputNameOption);
             this.AddOption(OutputStrategyOption);
+            this.AddOption(OutputFilterOption);
 
             this.SetHandler(async ctx =>
             {
