@@ -5,7 +5,7 @@ namespace Affected.Cli
 {
     internal class SplitOutputStrategy : IOutputStrategy
     {
-        private readonly IReadOnlyList<string> _suffixes = OutputFilters.All.Select(s => $"-{s}").ToList();
+        private readonly IReadOnlyList<string> _suffixes = OutputFilters.All.Select(s => $".{s}").ToList();
         public string Name { get; }
         public string Directory { get; }
         public IEnumerable<IProjectInfo> Projects { get; }
