@@ -1,6 +1,7 @@
 ﻿using DotnetAffected.Abstractions;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -43,7 +44,7 @@ namespace DotnetAffected.Core
                     }.Concat(conditions);
                 }
 
-                var version = versionOverride ?? item.Metadata.Single(m => m.Name == "Version")
+                var version = versionOverride ?? item.Metadata.Single(m => m.Name.Equals("Version", StringComparison.InvariantCultureIgnoreCase))
                     .EvaluatedValue;
 
                 return new PackageRef(
