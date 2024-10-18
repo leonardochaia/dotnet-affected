@@ -12,17 +12,23 @@ namespace Affected.Cli.Commands
             string? outputDir,
             string outputName,
             string[] formatters,
+            string[] outputFilters,
+            string outputStrategy,
             bool dryRun)
         {
             OutputDir = DetermineOutputDir(repositoryPath, outputDir);
             OutputName = outputName;
             Formatters = formatters;
+            OutputFilters = outputFilters;
+            OutputStrategy = outputStrategy;
             DryRun = dryRun;
         }
 
+        public string[] OutputFilters { get; }
         public string OutputDir { get; }
         public string OutputName { get; }
         public string[] Formatters { get; }
+        public string OutputStrategy { get; }
         public bool DryRun { get; }
 
         private static string DetermineOutputDir(string repositoryPath, string? outDir)

@@ -82,6 +82,8 @@ namespace Affected.Cli.Tests
                 outputDir,
                 "affected",
                 Array.Empty<string>(),
+                Array.Empty<string>(),
+                string.Empty,
                 true);
 
             Assert.Equal(expected, data.OutputDir);

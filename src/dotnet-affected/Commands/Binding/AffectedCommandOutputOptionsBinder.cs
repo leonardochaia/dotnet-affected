@@ -20,6 +20,8 @@ namespace Affected.Cli.Commands
                 result.GetValueForOption(AffectedRootCommand.OutputDirOption)!,
                 result.GetValueForOption(AffectedRootCommand.OutputNameOption)!,
                 result.GetValueForOption(AffectedRootCommand.FormatOption)!,
+                result.GetValueForOption(AffectedRootCommand.OutputFilterOption)!,
+                result.GetValueForOption(AffectedRootCommand.OutputStrategyOption)!,
                 result.GetValueForOption(AffectedRootCommand.DryRunOption)
             );
         }

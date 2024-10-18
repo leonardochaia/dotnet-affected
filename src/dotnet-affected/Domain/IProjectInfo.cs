@@ -14,5 +14,10 @@
         /// Gets the full path to the project's file.
         /// </summary>
         string FilePath { get; }
+        
+        /// <summary>
+        /// Describes whether the project is affected, changed, excluded, or unaffected.
+        /// </summary>
+        ProjectStatus Status { get; }
     }
 }
