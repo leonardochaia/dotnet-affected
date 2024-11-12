@@ -25,7 +25,15 @@ namespace DotnetAffected.Core
             string? exclusionRegex = null)
         {
             RepositoryPath = DetermineRepositoryPath(repositoryPath, filterFilePath);
-            FilterFilePath = filterFilePath;
+
+            // Ensure the provided filter is a rooted path
+            if (!string.IsNullOrEmpty(filterFilePath))
+            {
+                FilterFilePath = Path.IsPathRooted(filterFilePath)
+                    ? filterFilePath
+                    : Path.Join(Environment.CurrentDirectory, filterFilePath);
+            }
+
             FromRef = fromRef ?? string.Empty;
             ToRef = toRef ?? string.Empty;
             ExclusionRegex = exclusionRegex;
@@ -76,8 +84,8 @@ namespace DotnetAffected.Core
             var filterFileDirectory = Path.GetDirectoryName(filterfilePath);
             if (string.IsNullOrWhiteSpace(filterFileDirectory))
             {
-                throw new InvalidOperationException(
-                    $"Failed to determine directory from filter file path path. Ensure the path exists: {filterfilePath}");
+                // A relative path to a file may be provided, in such case getting the directory name fails.
+                return Environment.CurrentDirectory;
             }
 
             return filterFileDirectory;
