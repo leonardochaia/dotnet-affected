@@ -33,6 +33,12 @@ namespace Affected.Cli.Tests
                     "", "Affected.sln", Environment.CurrentDirectory,
                     Path.Join(Environment.CurrentDirectory, "Affected.sln")
                 };
+                
+                yield return new object[]
+                {
+                    "/home/lchaia/dotnet-affected", "Affected.sln", "/home/lchaia/dotnet-affected",
+                    Path.Join(Environment.CurrentDirectory, "Affected.sln")
+                };
             }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
