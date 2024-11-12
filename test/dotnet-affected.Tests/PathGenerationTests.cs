@@ -14,23 +14,24 @@ namespace Affected.Cli.Tests
         {
             public IEnumerator<object[]> GetEnumerator()
             {
-                yield return new object[]
-                {
-                    "/home/lchaia/dotnet-affected", "", "/home/lchaia/dotnet-affected"
-                };
+                yield return new object[] { "/home/lchaia/dotnet-affected", "", "/home/lchaia/dotnet-affected", null };
                 yield return new object[]
                 {
                     "", "/home/lchaia/dotnet-affected/Affected.sln",
-                    Path.GetDirectoryName("/home/lchaia/dotnet-affected/Affected.sln")
+                    Path.GetDirectoryName("/home/lchaia/dotnet-affected/Affected.sln"),
+                    "/home/lchaia/dotnet-affected/Affected.sln"
                 };
                 yield return new object[]
                 {
                     "/home/lchaia/dotnet-affected", "/home/lchaia/dotnet-affected/subdirectory/other/Affected.sln",
-                    "/home/lchaia/dotnet-affected"
+                    "/home/lchaia/dotnet-affected", "/home/lchaia/dotnet-affected/subdirectory/other/Affected.sln",
                 };
+                yield return new object[] { "", "", Environment.CurrentDirectory, null };
+
                 yield return new object[]
                 {
-                    "", "", Environment.CurrentDirectory
+                    "", "Affected.sln", Environment.CurrentDirectory,
+                    Path.Join(Environment.CurrentDirectory, "Affected.sln")
                 };
             }
 
@@ -41,21 +42,20 @@ namespace Affected.Cli.Tests
         [ClassData(typeof(RepositoryPathsClassData))]
         public void Should_determine_repository_path_correctly(
             string repositoryPath,
-            string solutionPath,
-            string expected)
+            string filterFilePath,
+            string expectedRepository,
+            string expectedFilterFilePath)
         {
-            var options = new AffectedOptions(repositoryPath, solutionPath);
-            Assert.Equal(expected, options.RepositoryPath);
+            var options = new AffectedOptions(repositoryPath, filterFilePath);
+            Assert.Equal(expectedRepository, options.RepositoryPath);
+            Assert.Equal(expectedFilterFilePath, options.FilterFilePath);
         }
 
         private class OutputDirPathsClassData : IEnumerable<object[]>
         {
             public IEnumerator<object[]> GetEnumerator()
             {
-                yield return new object[]
-                {
-                    "/home/lchaia/dotnet-affected", "", "/home/lchaia/dotnet-affected"
-                };
+                yield return new object[] { "/home/lchaia/dotnet-affected", "", "/home/lchaia/dotnet-affected" };
                 yield return new object[]
                 {
                     "/home/lchaia/dotnet-affected", "relative/path",
