@@ -11,3 +11,4 @@ $dotnetInstallDir = "$PSScriptRoot\.dotnet"
 
 . $installScript  -InstallDir $dotnetInstallDir -JSonFile $globalJsonFile
 . $installScript  -InstallDir $dotnetInstallDir -Channel 6.0
+. $installScript  -InstallDir $dotnetInstallDir -Channel 8.0

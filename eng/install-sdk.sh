@@ -15,3 +15,4 @@ dotnet_install_dir="$(dirname "$0")/.dotnet"
 
 "$install_script" --install-dir "$dotnet_install_dir" --jsonfile "$global_json_file"
 "$install_script" --install-dir "$dotnet_install_dir" --channel 6.0
+"$install_script" --install-dir "$dotnet_install_dir" --channel 8.0
