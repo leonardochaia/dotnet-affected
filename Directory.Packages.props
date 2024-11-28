@@ -8,7 +8,7 @@
         <PackageVersion Include="Microsoft.Build.Prediction" Version="1.2.18" />
         <PackageVersion Include="Microsoft.Build.Locator" Version="1.7.8" />
 
-        <PackageVersion Include="BenchmarkDotNet" Version="0.13.5" />
+        <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
         <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.12.1" Condition="'$(OS)' == 'Windows_NT'"/>
 
         <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.0.0" Condition="'$(ContinuousIntegrationBuild)' == 'true'"/>
@@ -28,6 +28,14 @@
         <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.4" />
         <PackageVersion Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
         <PackageVersion Include="System.CodeDom" Version="8.0.0" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+        <PackageVersion Include="Microsoft.Build" Version="17.12.6" />
+        <PackageVersion Include="Microsoft.Build.Framework" Version="17.12.6" />
+        <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.12.6" />
+        <PackageVersion Include="System.Configuration.ConfigurationManager" Version="9.0.0" />
+        <PackageVersion Include="System.CodeDom" Version="9.0.0" />
     </ItemGroup>
 
 </Project>
