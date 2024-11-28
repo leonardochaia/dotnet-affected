@@ -2,5 +2,8 @@
     "sdk": {
         "version": "9.0.100",
         "allowPrerelease": true
+    },
+    "msbuild-sdks": {
+        "Microsoft.Build.Traversal": "4.1.0"
     }
 }
