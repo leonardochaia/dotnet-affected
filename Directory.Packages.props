@@ -32,9 +32,9 @@
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
-        <PackageVersion Include="Microsoft.Build" Version="17.12.6" />
-        <PackageVersion Include="Microsoft.Build.Framework" Version="17.12.6" />
-        <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.12.6" />
+        <PackageVersion Include="Microsoft.Build" Version="17.11.4" />
+        <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.4" />
+        <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.4" />
         <PackageVersion Include="System.Configuration.ConfigurationManager" Version="9.0.0" />
         <PackageVersion Include="System.CodeDom" Version="9.0.0" />
         <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
