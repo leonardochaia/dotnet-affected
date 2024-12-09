@@ -19,8 +19,10 @@ namespace Affected.Cli.Formatters
             var stringReader = new StringReader(projectRootElement);
             var xmlReader = new XmlTextReader(stringReader);
             var root = ProjectRootElement.Create(xmlReader);
-
-            var project = new Project(root);
+            
+            // REMARKS: IgnoreMissingImports is required due to the Microsoft.Build.Traversal Sdk not being found
+            // on macos/darwin. We don't really need to evaluate the project, we just need to build the RawXml.
+            var project = new Project(root, null, null, ProjectCollection.GlobalProjectCollection, ProjectLoadSettings.IgnoreMissingImports);
 
             // Find all affected and add them as project references
             foreach (var projectInfo in projects)
