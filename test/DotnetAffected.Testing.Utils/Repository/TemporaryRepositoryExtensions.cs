@@ -51,7 +51,7 @@ namespace DotnetAffected.Testing.Utils
             // Directory.Build.Props / Directory.Packages.props
             project.Sdk = "Microsoft.NET.Sdk";
             // Required for net8.0 MSBuild Project Creation
-            project.AddProperty("TargetFrameworks", "net6.0,net8.0,net9.0");
+            project.AddProperty("TargetFrameworks", "net8.0;net9.0");
             customizer?.Invoke(project);
 
             project.Save();
