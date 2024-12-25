@@ -6,8 +6,8 @@
         <PackageVersion Include="xunit" Version="2.9.2" />
         <PackageVersion Include="xunit.core" Version="2.9.2" />
         <PackageVersion Include="xunit.abstractions" Version="2.0.3" />
-        <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.0-pre.49"/>
+        <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.0"/>
         <PackageVersion Include="coverlet.collector" Version="6.0.2"/>
-        <PackageVersion Include="XunitXml.TestLogger" Version="4.1.0" />
+        <PackageVersion Include="XunitXml.TestLogger" Version="5.0.0" />
     </ItemGroup>
 </Project>
