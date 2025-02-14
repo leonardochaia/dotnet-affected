@@ -11,5 +11,6 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.Build.Prediction" />
         <PackageReference Include="LibGit2Sharp" />
+        <PackageReference Include="Microsoft.VisualStudio.SolutionPersistence" />
     </ItemGroup>
 </Project>

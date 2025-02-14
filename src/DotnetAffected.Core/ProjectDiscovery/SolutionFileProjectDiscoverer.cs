@@ -1,7 +1,9 @@
 ﻿using DotnetAffected.Abstractions;
-using Microsoft.Build.Construction;
+using Microsoft.VisualStudio.SolutionPersistence.Serializer;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace DotnetAffected.Core
 {
@@ -9,11 +11,17 @@ namespace DotnetAffected.Core
     {
         public IEnumerable<string> DiscoverProjects(IDiscoveryOptions options)
         {
-            var solution = SolutionFile.Parse(options.FilterFilePath);
+            // It should not be possible for this to be null based on call paths - but this makes the warning go away
+            ArgumentNullException.ThrowIfNull(options.FilterFilePath);
 
-            return solution.ProjectsInOrder
-                .Where(x => x.ProjectType != SolutionProjectType.SolutionFolder)
-                .Select(x => x.AbsolutePath)
+            var serializer = SolutionSerializers.GetSerializerByMoniker(options.FilterFilePath);
+
+            if (serializer is null) throw new NotImplementedException($"Filtering by {options.FilterFilePath} is not yet implemented");
+
+            var solution = serializer.OpenAsync(options.FilterFilePath, CancellationToken.None).GetAwaiter().GetResult();
+
+            return solution.SolutionProjects
+                .Select(x => x.FilePath)
                 .ToArray();
         }
     }
