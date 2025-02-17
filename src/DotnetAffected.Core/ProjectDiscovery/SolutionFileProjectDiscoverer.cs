@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.SolutionPersistence.Serializer;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 
@@ -20,8 +21,10 @@ namespace DotnetAffected.Core
 
             var solution = serializer.OpenAsync(options.FilterFilePath, CancellationToken.None).GetAwaiter().GetResult();
 
+            var solutionDir = Path.GetDirectoryName(options.FilterFilePath);
+
             return solution.SolutionProjects
-                .Select(x => x.FilePath)
+                .Select(x => Path.IsPathRooted(x.FilePath) ? x.FilePath : Path.Join(solutionDir, x.FilePath))
                 .ToArray();
         }
     }
