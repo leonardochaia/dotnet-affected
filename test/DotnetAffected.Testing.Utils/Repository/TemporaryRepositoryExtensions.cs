@@ -168,7 +168,7 @@ namespace DotnetAffected.Testing.Utils
             string traversalProjectPath,
             Action<Project> callback)
         {
-            var projectRootElement = @"<Project Sdk=""Microsoft.Build.Traversal/4.1.0""></Project>";
+            var projectRootElement = @"<Project Sdk=""Microsoft.Build.Traversal/4.1.82""></Project>";
             var stringReader = new StringReader(projectRootElement);
             var xmlReader = new XmlTextReader(stringReader);
             var root = ProjectRootElement.Create(xmlReader);
