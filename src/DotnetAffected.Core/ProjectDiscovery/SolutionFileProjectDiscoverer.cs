@@ -17,7 +17,7 @@ namespace DotnetAffected.Core
 
             var serializer = SolutionSerializers.GetSerializerByMoniker(options.FilterFilePath);
 
-            if (serializer is null) throw new NotImplementedException($"Filtering by {options.FilterFilePath} is not yet implemented");
+            if (serializer is null) throw new NotSupportedException($"Filtering by {options.FilterFilePath} is not supported");
 
             var solution = serializer.OpenAsync(options.FilterFilePath, CancellationToken.None).GetAwaiter().GetResult();
 
