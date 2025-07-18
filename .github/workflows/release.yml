@@ -40,7 +40,7 @@ jobs:
         branch: ${{ github.ref_name }}
         workflow_id: 'release.yml'
 
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       name: Download build artifacts
       with:
         name: artifacts
@@ -70,7 +70,7 @@ jobs:
             exit $exitCode
         fi
 
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       name: Download Package Artifact
       if: success() && (steps.affected.outputs.should_deploy == 'true' || github.event.inputs.skip_affected || steps.last_successful_commit.outputs.commit_hash == '')
       with:
