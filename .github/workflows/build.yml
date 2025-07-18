@@ -70,14 +70,14 @@ jobs:
       if: success() && matrix.os == 'ubuntu-latest'
       run: dotnet pack --no-restore --no-build --configuration Debug --include-symbols -p:SymbolPackageFormat=snupkg -o $GITHUB_WORKSPACE/packages
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       name: 'Upload Packages'
       if: success() && matrix.os == 'ubuntu-latest'
       with:
         name: packages
         path: ${{ github.workspace }}/packages/**/*
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       name: 'Upload Artifacts'
       if: success() && matrix.os == 'ubuntu-latest'
       with:
