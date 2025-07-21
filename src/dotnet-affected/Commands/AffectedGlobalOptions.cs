@@ -28,7 +28,7 @@ namespace Affected.Cli.Commands
             {
                 "--filter-file-path"
             },
-            description: "Path to a filter file (.sln) used to discover projects that may be affected.\n" +
+            description: "Path to a filter file (.sln, .slnx) used to discover projects that may be affected.\n" +
                          "When omitted, will search for project files inside --repository-path.");
 
         public static readonly Option<bool> VerboseOption = new(aliases: new[]
