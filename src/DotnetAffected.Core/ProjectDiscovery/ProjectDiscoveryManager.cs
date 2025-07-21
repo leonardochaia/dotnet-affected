@@ -15,7 +15,7 @@ namespace DotnetAffected.Core
             }
 
             // When a filtering file is provided, use a specific discoverer based on its path.
-            if (options.FilterFilePath.EndsWith(".sln"))
+            if (options.FilterFilePath.EndsWith(".sln") || options.FilterFilePath.EndsWith(".slnx"))
             {
                 return new SolutionFileProjectDiscoverer().DiscoverProjects(options);
             }

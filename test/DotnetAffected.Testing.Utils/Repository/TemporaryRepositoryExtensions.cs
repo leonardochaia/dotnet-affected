@@ -149,6 +149,20 @@ namespace DotnetAffected.Testing.Utils
             await File.WriteAllTextAsync(solutionPath, solutionContents);
         }
 
+        public static async Task CreateXmlSolutionAsync(
+            this TemporaryRepository repo,
+            string solutionName,
+            params string[] projectPaths)
+        {
+            var i = 0;
+            var solutionContents = new SolutionFileBuilder { Projects = projectPaths.ToDictionary(p => i++.ToString()) }
+                .BuildXmlSolution();
+
+            var solutionPath = Path.Combine(repo.Path, solutionName);
+
+            await File.WriteAllTextAsync(solutionPath, solutionContents);
+        }
+
         public static Task CreateTraversalProjectAsync(
             this TemporaryRepository repo,
             string traversalProjectPath,

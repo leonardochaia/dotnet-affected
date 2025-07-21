@@ -97,5 +97,26 @@ EndProject");
 
             return sb.ToString();
         }
+
+        public string BuildXmlSolution()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine(@"<Solution>");
+            sb.AppendLine(@"  <Configurations>");
+            sb.AppendLine(@"    <Platform Name=""Any CPU"" />");
+            sb.AppendLine(@"    <Platform Name=""x64"" />");
+            sb.AppendLine(@"    <Platform Name=""x86"" />");
+            sb.AppendLine(@"  </Configurations>");
+
+            foreach (var project in Projects.Values)
+            {
+                sb.AppendLine(@$"  <Project Path=""{project}"" />");
+
+            }
+
+            sb.AppendLine(@"</Solution>");
+
+            return sb.ToString();
+        }
     }
 }
