@@ -125,5 +125,23 @@ namespace Affected.Cli.Tests
             Assert.Contains($"3 projects were excluded", output);
             Assert.Contains($"Excluded Projects", output);
         }
+
+        [Fact]
+        public async Task When_any_changes_with_additional_properties_should_include_properties()
+        {
+            // Create a project
+            var projectName = "InventoryManagement";
+            var msBuildProject = this.Repository.CreateCsProject(projectName);
+
+            var (output, exitCode) =
+                await this.InvokeAsync($"-p {Repository.Path} --dry-run -r ProjectName");
+
+            Assert.Equal(0, exitCode);
+
+            Assert.Contains($"WRITE {Path.Combine(Repository.Path, "affected.proj")}", output);
+            Assert.Contains($"Microsoft.Build.Traversal", output);
+            Assert.Contains($"Include=\"{msBuildProject.FullPath}\"", output);
+            Assert.Contains($"<ProjectName>{projectName}</ProjectName>", output);
+        }
     }
 }

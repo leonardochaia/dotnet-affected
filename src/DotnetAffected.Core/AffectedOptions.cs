@@ -17,12 +17,14 @@ namespace DotnetAffected.Core
         /// <param name="fromRef"></param>
         /// <param name="toRef"></param>
         /// <param name="exclusionRegex"></param>
+        /// <param name="additionalProperties"></param>
         public AffectedOptions(
             string? repositoryPath = null,
             string? filterFilePath = null,
             string? fromRef = null,
             string? toRef = null,
-            string? exclusionRegex = null)
+            string? exclusionRegex = null,
+            string[]? additionalProperties = null)
         {
             RepositoryPath = DetermineRepositoryPath(repositoryPath, filterFilePath);
 
@@ -37,6 +39,7 @@ namespace DotnetAffected.Core
             FromRef = fromRef ?? string.Empty;
             ToRef = toRef ?? string.Empty;
             ExclusionRegex = exclusionRegex;
+            AdditionalProperties = additionalProperties ?? Array.Empty<string>();
         }
 
         /// <summary>
@@ -65,6 +68,11 @@ namespace DotnetAffected.Core
         /// Gets the regular expression to use for excluding projects.
         /// </summary>
         public string? ExclusionRegex { get; }
+
+        /// <summary>
+        /// Gets the additional properties and values from the project's file if they exist.
+        /// </summary>
+        public string[] AdditionalProperties { get; }
 
         private static string DetermineRepositoryPath(string? repositoryPath, string? filterfilePath)
         {

@@ -28,6 +28,7 @@ namespace Affected.Cli.Commands
             this.AddGlobalOption(AffectedGlobalOptions.FromOption);
             this.AddGlobalOption(AffectedGlobalOptions.ToOption);
             this.AddGlobalOption(AffectedGlobalOptions.ExclusionRegexOption);
+            this.AddGlobalOption(AffectedGlobalOptions.AdditionalProperties);
 
             this.AddOption(FormatOption);
             this.AddOption(DryRunOption);
@@ -50,7 +51,7 @@ namespace Affected.Cli.Commands
                 var allProjects = summary
                     .ProjectsWithChangedFiles
                     .Concat(summary.AffectedProjects)
-                    .Select(p => new ProjectInfo(p));
+                    .Select(p => new ProjectInfo(p, options.AdditionalProperties));
 
                 // Generate output using formatters
                 var outputOptions = ctx.GetAffectedCommandOutputOptions(options);
