@@ -61,6 +61,17 @@ namespace Affected.Cli.Commands
                 "--exclude", "-e"
             },
             description: "A dotnet Regular Expression used to exclude discovered and affected projects.");
+
+        public static readonly Option<string[]> AdditionalProperties = new(
+            new[]
+            {
+                "--properties", "-r"
+            },
+            description: "Space-seperated list of properties from csproj file to include in output.",
+            getDefaultValue: () => Array.Empty<string>())
+            {
+                AllowMultipleArgumentsPerToken = true
+            };
     }
 
     internal sealed class ToOption : Option<string>

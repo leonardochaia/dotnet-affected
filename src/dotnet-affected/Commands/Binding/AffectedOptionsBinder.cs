@@ -26,7 +26,8 @@ namespace Affected.Cli.Commands
                 filterFilePath,
                 parseResult.GetValueForOption(AffectedGlobalOptions.FromOption),
                 parseResult.GetValueForOption(AffectedGlobalOptions.ToOption),
-                parseResult.GetValueForOption(AffectedGlobalOptions.ExclusionRegexOption)
+                parseResult.GetValueForOption(AffectedGlobalOptions.ExclusionRegexOption),
+                parseResult.GetValueForOption(AffectedGlobalOptions.AdditionalProperties)
             );
         }
     }
