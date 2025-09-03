@@ -3,11 +3,11 @@
     <ItemGroup>
         <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0"/>
         <PackageVersion Include="Moq" Version="4.20.72" />
-        <PackageVersion Include="xunit" Version="2.9.2" />
+        <PackageVersion Include="xunit" Version="2.9.3" />
         <PackageVersion Include="xunit.core" Version="2.9.2" />
         <PackageVersion Include="xunit.abstractions" Version="2.0.3" />
-        <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.0-pre.49"/>
-        <PackageVersion Include="coverlet.collector" Version="6.0.2"/>
-        <PackageVersion Include="XunitXml.TestLogger" Version="4.1.0" />
+        <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.1"/>
+        <PackageVersion Include="coverlet.collector" Version="6.0.3"/>
+        <PackageVersion Include="XunitXml.TestLogger" Version="5.0.0" />
     </ItemGroup>
 </Project>
