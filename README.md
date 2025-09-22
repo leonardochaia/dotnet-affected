@@ -412,6 +412,30 @@ Name                   Path
 dotnet-affected.Tests  /home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj
 ```
 
+## Assume All changed
+
+You can also use `--assume-all-changed` in order to fake changes being made to all projects. This
+is useful if you want to build/test/deploy all projects in your solution regardless of the changes in git.
+
+```text
+$ dotnet-affected --dry-run --assume-all-changed
+DRY-RUN: WRITE /home/lchaia/dev/dotnet-affected/affected.proj
+DRY-RUN: CONTENTS:
+<Project Sdk="Microsoft.Build.Traversal/3.0.3">
+  <ItemGroup>
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/dotnet-affected.Tests/dotnet-affected.Tests.csproj" />
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/dotnet-affected/dotnet-affected.csproj" />
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/DotnetAffected.Abstractions/DotnetAffected.Abstractions.csproj" />
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/DotnetAffected.Core/DotnetAffected.Core.csproj" />
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/src/DotnetAffected.Tasks/DotnetAffected.Tasks.csproj" />
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/test/dotnet-affected.Tests/dotnet-affected.Tests.csproj" />
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/test/DotnetAffected.Core.Tests/DotnetAffected.Core.Tests.csproj" />
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/test/DotnetAffected.Tasks.Tests/DotnetAffected.Tasks.Tests.csproj" />
+    <ProjectReference Include="/home/lchaia/dev/dotnet-affected/test/DotnetAffected.Testing.Utils/DotnetAffected.Testing.Utils.csproj" />
+  </ItemGroup>
+</Project>
+```
+
 ## Troubleshooting
 
 Some useful commands and flags are included for troubleshooting or just observing what would be affected by a small

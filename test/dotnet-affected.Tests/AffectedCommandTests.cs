@@ -125,5 +125,23 @@ namespace Affected.Cli.Tests
             Assert.Contains($"3 projects were excluded", output);
             Assert.Contains($"Excluded Projects", output);
         }
+        
+        [Fact]
+        public async Task When_assume_all_changed_should_return_all_projects()
+        {
+            // Create projects
+            var project1 = this.Repository.CreateCsProject("Project1");
+            var project2 = this.Repository.CreateCsProject("Project2");
+
+            // Commit so there are no changes
+            this.Repository.StageAndCommit();
+
+            var (output, exitCode) =
+                await this.InvokeAsync($"-p {Repository.Path} --dry-run --assume-all-changed");
+
+            Assert.Equal(0, exitCode);
+            Assert.Contains($"Include=\"{project1.FullPath}\"", output);
+            Assert.Contains($"Include=\"{project2.FullPath}\"", output);
+        }
     }
 }
