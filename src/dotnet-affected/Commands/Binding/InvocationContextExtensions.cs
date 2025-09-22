@@ -1,5 +1,6 @@
 ﻿using DotnetAffected.Abstractions;
 using DotnetAffected.Core;
+using Microsoft.Build.Graph;
 using System;
 using System.CommandLine.Binding;
 using System.CommandLine.Invocation;
@@ -13,7 +14,7 @@ namespace Affected.Cli.Commands
             this InvocationContext ctx)
         {
             var assumeChanges = ctx.ParseResult.GetValueForOption(AffectedGlobalOptions.AssumeChangesOption);
-
+            var assumeAllChanged = ctx.ParseResult.GetValueForOption(AffectedGlobalOptions.AssumeAllChangedOption);
             var options = ctx.GetAffectedOptions();
             var graph = new ProjectGraphFactory(options).BuildProjectGraph();
 
@@ -23,10 +24,14 @@ namespace Affected.Cli.Commands
                 ? new AssumptionChangesProvider(graph, assumptions)
                 : new GitChangesProvider();
 
+            IChangedProjectsProvider? changedProjectsProvider = assumeAllChanged
+                ? new AssumeAllChangedProjectsProvider(graph)
+                : new PredictionChangedProjectsProvider(graph, options);
+
             var executor = new AffectedExecutor(options,
                 graph,
                 changesProvider,
-                new PredictionChangedProjectsProvider(graph, options));
+                changedProjectsProvider);
 
             return (executor, options);
         }

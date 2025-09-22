@@ -1,4 +1,6 @@
 ﻿using Affected.Cli.Views;
+using Microsoft.Build.Graph;
+using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Rendering;
 using System.Linq;
@@ -28,6 +30,7 @@ namespace Affected.Cli.Commands
             this.AddGlobalOption(AffectedGlobalOptions.FromOption);
             this.AddGlobalOption(AffectedGlobalOptions.ToOption);
             this.AddGlobalOption(AffectedGlobalOptions.ExclusionRegexOption);
+            this.AddGlobalOption(AffectedGlobalOptions.AssumeAllChangedOption);
 
             this.AddOption(FormatOption);
             this.AddOption(DryRunOption);
