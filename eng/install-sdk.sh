@@ -17,5 +17,5 @@ dotnet_install_dir="$(dirname "$0")/.dotnet"
 "$install_script" --install-dir "$dotnet_install_dir" --jsonfile "$global_json_file"
 
 # Runtimes for tests
-"$install_script" --install-dir "$dotnet_install_dir" --runtime dotnet --channel 8.0
-"$install_script" --install-dir "$dotnet_install_dir" --runtime dotnet --channel 9.0
+"$install_script" --install-dir "$dotnet_install_dir" --channel 8.0
+"$install_script" --install-dir "$dotnet_install_dir" --channel 9.0
