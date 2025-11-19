@@ -14,24 +14,20 @@ namespace DotnetAffected.Tasks.Tests
 
         private static readonly Lazy<string> TargetFrameworkLocal = new (() =>
         {
-            var targetFramework = typeof(Utils).Assembly
+            var targetFrameworkAttribute = typeof(Utils).Assembly
                 .GetCustomAttributes(typeof(System.Runtime.Versioning.TargetFrameworkAttribute), false)
                 .OfType<System.Runtime.Versioning.TargetFrameworkAttribute>()
-                .Single()
-                .FrameworkName;
-
-            var majorVersion = new Regex(".+,Version=v(\\d).(\\d)")
-                .Match(targetFramework)
-                .Groups.Values.Skip(1)
-                .Select(g => int.Parse(g.Value))
-                .First();
+                .Single();
+            
+            var frameworkName = new System.Runtime.Versioning.FrameworkName(targetFrameworkAttribute.FrameworkName);
+            var majorVersion = frameworkName.Version.Major;
 
             switch (majorVersion)
             {
                 case >= 5:
                     return $"net{majorVersion}.0";
                 default:
-                    throw new NotSupportedException($"Invalid TargetFramework: {targetFramework}");
+                    throw new NotSupportedException($"Invalid TargetFramework: {frameworkName}");
             }
         });
     }

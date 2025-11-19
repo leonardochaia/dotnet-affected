@@ -9,5 +9,9 @@ Invoke-WebRequest -Uri $installScriptUrl -OutFile $installScript -MaximumRetryCo
 $globalJsonFile = "$PSScriptRoot\..\global.json"
 $dotnetInstallDir = "$PSScriptRoot\.dotnet"
 
-. $installScript  -InstallDir $dotnetInstallDir -JSonFile $globalJsonFile
-. $installScript  -InstallDir $dotnetInstallDir -Channel 8.0
+# SDK from global.json 
+. $installScript -InstallDir $dotnetInstallDir -JSonFile $globalJsonFile
+
+# Runtimes for tests
+. $installScript -InstallDir $dotnetInstallDir -Channel 8.0
+. $installScript -InstallDir $dotnetInstallDir -Channel 9.0
