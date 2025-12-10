@@ -21,6 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="LibGit2Sharp" VersionOverride="0.31.0" />
         <ProjectReference Include="$(CliPath)dotnet-affected.csproj"/>
         <ProjectReference Include="$(TestPath)DotnetAffected.Testing.Utils/DotnetAffected.Testing.Utils.csproj"/>
     </ItemGroup>
