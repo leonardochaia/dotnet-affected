@@ -3,5 +3,6 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
+        <PackageReference Include="Microsoft.Build.Framework" VersionOverride="18.0.2" />
     </ItemGroup>
 </Project>
