@@ -1,15 +1,15 @@
 <Project>
     <ItemGroup>
-        <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-        <PackageVersion Include="System.CommandLine.Rendering" Version="0.4.0-alpha.22272.1" />
-        <PackageVersion Include="LibGit2Sharp" Version="0.30.0" />
-        <PackageVersion Include="MinVer" Version="6.0.0" />
+        <PackageVersion Include="System.CommandLine" Version="2.0.1" />
+        <PackageVersion Include="System.CommandLine.Rendering" Version="0.4.0-alpha.25306.1" />
+        <PackageVersion Include="LibGit2Sharp" Version="0.31.0" />
+        <PackageVersion Include="MinVer" Version="7.0.0" />
 
-        <PackageVersion Include="Microsoft.Build.Prediction" Version="1.2.18" />
-        <PackageVersion Include="Microsoft.Build.Locator" Version="1.7.8" />
+        <PackageVersion Include="Microsoft.Build.Prediction" Version="1.2.36" />
+        <PackageVersion Include="Microsoft.Build.Locator" Version="1.11.2" />
         <PackageVersion Include="Microsoft.VisualStudio.SolutionPersistence" Version="1.0.52" />
 
-        <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
+        <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
         <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.12.1" Condition="'$(OS)' == 'Windows_NT'"/>
 
         <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.0.0" Condition="'$(ContinuousIntegrationBuild)' == 'true'"/>
