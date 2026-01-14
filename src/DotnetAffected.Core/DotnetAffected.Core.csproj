@@ -11,6 +11,7 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.Build.Prediction" />
         <PackageReference Include="LibGit2Sharp" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" VersionOverride="18.0.2" />
         <PackageReference Include="Microsoft.VisualStudio.SolutionPersistence" />
     </ItemGroup>
 </Project>
