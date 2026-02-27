@@ -29,13 +29,8 @@ namespace DotnetAffected.Core.Processor
         /// <inheritdoc cref="IChangedProjectsProvider"/>
         public IChangedProjectsProvider? ChangedProjectsProvider { get; }
 
-        /// <inheritdoc cref="ProjectGraph"/>
-        public ProjectGraph Graph { get; }
-
-        /// <summary>
-        /// Gets the project paths that were excluded during graph construction.
-        /// </summary>
-        internal string[] ExcludedProjectPaths { get; }
+        /// <inheritdoc cref="ProjectGraphBuildResult"/>
+        public ProjectGraphBuildResult BuildResult { get; }
 
         internal string[] ChangedFiles { get; set; } = Array.Empty<string>();
         internal ProjectGraphNode[] ChangedProjects { get; set; } = Array.Empty<ProjectGraphNode>();
@@ -57,8 +52,7 @@ namespace DotnetAffected.Core.Processor
         {
             ChangesProvider = changesProvider ?? new GitChangesProvider();
             Options = options;
-            Graph = buildResult.Graph;
-            ExcludedProjectPaths = buildResult.ExcludedProjectPaths;
+            BuildResult = buildResult;
             ChangedProjectsProvider = changedProjectsProvider;
 
             RepositoryPath = Path.TrimEndingDirectorySeparator(options.RepositoryPath);

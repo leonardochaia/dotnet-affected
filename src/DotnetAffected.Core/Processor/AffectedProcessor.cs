@@ -105,7 +105,7 @@ namespace DotnetAffected.Core.Processor
                 }
             }
 
-            var relatedProjects = context.Graph.ProjectNodes
+            var relatedProjects = context.BuildResult.Graph.ProjectNodes
                 .Where(node =>
                     changedPackageFiles.Any(f => node.ProjectInstance.FullPath.StartsWith(f.DirectoryName!)));
 

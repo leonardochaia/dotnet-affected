@@ -37,7 +37,7 @@ namespace DotnetAffected.Core.Processor
                 context.ChangedFiles,
                 context.ChangedProjects,
                 context.AffectedProjects,
-                context.ExcludedProjectPaths,
+                context.BuildResult.ExcludedProjectPaths,
                 context.ChangedPackages);
         }
 
@@ -56,9 +56,8 @@ namespace DotnetAffected.Core.Processor
         /// <returns></returns>
         protected virtual IEnumerable<ProjectGraphNode> DiscoverProjectsForFiles(AffectedProcessorContext context)
         {
-            // We init now because we want the graph to initialize late (lazy)
             var provider = context.ChangedProjectsProvider ??
-                           new PredictionChangedProjectsProvider(context.Graph, context.Options);
+                           new PredictionChangedProjectsProvider(context.BuildResult.Graph, context.Options);
             // Match which files belong to which of our known projects
             return provider.GetReferencingProjects(context.ChangedFiles);
         }
