@@ -9,27 +9,15 @@ namespace DotnetAffected.Core
     /// <summary>
     /// The result of building a <see cref="ProjectGraph"/>.
     /// </summary>
-    public class ProjectGraphBuildResult
-    {
-        /// <summary>
-        /// Gets the built project graph.
-        /// </summary>
-        public ProjectGraph Graph { get; }
-
-        /// <summary>
-        /// Gets the paths of projects that were excluded during graph construction.
-        /// </summary>
-        public string[] ExcludedProjectPaths { get; }
-
-        /// <summary>
-        /// Creates a new instance.
-        /// </summary>
-        public ProjectGraphBuildResult(ProjectGraph graph, string[] excludedProjectPaths)
-        {
-            Graph = graph;
-            ExcludedProjectPaths = excludedProjectPaths;
-        }
-    }
+    /// <paramref name="Graph">
+    /// Gets the built project graph.
+    /// </paramref>
+    /// <paramref name="ExcludedProjectPaths">
+    /// Gets the paths of projects that were excluded during graph construction.
+    /// </paramref>
+    public record ProjectGraphBuildResult(
+        ProjectGraph Graph,
+        string[] ExcludedProjectPaths);
 
     /// <summary>
     /// Resolves the <see cref="ProjectGraph"/> for the directory provided in user input.

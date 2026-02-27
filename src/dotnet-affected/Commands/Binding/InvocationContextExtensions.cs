@@ -24,10 +24,9 @@ namespace Affected.Cli.Commands
                 : new GitChangesProvider();
 
             var executor = new AffectedExecutor(options,
-                buildResult.Graph,
+                buildResult,
                 changesProvider,
-                new PredictionChangedProjectsProvider(buildResult.Graph, options),
-                buildResult.ExcludedProjectPaths);
+                new PredictionChangedProjectsProvider(buildResult.Graph, options));
 
             return (executor, options);
         }

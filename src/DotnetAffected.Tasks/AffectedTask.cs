@@ -55,10 +55,9 @@ namespace DotnetAffected.Tasks
                     : new GitChangesProvider();
 
                 var executor = new AffectedExecutor(affectedOptions,
-                    buildResult.Graph,
+                    buildResult,
                     changesProvider,
-                    new PredictionChangedProjectsProvider(buildResult.Graph, affectedOptions),
-                    buildResult.ExcludedProjectPaths);
+                    new PredictionChangedProjectsProvider(buildResult.Graph, affectedOptions));
 
                 var results = executor.Execute();
                 var modifiedProjectInstances = new HashSet<ProjectInstance>();

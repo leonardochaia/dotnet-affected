@@ -42,14 +42,15 @@ namespace Affected.Cli.Benchmarks
             Repository.StageAndCommit();
 
             // Add random files to the tree so that some projects have changes
-            var graph = new ProjectGraph(rootNodes.Select(x => x.FullPath));
-            await Repository.MakeChangesInProjectTree(graph);
+            var options = new AffectedOptions(Repository.Path);
+            var buildResult = new ProjectGraphFactory(options).BuildProjectGraph();
+            await Repository.MakeChangesInProjectTree(buildResult.Graph);
 
-            Console.WriteLine($"Built graph with total of {graph.ProjectNodes.Count()} " +
-                              $"projects in {graph.ConstructionMetrics.ConstructionTime}");
+            Console.WriteLine($"Built graph with total of {buildResult.Graph.ProjectNodes.Count()} " +
+                              $"projects in {buildResult.Graph.ConstructionMetrics.ConstructionTime}");
 
             // Create an executor for the repository using the existing graph.
-            Executor = new AffectedExecutor(Repository.Path, graph);
+            Executor = new AffectedExecutor(options, buildResult);
         }
 
         public AffectedExecutor Executor { get; set; }

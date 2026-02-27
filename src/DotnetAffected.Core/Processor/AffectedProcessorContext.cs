@@ -11,9 +11,6 @@ namespace DotnetAffected.Core.Processor
     /// </summary>
     internal class AffectedProcessorContext
     {
-        private ProjectGraph? _graph;
-        private string[]? _excludedProjectPaths;
-
         /// <inheritdoc cref="IChangesProvider"/>
         public IChangesProvider ChangesProvider { get; }
 
@@ -33,34 +30,12 @@ namespace DotnetAffected.Core.Processor
         public IChangedProjectsProvider? ChangedProjectsProvider { get; }
 
         /// <inheritdoc cref="ProjectGraph"/>
-        public ProjectGraph Graph
-        {
-            get
-            {
-                if (_graph == null)
-                {
-                    var result = new ProjectGraphFactory(Options).BuildProjectGraph();
-                    _graph = result.Graph;
-                    _excludedProjectPaths = result.ExcludedProjectPaths;
-                }
-
-                return _graph;
-            }
-        }
+        public ProjectGraph Graph { get; }
 
         /// <summary>
         /// Gets the project paths that were excluded during graph construction.
-        /// Accessing this property will trigger graph construction if not already built.
         /// </summary>
-        internal string[] ExcludedProjectPaths
-        {
-            get
-            {
-                // Ensure the graph is built so excluded paths are populated
-                _ = Graph;
-                return _excludedProjectPaths ?? Array.Empty<string>();
-            }
-        }
+        internal string[] ExcludedProjectPaths { get; }
 
         internal string[] ChangedFiles { get; set; } = Array.Empty<string>();
         internal ProjectGraphNode[] ChangedProjects { get; set; } = Array.Empty<ProjectGraphNode>();
@@ -72,20 +47,18 @@ namespace DotnetAffected.Core.Processor
         ///
         /// </summary>
         /// <param name="options"></param>
-        /// <param name="graph"></param>
+        /// <param name="buildResult"></param>
         /// <param name="changesProvider"></param>
         /// <param name="changedProjectsProvider"></param>
-        /// <param name="excludedProjectPaths"></param>
         public AffectedProcessorContext(AffectedOptions options,
-            ProjectGraph? graph = null,
+            ProjectGraphBuildResult buildResult,
             IChangesProvider? changesProvider = null,
-            IChangedProjectsProvider? changedProjectsProvider = null,
-            string[]? excludedProjectPaths = null)
+            IChangedProjectsProvider? changedProjectsProvider = null)
         {
             ChangesProvider = changesProvider ?? new GitChangesProvider();
             Options = options;
-            _graph = graph;
-            _excludedProjectPaths = excludedProjectPaths;
+            Graph = buildResult.Graph;
+            ExcludedProjectPaths = buildResult.ExcludedProjectPaths;
             ChangedProjectsProvider = changedProjectsProvider;
 
             RepositoryPath = Path.TrimEndingDirectorySeparator(options.RepositoryPath);

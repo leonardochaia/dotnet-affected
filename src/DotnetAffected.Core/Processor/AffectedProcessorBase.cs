@@ -32,14 +32,12 @@ namespace DotnetAffected.Core.Processor
             context.AffectedProjects = DiscoverAffectedProjects(context);
 
             // Excluded projects are those filtered during graph construction.
-            var excludedProjects = context.ExcludedProjectPaths;
-
             // Output a summary of the operation.
             return new AffectedSummary(
                 context.ChangedFiles,
                 context.ChangedProjects,
                 context.AffectedProjects,
-                excludedProjects,
+                context.ExcludedProjectPaths,
                 context.ChangedPackages);
         }
 
