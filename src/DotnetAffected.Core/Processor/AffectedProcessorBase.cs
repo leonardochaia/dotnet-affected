@@ -2,7 +2,6 @@
 using Microsoft.Build.Graph;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace DotnetAffected.Core.Processor
 {
@@ -23,28 +22,24 @@ namespace DotnetAffected.Core.Processor
                 .ToArray();
 
             // Map the files that changed to their corresponding project/s.
-            var excludedProjects = new List<ProjectGraphNode>();
-            context.ChangedProjects = ApplyExclusionPattern(
-                DiscoverProjectsForFiles(context),
-                context.Options,
-                excludedProjects);
+            context.ChangedProjects = DiscoverProjectsForFiles(context)
+                .ToArray();
 
             // Get packages that have changed, either from central package management or from the project file
             context.ChangedPackages = DiscoverPackageChanges(context);
 
             // Determine which projects are affected by the projects and packages that have changed.
-            context.AffectedProjects = ApplyExclusionPattern(
-                DiscoverAffectedProjects(context),
-                context.Options,
-                excludedProjects);
+            context.AffectedProjects = DiscoverAffectedProjects(context);
+
+            // Excluded projects are those filtered during graph construction.
+            var excludedProjects = context.ExcludedProjectPaths;
 
             // Output a summary of the operation.
             return new AffectedSummary(
                 context.ChangedFiles,
                 context.ChangedProjects,
                 context.AffectedProjects,
-                excludedProjects.Distinct()
-                    .ToArray(),
+                excludedProjects,
                 context.ChangedPackages);
         }
 
@@ -68,37 +63,6 @@ namespace DotnetAffected.Core.Processor
                            new PredictionChangedProjectsProvider(context.Graph, context.Options);
             // Match which files belong to which of our known projects
             return provider.GetReferencingProjects(context.ChangedFiles);
-        }
-
-        /// <summary>
-        /// Applies the <see cref="AffectedOptions.ExclusionRegex"/> to exclude
-        /// projects that matches the regular expression.
-        /// </summary>
-        /// <param name="inputProjects">List of projects that changed.</param>
-        /// <param name="options">Affected options.</param>
-        /// <param name="excludedProjects">Collection of excluded projects</param>
-        /// <returns>Project lis excluding the ones that matches the exclusion regex.</returns>
-        protected virtual ProjectGraphNode[] ApplyExclusionPattern(
-            IEnumerable<ProjectGraphNode> inputProjects,
-            AffectedOptions options,
-            ICollection<ProjectGraphNode> excludedProjects)
-        {
-            var pattern = options.ExclusionRegex;
-
-            if (string.IsNullOrEmpty(pattern))
-                return inputProjects.ToArray();
-
-            var changedProjects = new List<ProjectGraphNode>();
-            var regex = new Regex(pattern);
-            foreach (var project in inputProjects)
-            {
-                if (regex.IsMatch(project.GetFullPath()))
-                    excludedProjects.Add(project);
-                else
-                    changedProjects.Add(project);
-            }
-
-            return changedProjects.ToArray();
         }
 
         /// <summary>

@@ -28,13 +28,16 @@ namespace DotnetAffected.Core
         /// <param name="changesProvider"></param>
         /// <param name="graph"></param>
         /// <param name="changedProjectsProvider"></param>
+        /// <param name="excludedProjectPaths"></param>
         public AffectedExecutor(
             AffectedOptions options,
             ProjectGraph? graph = null,
             IChangesProvider? changesProvider = null,
-            IChangedProjectsProvider? changedProjectsProvider = null)
+            IChangedProjectsProvider? changedProjectsProvider = null,
+            string[]? excludedProjectPaths = null)
         {
-            _context = new AffectedProcessorContext(options, graph, changesProvider, changedProjectsProvider);
+            _context = new AffectedProcessorContext(options, graph, changesProvider, changedProjectsProvider,
+                excludedProjectPaths);
         }
 
         /// <inheritdoc />

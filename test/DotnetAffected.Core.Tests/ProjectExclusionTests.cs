@@ -39,7 +39,8 @@ namespace DotnetAffected.Core.Tests
             Assert.Empty(AffectedSummary.ProjectsWithChangedFiles);
             Assert.Empty(AffectedSummary.AffectedProjects);
 
-            Assert.Single(AffectedSummary.ExcludedProjects);
+            // Both InventoryManagement and InventoryManagement.Tests are excluded at discovery
+            Assert.Equal(2, AffectedSummary.ExcludedProjects.Length);
         }
 
         [Fact]
@@ -83,7 +84,8 @@ namespace DotnetAffected.Core.Tests
             Assert.Equal(dependantProjectName, affectedProject.GetProjectName());
             Assert.Equal(dependantMsBuildProject.FullPath, affectedProject.GetFullPath());
 
-            Assert.Single(AffectedSummary.ExcludedProjects);
+            // All three Inventory* projects are excluded at discovery
+            Assert.Equal(3, AffectedSummary.ExcludedProjects.Length);
         }
 
         [Fact]

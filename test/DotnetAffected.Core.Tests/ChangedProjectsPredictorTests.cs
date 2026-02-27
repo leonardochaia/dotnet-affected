@@ -14,7 +14,7 @@ namespace DotnetAffected.Core.Tests
 
         private IChangedProjectsProvider Provider => new PredictionChangedProjectsProvider(Graph, Options);
 
-        private ProjectGraph Graph => _graph ??= new ProjectGraphFactory(Options).BuildProjectGraph();
+        private ProjectGraph Graph => _graph ??= new ProjectGraphFactory(Options).BuildProjectGraph().Graph;
 
         [Fact]
         public async Task FindProjectsForFilePaths_ShouldFindSingleProject()

@@ -37,7 +37,8 @@ namespace Affected.Cli.Views
             if (summary.ExcludedProjects.Any())
             {
                 Add(new ContentView("\nExcluded Projects"));
-                Add(new ProjectInfoTable(summary.ExcludedProjects));
+                Add(new ProjectInfoTable(summary.ExcludedProjects.Select(p =>
+                    new ProjectInfo(System.IO.Path.GetFileNameWithoutExtension(p), p))));
             }
         }
     }

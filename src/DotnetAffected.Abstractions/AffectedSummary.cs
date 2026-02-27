@@ -19,7 +19,7 @@ namespace DotnetAffected.Abstractions
             string[] filesThatChanged,
             ProjectGraphNode[] projectsWithChangedFiles,
             ProjectGraphNode[] affectedProjects,
-            ProjectGraphNode[] excludedProjects,
+            string[] excludedProjects,
             PackageChange[] changedPackages)
         {
             FilesThatChanged = filesThatChanged;
@@ -45,9 +45,9 @@ namespace DotnetAffected.Abstractions
         public ProjectGraphNode[] AffectedProjects { get; }
 
         /// <summary>
-        /// Gets a list of projects that had changes or were affected but were excluded from discovery.
+        /// Gets a list of project paths that were excluded from discovery.
         /// </summary>
-        public ProjectGraphNode[] ExcludedProjects { get; }
+        public string[] ExcludedProjects { get; }
 
         /// <summary>
         /// Gets the list of packages that changed.

@@ -15,5 +15,10 @@
         /// This could be any file that the inner <see cref="IProjectDiscoverer"/> supports.
         /// </summary>
         string? FilterFilePath { get; }
+
+        /// <summary>
+        /// Gets the regular expression to use for excluding projects during discovery.
+        /// </summary>
+        string? ExclusionRegex { get; }
     }
 }

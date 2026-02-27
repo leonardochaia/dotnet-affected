@@ -18,12 +18,12 @@ namespace DotnetAffected.Core.Tests
             this._affectedSummaryLazy = new Lazy<AffectedSummary>(() =>
             {
                 var factory = new ProjectGraphFactory(options);
-                var graph = factory.BuildProjectGraph();
-                var changesProvider = new AssumptionChangesProvider(graph, new[]
+                var buildResult = factory.BuildProjectGraph();
+                var changesProvider = new AssumptionChangesProvider(buildResult.Graph, new[]
                 {
                     _projectName
                 });
-                var executor = new AffectedExecutor(options, graph, changesProvider);
+                var executor = new AffectedExecutor(options, buildResult.Graph, changesProvider);
                 return executor.Execute();
             });
         }

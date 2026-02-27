@@ -15,18 +15,19 @@ namespace Affected.Cli.Commands
             var assumeChanges = ctx.ParseResult.GetValueForOption(AffectedGlobalOptions.AssumeChangesOption);
 
             var options = ctx.GetAffectedOptions();
-            var graph = new ProjectGraphFactory(options).BuildProjectGraph();
+            var buildResult = new ProjectGraphFactory(options).BuildProjectGraph();
 
             var assumptions = assumeChanges?.ToArray() ?? Array.Empty<string>();
 
             IChangesProvider changesProvider = assumptions.Any()
-                ? new AssumptionChangesProvider(graph, assumptions)
+                ? new AssumptionChangesProvider(buildResult.Graph, assumptions)
                 : new GitChangesProvider();
 
             var executor = new AffectedExecutor(options,
-                graph,
+                buildResult.Graph,
                 changesProvider,
-                new PredictionChangedProjectsProvider(graph, options));
+                new PredictionChangedProjectsProvider(buildResult.Graph, options),
+                buildResult.ExcludedProjectPaths);
 
             return (executor, options);
         }

@@ -8,8 +8,13 @@ namespace Affected.Cli.Views
     internal sealed class ProjectInfoTable : TableView<IProjectInfo>
     {
         public ProjectInfoTable(IEnumerable<ProjectGraphNode> nodes)
+            : this(nodes.Select(p => new ProjectInfo(p)))
         {
-            this.Items = nodes.Select(p => new ProjectInfo(p))
+        }
+
+        public ProjectInfoTable(IEnumerable<IProjectInfo> projects)
+        {
+            this.Items = projects
                 .OrderBy(x => x.Name)
                 .ToList();
             this.AddColumn(p => p.Name, "Name");
