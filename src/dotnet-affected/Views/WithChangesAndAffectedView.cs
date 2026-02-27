@@ -1,5 +1,6 @@
 using DotnetAffected.Abstractions;
 using System.CommandLine.Rendering.Views;
+using System.IO;
 using System.Linq;
 
 namespace Affected.Cli.Views
@@ -32,13 +33,13 @@ namespace Affected.Cli.Views
             if (summary.AffectedProjects.Any())
                 Add(new ProjectInfoTable(summary.AffectedProjects));
             else
-                Add(new ContentView("No projects where affected by any of the changed projects."));
+                Add(new ContentView("No projects were affected by any of the changed projects."));
 
             if (summary.ExcludedProjects.Any())
             {
                 Add(new ContentView("\nExcluded Projects"));
                 Add(new ProjectInfoTable(summary.ExcludedProjects.Select(p =>
-                    new ProjectInfo(System.IO.Path.GetFileNameWithoutExtension(p), p))));
+                    new ProjectInfo(Path.GetFileNameWithoutExtension(p), p))));
             }
         }
     }

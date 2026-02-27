@@ -65,7 +65,7 @@ namespace Affected.Cli.Tests
 
             Assert.Contains($"WRITE: {Path.Combine(Repository.Path, "affected.txt")}", output);
             Assert.Contains(projectName, output);
-            Assert.Contains("No projects where affected by any of the changed projects.", output);
+            Assert.Contains("No projects were affected by any of the changed projects.", output);
         }
 
         [Fact]
@@ -99,7 +99,7 @@ namespace Affected.Cli.Tests
 
             Assert.Equal(AffectedExitCodes.NothingChanged, exitCode);
 
-            Assert.Contains($"No affected projects where found for the current changes", output);
+            Assert.Contains($"No affected projects were found for the current changes", output);
         }
 
         [Fact]
