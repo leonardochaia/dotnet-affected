@@ -32,7 +32,7 @@ namespace Affected.Cli.Formatters
                 // Ignore the current project
                 if (project.Items.All(i => i.EvaluatedInclude != currentProjectPath))
                 {
-                    project.AddItem("ProjectReference", currentProjectPath);
+                    project.AddItem("ProjectReference", currentProjectPath, projectInfo.AdditionalProperties);
                 }
             }
 
