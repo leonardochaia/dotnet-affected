@@ -61,6 +61,11 @@ namespace Affected.Cli.Commands
                 "--exclude", "-e"
             },
             description: "A dotnet Regular Expression used to exclude discovered and affected projects.");
+
+        public static readonly Option<bool> AssumeAllChangedOption = new(
+            aliases: new[] { "--assume-all-changed", "-a"},
+            getDefaultValue: () => false,
+            description: "Assume all projects have changed.");
     }
 
     internal sealed class ToOption : Option<string>
