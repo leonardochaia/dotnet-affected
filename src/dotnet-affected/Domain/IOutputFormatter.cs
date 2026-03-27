@@ -26,6 +26,6 @@ namespace Affected.Cli
         /// </summary>
         /// <param name="projects">List of projects to format.</param>
         /// <returns>The formatted output.</returns>
-        Task<string> Format(IEnumerable<IProjectInfo> projects);
+        Task<string> Format(IEnumerable<IProjectInfo> projects, string? filterFilePath = null);
     }
 }

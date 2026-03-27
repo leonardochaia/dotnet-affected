@@ -10,7 +10,7 @@ namespace Affected.Cli.Formatters
         
         public string NewFileExtension => ".txt";
 
-        public Task<string> Format(IEnumerable<IProjectInfo> projects)
+        public Task<string> Format(IEnumerable<IProjectInfo> projects, string? filterFilePath = null)
         {
             var builder = new StringBuilder();
 

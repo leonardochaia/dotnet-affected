@@ -61,6 +61,7 @@ namespace Affected.Cli.Commands
                     outputOptions.Formatters,
                     outputOptions.OutputDir,
                     outputOptions.OutputName,
+                    options.FilterFilePath,
                     outputOptions.DryRun,
                     verbose);
             });
@@ -75,7 +76,7 @@ namespace Affected.Cli.Commands
                 "--format", "-f"
             })
         {
-            this.Description = "Space-seperated output file formats. Possible values: <traversal, text, json>.";
+            this.Description = "Space-seperated output file formats. Possible values: <traversal, text, json, slnf>.";
 
             this.SetDefaultValue(new[]
             {

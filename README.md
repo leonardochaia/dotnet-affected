@@ -220,6 +220,7 @@ dotnet-affected currently supports following **format options**:
 - `traversal`: Traversal SDK project file.
 - `text`: Plain text file containing all affected project paths.
 - `json`: JSON file containing all affected project names and paths.
+- `slnf`: [Solution Filter](https://learn.microsoft.com/en-us/visualstudio/msbuild/solution-filters) JSON file containing Solution name and affected project paths.
 
 Example:
 ```text

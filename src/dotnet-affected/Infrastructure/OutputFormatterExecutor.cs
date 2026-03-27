@@ -30,6 +30,7 @@ namespace Affected.Cli
             IEnumerable<string> formatters,
             string outputDirectory,
             string outputName,
+            string? filterFilePath,
             bool dryRun,
             bool verbose = false)
         {
@@ -50,7 +51,7 @@ namespace Affected.Cli
                 }
 
                 // Format the projects and calculate output path.
-                var outputContents = await formatter.Format(allProjects);
+                var outputContents = await formatter.Format(allProjects, filterFilePath);
 
                 if (string.IsNullOrWhiteSpace(outputContents))
                 {

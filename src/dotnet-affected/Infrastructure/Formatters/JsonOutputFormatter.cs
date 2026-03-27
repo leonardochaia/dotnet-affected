@@ -15,7 +15,7 @@ namespace Affected.Cli.Formatters
             WriteIndented = true
         };
 
-        public Task<string> Format(IEnumerable<IProjectInfo> projects)
+        public Task<string> Format(IEnumerable<IProjectInfo> projects, string? filterFilePath = null)
         {
             return Task.FromResult(JsonSerializer.Serialize(projects, SerializerOptions));
         }
