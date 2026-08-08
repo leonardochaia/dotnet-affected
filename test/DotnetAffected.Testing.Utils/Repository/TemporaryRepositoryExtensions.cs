@@ -202,21 +202,24 @@ namespace DotnetAffected.Testing.Utils
             string contents)
         {
             path = Path.Combine(repo.Path, path);
-            var file = File.CreateText(path);
-            await file.DisposeAsync();
+
+            // Ensure the containing directory exists so that nested files can be created.
+            var directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
             await File.WriteAllTextAsync(path, contents);
         }
 
-        public static async Task CreateTextFileAsync(
+        public static Task CreateTextFileAsync(
             this TemporaryRepository repo,
             ProjectRootElement project,
             string path,
             string contents)
         {
-            path = Path.Combine(repo.Path, project.GetName(), path);
-            var file = File.CreateText(path);
-            await file.DisposeAsync();
-            await File.WriteAllTextAsync(path, contents);
+            return repo.CreateTextFileAsync(Path.Combine(project.GetName(), path), contents);
         }
 
         /// <summary>
