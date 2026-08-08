@@ -2,6 +2,7 @@
 using Microsoft.Build.Graph;
 using Microsoft.Build.Prediction;
 using Microsoft.Build.Prediction.Predictors;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,6 +16,13 @@ namespace DotnetAffected.Core
     public class PredictionChangedProjectsProvider : IChangedProjectsProvider
     {
         private readonly ProjectGraph _graph;
+
+        /// <summary>
+        /// File systems on Windows are case insensitive, everywhere else they are not.
+        /// </summary>
+        private static readonly StringComparison PathComparison = GitChangesProvider.IsWindows
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
 
         private static readonly ProjectFileAndImportsGraphPredictor[] GraphPredictors = new[]
         {
@@ -76,16 +84,64 @@ namespace DotnetAffected.Core
             {
                 // determine nodes depending on the changed file
                 var nodesWithFiles = collector.PredictionsPerNode
-                    .Where(x => x.Value.Contains(file));
+                    .Where(x => x.Value.Contains(file))
+                    .Select(x => x.Key)
+                    .ToList();
 
-                foreach (var (key, _) in nodesWithFiles)
+                // A deleted file is gone from disk, so it is no longer an input of any
+                // project in the current graph and no predictor can claim it. Fall back
+                // to the project whose directory contained it, otherwise the owning
+                // project is silently left out of the build.
+                // See https://github.com/leonardochaia/dotnet-affected/issues/84
+                if (nodesWithFiles.Count == 0 && !File.Exists(file))
                 {
-                    if (hasReturned.Add(key.ProjectInstance.FullPath))
+                    var containingNode = FindDeepestProjectContaining(file);
+                    if (containingNode is not null)
                     {
-                        yield return key;
+                        nodesWithFiles.Add(containingNode);
+                    }
+                }
+
+                foreach (var node in nodesWithFiles)
+                {
+                    if (hasReturned.Add(node.ProjectInstance.FullPath))
+                    {
+                        yield return node;
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Finds the project whose directory contains <paramref name="file"/>.
+        /// The deepest directory wins, so nested projects attribute to the innermost one.
+        /// </summary>
+        private ProjectGraphNode? FindDeepestProjectContaining(string file)
+        {
+            ProjectGraphNode? deepest = null;
+            var deepestLength = -1;
+
+            foreach (var node in _graph.ProjectNodes)
+            {
+                var directory = node.ProjectInstance.Directory;
+                if (string.IsNullOrEmpty(directory))
+                    continue;
+
+                var prefix = directory.EndsWith(Path.DirectorySeparatorChar)
+                    ? directory
+                    : directory + Path.DirectorySeparatorChar;
+
+                if (!file.StartsWith(prefix, PathComparison))
+                    continue;
+
+                if (prefix.Length > deepestLength)
+                {
+                    deepestLength = prefix.Length;
+                    deepest = node;
+                }
+            }
+
+            return deepest;
         }
     }
 }
