@@ -129,9 +129,11 @@ namespace Affected.Cli.Benchmarks
                     .GetChangedFiles(repository.Path, string.Empty, string.Empty)
                     .ToArray());
 
-            // Prediction alone, discarding everything it produces, to separate the cost of
-            // running the predictors from the cost of storing and searching their output.
-            Measure("msbuild prediction only", () =>
+            // Every predictor MSBuild.Prediction ships, discarding the results. This is not the
+            // set the tool actually uses, it is here to show what prediction costs in total and
+            // what dropping a predictor is worth. Compare against the attribute lines below,
+            // which run the real configuration.
+            Measure("prediction, all predictors", () =>
             {
                 var executor = new ProjectGraphPredictionExecutor(
                     ProjectPredictors.AllProjectGraphPredictors,
