@@ -26,7 +26,12 @@ namespace DotnetAffected.Core
         /// </summary>
         /// <param name="options"></param>
         /// <param name="changesProvider"></param>
-        /// <param name="graph"></param>
+        /// <param name="graph">
+        /// Leave this null unless you already have a graph you must reuse. When null, the graph is
+        /// built after the changed files are known, so files the diff removed are restored before
+        /// evaluation and stay attributed to their project. A graph supplied here was necessarily
+        /// evaluated before the diff was read, so that no longer holds.
+        /// </param>
         /// <param name="changedProjectsProvider"></param>
         public AffectedExecutor(
             AffectedOptions options,

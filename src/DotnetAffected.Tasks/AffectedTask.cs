@@ -53,12 +53,12 @@ namespace DotnetAffected.Tasks
                         "DotnetAffected AssumeChanges is set along with FromRef/ToRef. Only AssumeChanges is used.");
                 }
 
-                var graph = new ProjectGraphFactory(affectedOptions).BuildProjectGraph();
-
+                // Deliberately no graph: the executor defers building it until the changed files
+                // are known, so files the diff removed are restored before evaluation and stay
+                // attributed to their project. Supplying one here opts out of that.
+                // See https://github.com/leonardochaia/dotnet-affected/issues/84
                 var executor = new AffectedExecutor(affectedOptions,
-                    graph,
-                    new GitChangesProvider(),
-                    new PredictionChangedProjectsProvider(graph, affectedOptions));
+                    changesProvider: new GitChangesProvider());
 
                 var results = executor.Execute();
                 var modifiedProjectInstances = new HashSet<ProjectInstance>();
