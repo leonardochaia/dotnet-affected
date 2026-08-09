@@ -3,7 +3,6 @@ using DotnetAffected.Core;
 using System;
 using System.CommandLine.Binding;
 using System.CommandLine.Invocation;
-using System.Linq;
 
 namespace Affected.Cli.Commands
 {
@@ -13,12 +12,12 @@ namespace Affected.Cli.Commands
             this InvocationContext ctx)
         {
             var options = ctx.GetAffectedOptions();
-            var graph = new ProjectGraphFactory(options).BuildProjectGraph();
 
-            var executor = new AffectedExecutor(options,
-                graph,
-                new GitChangesProvider(),
-                new PredictionChangedProjectsProvider(graph, options));
+            // Deliberately no graph: the executor defers building it until the changed files are
+            // known, so files the diff removed are restored before evaluation and stay attributed
+            // to their project. Supplying one here opts out of that.
+            // See https://github.com/leonardochaia/dotnet-affected/issues/84
+            var executor = new AffectedExecutor(options, changesProvider: new GitChangesProvider());
 
             return (executor, options);
         }

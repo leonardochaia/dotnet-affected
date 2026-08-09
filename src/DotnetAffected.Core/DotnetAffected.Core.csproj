@@ -13,4 +13,13 @@
         <PackageReference Include="LibGit2Sharp" />
         <PackageReference Include="Microsoft.VisualStudio.SolutionPersistence" />
     </ItemGroup>
+
+    <ItemGroup>
+        <!-- The benchmarks need AffectedExecutor.ForPreEvaluatedGraph to keep graph construction
+             out of the measured region. It is not public: passing a graph evaluated before the
+             diff was read silently stops deleted files being attributed. -->
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+            <_Parameter1>dotnet-affected.Benchmarks</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
 </Project>
