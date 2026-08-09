@@ -29,24 +29,6 @@ namespace DotnetAffected.Core.FileSystem
         }
         
         /// <summary>
-        /// Extensions MSBuild uses for projects and imports.
-        ///
-        /// Imports are not required to use one of these, but recognising them by extension keeps
-        /// this off the read path: the git file system does no caching, so deciding by content
-        /// would cost an extra blob read for every file MSBuild probes for.
-        ///
-        /// Imports using a non standard extension are therefore deliberately not eager loaded.
-        /// If that ever needs supporting, an option carrying extra extensions to recognise is a
-        /// better trade than inspecting the contents of everything that gets probed.
-        /// </summary>
-        private static readonly HashSet<string> MsBuildProjectExtensions =
-            new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            {
-                ".props", ".targets", ".proj", ".csproj", ".fsproj", ".vbproj",
-                ".vcxproj", ".projitems", ".shproj", ".tasks", ".overridetasks", ".user",
-            };
-
-        /// <summary>
         /// Use this for File.Exists(path)
         /// </summary>
         public override bool FileExists(string path)
@@ -65,7 +47,7 @@ namespace DotnetAffected.Core.FileSystem
         /// See https://github.com/leonardochaia/dotnet-affected/issues/155
         /// </summary>
         private static bool IsMsBuildProjectFile(string path)
-            => MsBuildProjectExtensions.Contains(Path.GetExtension(path));
+            => MsBuildFileExtensions.IsMsBuildProjectFile(path);
 
         public Project CreateProjectAndEagerLoadChildren(string path)
         {

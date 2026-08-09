@@ -2,6 +2,7 @@
 using DotnetAffected.Core.FileSystem;
 using LibGit2Sharp;
 using Microsoft.Build.Evaluation;
+using Microsoft.Build.FileSystem;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -47,6 +48,41 @@ namespace DotnetAffected.Core
         public Project? LoadProject(string directory, string pathToFile, string? commitRef, bool fallbackToHead)
         {
             return LoadProjectCore(directory, pathToFile, commitRef, fallbackToHead);
+        }
+
+        /// <inheritdoc />
+        public IReadOnlyDictionary<string, byte[]> ReadFilesAt(
+            string directory,
+            string? commitRef,
+            IReadOnlyCollection<string> filePaths)
+        {
+            var contents = new Dictionary<string, byte[]>();
+            if (filePaths.Count == 0)
+                return contents;
+
+            using var repository = new Repository(directory);
+
+            var commit = string.IsNullOrWhiteSpace(commitRef)
+                ? repository.Head.Tip
+                : GetCommitOrThrow(repository, commitRef);
+
+            foreach (var path in filePaths)
+            {
+                var relativePath = Path.GetRelativePath(repository.Info.WorkingDirectory, path);
+                if (IsWindows)
+                    relativePath = relativePath.Replace('\\', '/');
+
+                if (commit[relativePath]?.Target is not Blob blob)
+                    continue;
+
+                using var stream = blob.GetContentStream();
+                using var buffer = new MemoryStream();
+                stream.CopyTo(buffer);
+
+                contents[Path.GetFullPath(path)] = buffer.ToArray();
+            }
+
+            return contents;
         }
 
         private Project? LoadProjectCore(string directory, string pathToFile, string? commitRef, bool fallbackToHead)

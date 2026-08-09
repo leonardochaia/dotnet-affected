@@ -38,5 +38,23 @@ namespace DotnetAffected.Abstractions
         /// <returns></returns>
         Project? LoadDirectoryPackagePropsProject(string directory, string pathToFile, string? commitRef,
             bool fallbackToHead);
+
+        /// <summary>
+        /// Reads the contents of <paramref name="filePaths"/> as they were at <paramref name="commitRef"/>.
+        ///
+        /// This is the primitive the <c>LoadProject</c> methods are built on, exposed so that
+        /// files removed by the diff can still be read back after they are gone from disk.
+        /// </summary>
+        /// <param name="directory">Root of the repository.</param>
+        /// <param name="commitRef">Commit to read from. When null or empty, HEAD is used.</param>
+        /// <param name="filePaths">Absolute paths of the files to read.</param>
+        /// <returns>
+        /// Contents keyed by absolute path. Paths that did not exist at
+        /// <paramref name="commitRef"/> are absent from the result.
+        /// </returns>
+        IReadOnlyDictionary<string, byte[]> ReadFilesAt(
+            string directory,
+            string? commitRef,
+            IReadOnlyCollection<string> filePaths);
     }
 }

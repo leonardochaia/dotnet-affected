@@ -1,5 +1,11 @@
 ﻿using DotnetAffected.Abstractions;
+using Microsoft.Build.Definition;
+using Microsoft.Build.Evaluation;
+using Microsoft.Build.Evaluation.Context;
+using Microsoft.Build.FileSystem;
 using Microsoft.Build.Graph;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DotnetAffected.Core
 {
@@ -9,14 +15,20 @@ namespace DotnetAffected.Core
     public class ProjectGraphFactory
     {
         private readonly IDiscoveryOptions _options;
+        private readonly MSBuildFileSystemBase? _fileSystem;
 
         /// <summary>
         /// Creates an instance of the factory.
         /// </summary>
         /// <param name="options"></param>
-        public ProjectGraphFactory(IDiscoveryOptions options)
+        /// <param name="fileSystem">
+        /// File system to evaluate projects against. When null, projects are evaluated
+        /// against the real file system, which is the usual case.
+        /// </param>
+        public ProjectGraphFactory(IDiscoveryOptions options, MSBuildFileSystemBase? fileSystem = null)
         {
             _options = options;
+            _fileSystem = fileSystem;
         }
 
         /// <summary>
@@ -31,13 +43,44 @@ namespace DotnetAffected.Core
 
             WriteLine($"Building Dependency Graph");
 
-            var output = new ProjectGraph(allProjects);
+            var output = _fileSystem is null
+                ? new ProjectGraph(allProjects)
+                : BuildProjectGraphUsingFileSystem(allProjects);
 
             WriteLine(
                 $"Built Graph with {output.ConstructionMetrics.NodeCount} Projects " +
                 $"in {output.ConstructionMetrics.ConstructionTime:s\\.ff}s");
 
             return output;
+        }
+
+        /// <summary>
+        /// Evaluates every project in the graph against <see cref="_fileSystem"/>, by way of a
+        /// shared <see cref="EvaluationContext"/>. Sharing matters: imports and globs are
+        /// resolved through the context, so each project has to be evaluated with the same one.
+        /// </summary>
+        private ProjectGraph BuildProjectGraphUsingFileSystem(IEnumerable<string> allProjects)
+        {
+            var projectCollection = new ProjectCollection();
+            var evaluationContext = EvaluationContext.Create(
+                EvaluationContext.SharingPolicy.Shared,
+                _fileSystem);
+
+            if (_fileSystem is FileSystem.DeletedFilesOverlayFileSystem overlay)
+                overlay.AttachProjectCollection(projectCollection);
+
+            return new ProjectGraph(
+                allProjects.Select(project => new ProjectGraphEntryPoint(project)),
+                projectCollection,
+                (projectPath, globalProperties, collection) => Project
+                    .FromFile(projectPath, new ProjectOptions
+                    {
+                        GlobalProperties = globalProperties,
+                        ProjectCollection = collection,
+                        EvaluationContext = evaluationContext,
+                        LoadSettings = ProjectLoadSettings.Default,
+                    })
+                    .CreateProjectInstance());
         }
 
         private void WriteLine(string? message = null)
