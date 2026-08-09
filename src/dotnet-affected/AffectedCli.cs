@@ -1,5 +1,6 @@
 ﻿using Affected.Cli.Commands;
 using Affected.Cli.Views;
+using DotnetAffected.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.CommandLine.Builder;
@@ -19,6 +20,7 @@ namespace Affected.Cli
                 .UseRenderingErrorHandler(new Dictionary<Type, RenderingErrorConfig>
                 {
                     [typeof(NoChangesException)] = new(AffectedExitCodes.NothingChanged, new NoChangesView()),
+                    [typeof(AssumedProjectNotFoundException)] = new(AffectedExitCodes.Failure),
                 });
         }
     }

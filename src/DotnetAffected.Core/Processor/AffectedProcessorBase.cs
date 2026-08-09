@@ -1,6 +1,5 @@
 ﻿using DotnetAffected.Abstractions;
 using Microsoft.Build.Graph;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -87,7 +86,7 @@ namespace DotnetAffected.Core.Processor
         /// </remarks>
         /// <param name="context"></param>
         /// <returns></returns>
-        /// <exception cref="InvalidOperationException">When an assumption matches no project.</exception>
+        /// <exception cref="AssumedProjectNotFoundException">When an assumption matches no project.</exception>
         protected virtual IEnumerable<ProjectGraphNode> ResolveAssumedProjects(AffectedProcessorContext context)
         {
             foreach (var assumption in context.Options.AssumeChanges)
@@ -100,7 +99,7 @@ namespace DotnetAffected.Core.Processor
                 // from a correct answer, so a typo has to be loud.
                 if (nodes.Length == 0)
                 {
-                    throw new InvalidOperationException($"Couldn't find project with name {assumption}");
+                    throw new AssumedProjectNotFoundException(assumption);
                 }
 
                 foreach (var node in nodes)

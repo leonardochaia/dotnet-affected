@@ -72,7 +72,8 @@ namespace Affected.Cli.Tests
         }
 
         /// <summary>
-        /// A typo must not be reported as a correct "nothing is affected" answer.
+        /// A typo must not be reported as a correct "nothing is affected" answer, and must not be
+        /// reported as a stack trace either.
         /// </summary>
         [Fact]
         public async Task When_assuming_changes_for_an_unknown_project_should_fail()
@@ -83,8 +84,11 @@ namespace Affected.Cli.Tests
             var (_, exitCode) = await this.InvokeAsync(
                 $"-p {Repository.Path} --dry-run -f text --assume-changes NoSuchProject");
 
-            Assert.NotEqual(0, exitCode);
-            Assert.Contains("NoSuchProject", Terminal.Error.ToString());
+            Assert.Equal(AffectedExitCodes.Failure, exitCode);
+
+            var error = Terminal.Error.ToString();
+            Assert.Contains("NoSuchProject", error);
+            Assert.DoesNotContain("   at ", error);
         }
     }
 }

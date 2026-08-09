@@ -41,6 +41,23 @@ namespace DotnetAffected.Core.Tests
         }
 
         [Fact]
+        public void When_assumption_matches_no_project_should_throw()
+        {
+            this.Repository.CreateCsProject(_projectName);
+            this.Repository.StageAndCommit();
+
+            var options = new AffectedOptions(this.Repository.Path, assumeChanges: new[]
+            {
+                "NoSuchProject"
+            });
+
+            var exception = Assert.Throws<AssumedProjectNotFoundException>(
+                () => new AffectedExecutor(options).Execute());
+
+            Assert.Equal("NoSuchProject", exception.Assumption);
+        }
+
+        [Fact]
         public void Using_assume_changes_should_ignore_other_changes()
         {
             // Create a project
