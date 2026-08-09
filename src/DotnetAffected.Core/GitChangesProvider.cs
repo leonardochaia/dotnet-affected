@@ -68,7 +68,13 @@ namespace DotnetAffected.Core
 
             foreach (var path in filePaths)
             {
-                var relativePath = Path.GetRelativePath(repository.Info.WorkingDirectory, path);
+                // REMARKS: relative to the directory we were given, not to
+                // repository.Info.WorkingDirectory. The two differ whenever the repository is
+                // reached through a symlink, which is the normal case for a temp directory on
+                // macOS, and git reports the resolved form. Mixing them yields a relative path
+                // that matches no blob, and the miss is silent: the deleted file is never restored
+                // and the project owning it is never reported as changed.
+                var relativePath = Path.GetRelativePath(directory, path);
                 if (IsWindows)
                     relativePath = relativePath.Replace('\\', '/');
 
@@ -105,7 +111,9 @@ namespace DotnetAffected.Core
             /* Workaround for https://github.com/dotnet/msbuild/issues/7956
                For more information, see comments in EagerCachingMsBuildGitFileSystem
                TODO: Delete EagerCachingMsBuildGitFileSystem and this code if/when 7956 is fixed. */
-            using var fs = new EagerCachingMsBuildGitFileSystem(repository, commit);
+            // Paths arrive rooted at the directory we were given, so normalize against that rather
+            // than the resolved one git reports. See the remarks on MsBuildGitFileSystem.
+            using var fs = new EagerCachingMsBuildGitFileSystem(repository, commit, directory);
             return fs.FileExists(pathToFile) ? fs.CreateProjectAndEagerLoadChildren(pathToFile) : null;
         }
 

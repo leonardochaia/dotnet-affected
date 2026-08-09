@@ -23,7 +23,11 @@ namespace DotnetAffected.Core.FileSystem
         private ProjectFactory? _projectFactory;
         private Action<string>? _onEagerCacheRequired;
 
-        public EagerCachingMsBuildGitFileSystem(Repository repository, Commit? commit) : base(repository, commit)
+        public EagerCachingMsBuildGitFileSystem(
+            Repository repository,
+            Commit? commit,
+            string? workingDirectory = null)
+            : base(repository, commit, workingDirectory)
         {
             _commit = commit;
         }
