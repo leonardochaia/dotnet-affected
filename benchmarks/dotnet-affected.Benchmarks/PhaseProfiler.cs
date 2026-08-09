@@ -1,5 +1,9 @@
 using DotnetAffected.Core;
 using DotnetAffected.Testing.Utils;
+using Microsoft.Build.Definition;
+using Microsoft.Build.Evaluation;
+using Microsoft.Build.Evaluation.Context;
+using Microsoft.Build.Execution;
 using Microsoft.Build.Graph;
 using Microsoft.Build.Prediction;
 using System;
@@ -100,6 +104,63 @@ namespace Affected.Cli.Benchmarks
 
             return watch.Elapsed;
         }
+
+        /// <summary>
+        /// Builds the same graph several ways. Graph construction dominates a run, so it is
+        /// worth knowing whether the way we ask for it costs anything.
+        /// </summary>
+        public static async Task RunGraphVariantsAsync(int totalProjects, int childrenPerProject)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"=== graph construction variants: {totalProjects} projects ===");
+
+            using var repository = new TemporaryRepository();
+            var rootNodes = repository.CreateCsProjTree(totalProjects, childrenPerProject).ToList();
+            repository.StageAndCommit();
+
+            var seedGraph = new ProjectGraph(rootNodes.Select(x => x.FullPath));
+            await repository.MakeChangesInProjectTree(seedGraph);
+
+            var projectFiles = rootNodes.Select(x => x.FullPath).ToArray();
+            var entryPoints = projectFiles.Select(p => new ProjectGraphEntryPoint(p)).ToArray();
+
+            Console.WriteLine($"project files: {projectFiles.Length}");
+            Console.WriteLine();
+
+            Measure("1. default (as shipped)",
+                () => new ProjectGraph(projectFiles));
+
+            Measure("2. read only ProjectCollection", () =>
+            {
+                var collection = NewCollection(loadProjectsReadOnly: true);
+                return new ProjectGraph(entryPoints, collection, null);
+            });
+
+            Measure("3. read only + immutable instances", () =>
+            {
+                var collection = NewCollection(loadProjectsReadOnly: true);
+                var context = EvaluationContext.Create(EvaluationContext.SharingPolicy.Shared);
+
+                return new ProjectGraph(entryPoints, collection,
+                    (path, globalProperties, coll) => Project
+                        .FromFile(path, new ProjectOptions
+                        {
+                            GlobalProperties = globalProperties,
+                            ProjectCollection = coll,
+                            EvaluationContext = context,
+                        })
+                        .CreateProjectInstance(ProjectInstanceSettings.Immutable, context));
+            });
+        }
+
+        private static ProjectCollection NewCollection(bool loadProjectsReadOnly) => new ProjectCollection(
+            globalProperties: null,
+            loggers: null,
+            remoteLoggers: null,
+            toolsetDefinitionLocations: ToolsetDefinitionLocations.Default,
+            maxNodeCount: 1,
+            onlyLogCriticalEvents: false,
+            loadProjectsReadOnly: loadProjectsReadOnly);
 
         private static async Task ProfileAsync(int totalProjects, int childrenPerProject)
         {
