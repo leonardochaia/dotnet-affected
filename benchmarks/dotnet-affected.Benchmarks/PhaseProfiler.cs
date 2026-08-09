@@ -27,6 +27,80 @@ namespace Affected.Cli.Benchmarks
             }
         }
 
+        /// <summary>
+        /// Times every predictor on its own over the same graph.
+        ///
+        /// The collector discards outputs, so any predictor that only produces them is pure
+        /// cost. This says which ones are worth dropping before anything is changed.
+        /// </summary>
+        public static async Task RunPredictorBreakdownAsync(int totalProjects, int childrenPerProject)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"=== predictor breakdown: {totalProjects} projects, " +
+                              $"{childrenPerProject} children each ===");
+
+            using var repository = new TemporaryRepository();
+
+            var rootNodes = repository.CreateCsProjTree(totalProjects, childrenPerProject).ToList();
+            repository.StageAndCommit();
+
+            var seedGraph = new ProjectGraph(rootNodes.Select(x => x.FullPath));
+            await repository.MakeChangesInProjectTree(seedGraph);
+
+            var options = new AffectedOptions(repository.Path);
+            var graph = Measure("build project graph",
+                () => new ProjectGraphFactory(options).BuildProjectGraph());
+
+            Console.WriteLine($"graph nodes : {graph.ProjectNodes.Count()}");
+            Console.WriteLine();
+
+            // Cost of walking the graph with nothing to run, so each predictor below can be
+            // read as its own cost rather than cost plus harness.
+            var baseline = TimePredictors("(no predictors: harness only)",
+                graph, Array.Empty<IProjectPredictor>(), Array.Empty<IProjectGraphPredictor>());
+
+            Console.WriteLine();
+            Console.WriteLine($"{"predictor",-52} {"time",8} {"inputs",14}");
+
+            foreach (var predictor in ProjectPredictors.AllProjectPredictors.OrderBy(p => p.GetType().Name))
+            {
+                TimePredictors(predictor.GetType().Name, graph,
+                    new[] { predictor }, Array.Empty<IProjectGraphPredictor>(), baseline);
+            }
+
+            foreach (var predictor in ProjectPredictors.AllProjectGraphPredictors.OrderBy(p => p.GetType().Name))
+            {
+                TimePredictors($"[graph] {predictor.GetType().Name}", graph,
+                    Array.Empty<IProjectPredictor>(), new[] { predictor }, baseline);
+            }
+        }
+
+        private static TimeSpan TimePredictors(
+            string label,
+            ProjectGraph graph,
+            IProjectPredictor[] projectPredictors,
+            IProjectGraphPredictor[] graphPredictors,
+            TimeSpan baseline = default)
+        {
+            GC.Collect(2, GCCollectionMode.Forced, blocking: true);
+            GC.WaitForPendingFinalizers();
+
+            var sink = new CountingCollector();
+            var executor = new ProjectGraphPredictionExecutor(graphPredictors, projectPredictors);
+
+            var watch = Stopwatch.StartNew();
+            executor.PredictInputsAndOutputs(graph, sink);
+            watch.Stop();
+
+            var net = watch.Elapsed - baseline;
+            if (net < TimeSpan.Zero)
+                net = TimeSpan.Zero;
+
+            Console.WriteLine($"{label,-52} {net.TotalSeconds,7:F2}s {sink.Count,14:N0}");
+
+            return watch.Elapsed;
+        }
+
         private static async Task ProfileAsync(int totalProjects, int childrenPerProject)
         {
             Console.WriteLine();
@@ -67,7 +141,14 @@ namespace Affected.Cli.Benchmarks
                 return sink.Count;
             });
 
-            var changedProjects = Measure("attribute files to projects",
+            // Same call with one file and with all of them. Both pay for prediction, so the
+            // difference is what attributing the extra files actually costs.
+            Measure("attribute 1 file",
+                () => new PredictionChangedProjectsProvider(graph, options)
+                    .GetReferencingProjects(changedFiles.Take(1))
+                    .ToArray());
+
+            var changedProjects = Measure($"attribute {changedFiles.Length} files",
                 () => new PredictionChangedProjectsProvider(graph, options)
                     .GetReferencingProjects(changedFiles)
                     .ToArray());
