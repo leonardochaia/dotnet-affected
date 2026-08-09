@@ -272,15 +272,20 @@ namespace DotnetAffected.Testing.Utils
         /// <param name="repository"></param>
         /// <param name="graph"></param>
         /// <param name="everyProjectCount"></param>
-        public static async Task MakeChangesInProjectTree(
+        public static async Task<int> MakeChangesInProjectTree(
             this TemporaryRepository repository,
             ProjectGraph graph,
             int everyProjectCount = 5)
         {
             var current = 0;
+            var changed = 0;
+
             foreach (var node in graph.ProjectNodes)
             {
-                if (current % everyProjectCount != 0)
+                // REMARKS: the counter has to advance for every node, not only for the ones we
+                // touch. Advancing it inside the branch left it stuck after the first file, so
+                // this produced a single changed file no matter how large the graph was.
+                if (current++ % everyProjectCount != 0)
                 {
                     continue;
                 }
@@ -289,8 +294,10 @@ namespace DotnetAffected.Testing.Utils
                 var fileContents = $"// contents {current}";
                 await repository.CreateTextFileAsync(filePath, fileContents);
 
-                current++;
+                changed++;
             }
+
+            return changed;
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Microsoft.Build.Graph;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,8 +10,6 @@ namespace DotnetAffected.Core
     /// </summary>
     public static class ProjectGraphNodeExtensions
     {
-        private static readonly ConcurrentDictionary<string, IEnumerable<ProjectGraphNode>> Cache = new();
-
         /// <summary>
         /// Recursively searches for all <see cref="ProjectGraphNode.ReferencingProjects"/>
         /// in all provided projects.
@@ -21,17 +18,7 @@ namespace DotnetAffected.Core
         /// <returns></returns>
         public static IEnumerable<ProjectGraphNode> FindReferencingProjects(
             this IEnumerable<ProjectGraphNode> targetNodes)
-        {
-            var added = new HashSet<string>();
-            foreach (var node in targetNodes)
-            {
-                foreach (var affected in FindReferencingProjects(node))
-                {
-                    if (added.Add(affected.ProjectInstance.FullPath))
-                        yield return affected;
-                }
-            }
-        }
+            => Traverse(targetNodes);
 
         /// <summary>
         /// Recursively searches for <see cref="ProjectGraphNode.ReferencingProjects"/>
@@ -40,11 +27,48 @@ namespace DotnetAffected.Core
         /// <returns></returns>
         public static IEnumerable<ProjectGraphNode> FindReferencingProjects(
             this ProjectGraphNode targetNode)
+            => Traverse(new[] { targetNode });
+
+        /// <summary>
+        /// Walks the graph backwards from every starting node at once, sharing a single set of
+        /// visited projects, so each project is expanded no more than once.
+        ///
+        /// Computing and keeping a closure per node instead makes the total work the sum of all
+        /// closure sizes, which is quadratic in the size of the graph. Sharing the visited set
+        /// keeps it proportional to the graph itself.
+        /// </summary>
+        private static IEnumerable<ProjectGraphNode> Traverse(IEnumerable<ProjectGraphNode> startingNodes)
         {
-            return Cache.GetOrAdd(
-                targetNode.ProjectInstance.FullPath,
-                _ => FindReferencingProjectsImpl(targetNode)
-                    .ToList());
+            // Keyed by path so that the inner builds of a multi targeted project collapse into
+            // one entry, which is what callers have always been given.
+            var starting = startingNodes as IReadOnlyCollection<ProjectGraphNode> ?? startingNodes.ToList();
+
+            // A multi targeted project appears as an outer node plus one node per framework, all
+            // sharing a path, and the outer node references the inner ones. Seeding the starting
+            // paths keeps a project from being reported as referencing itself.
+            var visited = new HashSet<string>(starting.Select(node => node.ProjectInstance.FullPath));
+            var pending = new Queue<ProjectGraphNode>();
+
+            foreach (var node in starting)
+            {
+                foreach (var referencing in node.ReferencingProjects)
+                {
+                    if (visited.Add(referencing.ProjectInstance.FullPath))
+                        pending.Enqueue(referencing);
+                }
+            }
+
+            while (pending.Count > 0)
+            {
+                var current = pending.Dequeue();
+                yield return current;
+
+                foreach (var referencing in current.ReferencingProjects)
+                {
+                    if (visited.Add(referencing.ProjectInstance.FullPath))
+                        pending.Enqueue(referencing);
+                }
+            }
         }
 
         /// <summary>
@@ -103,22 +127,5 @@ namespace DotnetAffected.Core
             }
         }
 
-        private static IEnumerable<ProjectGraphNode> FindReferencingProjectsImpl(ProjectGraphNode node)
-        {
-            var added = new HashSet<string>();
-            foreach (var referencingProject in node.ReferencingProjects)
-            {
-                // Return all referencing projects
-                if (added.Add(referencingProject.ProjectInstance.FullPath))
-                    yield return referencingProject;
-
-                // Recurse each node's children
-                foreach (var child in FindReferencingProjects(referencingProject))
-                {
-                    if (added.Add(child.ProjectInstance.FullPath))
-                        yield return child;
-                }
-            }
-        }
     }
 }

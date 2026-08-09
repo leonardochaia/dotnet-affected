@@ -2,6 +2,7 @@
 using Microsoft.Build.Graph;
 using Microsoft.Build.Prediction;
 using Microsoft.Build.Prediction.Predictors;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,10 +17,21 @@ namespace DotnetAffected.Core
     {
         private readonly ProjectGraph _graph;
 
-        private static readonly ProjectFileAndImportsGraphPredictor[] GraphPredictors = new[]
-        {
-            new ProjectFileAndImportsGraphPredictor()
-        };
+        /// <summary>
+        /// No graph predictors are used.
+        ///
+        /// ProjectFileAndImportsGraphPredictor used to be here. For every project it walks the
+        /// whole transitive dependency closure and reports each dependency's project file and
+        /// imports as an input, so a change to one project marks every project below it as
+        /// changed. That is the relationship <see cref="ProjectGraphNodeExtensions.FindReferencingProjects(ProjectGraphNode)"/>
+        /// already derives from the graph in a single pass, and the output is the union of the
+        /// changed and the affected projects, so the same projects come out either way.
+        ///
+        /// The cost of deriving it twice is not small: on a 4000 node graph it emitted around
+        /// 660 million inputs, which the collector then had to store and search.
+        /// </summary>
+        private static readonly IProjectGraphPredictor[] GraphPredictors =
+            Array.Empty<IProjectGraphPredictor>();
 
         /// <summary>
         /// Keeps a list of all predictors that predict input files.
