@@ -25,6 +25,9 @@ namespace DotnetAffected.Core.FileSystem
     {
         private readonly Repository _repository;
         private readonly Commit? _commit;
+        private static readonly string? MsBuildSdkDirectory =
+            Path.GetDirectoryName(typeof(Project).Assembly.Location);
+        private readonly Dictionary<string, bool> _ignoredCache = new Dictionary<string, bool>();
 
         public MsBuildGitFileSystem(Repository repository, Commit? commit)
         {
@@ -48,11 +51,13 @@ namespace DotnetAffected.Core.FileSystem
         /// When a <paramref name="path"/> belongs to the file system it means that we will get file content for this
         /// path from the file system. If not, it belongs to the commit so we will get the content from the commit. <para/>
         /// 
-        /// There are 2 scenarios where a <paramref name="path"/> qualify as belonging to the file system:
+        /// There are 4 scenarios where a <paramref name="path"/> qualify as belonging to the file system:
         ///
         /// <list type="number">
         ///   <item>There is no Commit (commit is null), i.e. this file system is pointing at the working directory. <br/> OR</item>
-        ///   <item>There is a Commit but the <paramref name="path"/> is outside of the boundaries of the repository.</item>
+        ///   <item>There is a Commit but the <paramref name="path"/> is outside of the boundaries of the repository. <br/> OR</item>
+        ///   <item>The <paramref name="path"/> belongs to the SDK MSBuild was loaded from, which may sit inside the working directory. <br/> OR</item>
+        ///   <item>The <paramref name="path"/> is ignored by git, so it is not repository content and no commit describes it.</item>
         /// </list>
         ///
         /// The 2nd scenario states we're in file system representing the commit however, the <paramref name="path"/> might
@@ -67,7 +72,33 @@ namespace DotnetAffected.Core.FileSystem
         /// </summary>
         /// <param name="path"></param>
         protected bool UseFileSystem(string path)
-            => _commit is null || !path.StartsWith(_repository.Info.WorkingDirectory);
+        {
+            if (_commit is null || !path.StartsWith(_repository.Info.WorkingDirectory))
+                return true;
+
+            // This covers the cases where the SDK is installed inside the working directory,
+            // but not gitignored.
+            // See https://github.com/leonardochaia/dotnet-affected/issues/154
+            if (MsBuildSdkDirectory is not null && path.StartsWith(MsBuildSdkDirectory))
+                return true;
+
+            // Ignored paths are not repository content, so the commit says nothing
+            // about them and they must be served from disk.
+            // Untracked but not ignored paths are a different matter: those genuinely did not
+            // exist at the commit, so they must keep resolving to missing.
+            return IsPathIgnored(path);
+        }
+
+        private bool IsPathIgnored(string path)
+        {
+            if (_ignoredCache.TryGetValue(path, out var isIgnored))
+                return isIgnored;
+
+            isIgnored = _repository.Ignore.IsPathIgnored(NormalizePathToGitDir(path));
+            _ignoredCache[path] = isIgnored;
+
+            return isIgnored;
+        }
 
         private Stream GetFileStreamGit(Commit commit, string path)
         {
