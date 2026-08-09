@@ -47,5 +47,12 @@ namespace DotnetAffected.Core
         {
             throw new System.InvalidOperationException("--assume-changes should not try to access file contents");
         }
+
+        /// <inheritdoc />
+        public IReadOnlyDictionary<string, byte[]> ReadFilesAt(string directory, string? commitRef,
+            IReadOnlyCollection<string> filePaths)
+        {
+            throw new System.InvalidOperationException("--assume-changes should not try to access file contents");
+        }
     }
 }
