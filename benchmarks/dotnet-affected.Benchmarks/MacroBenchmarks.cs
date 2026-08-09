@@ -42,10 +42,11 @@ namespace Affected.Cli.Benchmarks
 
             // Add random files to the tree so that some projects have changes
             var graph = new ProjectGraph(rootNodes.Select(x => x.FullPath));
-            await Repository.MakeChangesInProjectTree(graph);
+            var changedFiles = await Repository.MakeChangesInProjectTree(graph);
 
             Console.WriteLine($"Built graph with total of {graph.ProjectNodes.Count()} " +
-                              $"projects in {graph.ConstructionMetrics.ConstructionTime}");
+                              $"projects in {graph.ConstructionMetrics.ConstructionTime}, " +
+                              $"{changedFiles} files changed");
         }
 
         [GlobalCleanup]
