@@ -2,6 +2,7 @@
 using Microsoft.Build.Evaluation;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace DotnetAffected.Core.FileSystem
@@ -28,15 +29,43 @@ namespace DotnetAffected.Core.FileSystem
         }
         
         /// <summary>
+        /// Extensions MSBuild uses for projects and imports.
+        ///
+        /// Imports are not required to use one of these, but recognising them by extension keeps
+        /// this off the read path: the git file system does no caching, so deciding by content
+        /// would cost an extra blob read for every file MSBuild probes for.
+        ///
+        /// Imports using a non standard extension are therefore deliberately not eager loaded.
+        /// If that ever needs supporting, an option carrying extra extensions to recognise is a
+        /// better trade than inspecting the contents of everything that gets probed.
+        /// </summary>
+        private static readonly HashSet<string> MsBuildProjectExtensions =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".props", ".targets", ".proj", ".csproj", ".fsproj", ".vbproj",
+                ".vcxproj", ".projitems", ".shproj", ".tasks", ".overridetasks", ".user",
+            };
+
+        /// <summary>
         /// Use this for File.Exists(path)
         /// </summary>
         public override bool FileExists(string path)
         {
             var result = base.FileExists(path);
-            if (result && !UseFileSystem(path))
-                _onEagerCacheRequired?.Invoke(path);
+            if (result && _onEagerCacheRequired is not null && !UseFileSystem(path) && IsMsBuildProjectFile(path))
+                _onEagerCacheRequired.Invoke(path);
             return result;
         }
+
+        /// <summary>
+        /// MSBuild probes for the existence of plenty of files that are not MSBuild projects:
+        /// <c>global.json</c> while resolving the SDK, or a <c>.slnx</c> reached through
+        /// <c>[MSBuild]::GetDirectoryNameOfFileAbove</c>. Eager loading those as projects throws,
+        /// so only eager load what MSBuild could actually import.
+        /// See https://github.com/leonardochaia/dotnet-affected/issues/155
+        /// </summary>
+        private static bool IsMsBuildProjectFile(string path)
+            => MsBuildProjectExtensions.Contains(Path.GetExtension(path));
 
         public Project CreateProjectAndEagerLoadChildren(string path)
         {
