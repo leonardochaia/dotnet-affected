@@ -25,24 +25,34 @@ namespace DotnetAffected.Core.FileSystem
     {
         private readonly Repository _repository;
         private readonly Commit? _commit;
+        private readonly string _workingDirectory;
         private static readonly string? MsBuildSdkDirectory =
             Path.GetDirectoryName(typeof(Project).Assembly.Location);
         private readonly Dictionary<string, bool> _ignoredCache = new Dictionary<string, bool>();
 
-        public MsBuildGitFileSystem(Repository repository, Commit? commit)
+        /// <param name="repository"></param>
+        /// <param name="commit"></param>
+        /// <param name="workingDirectory">
+        /// Root that incoming paths are relative to. Defaults to the working directory git reports,
+        /// which is the resolved one: when the repository is reached through a symlink, as a temp
+        /// directory is on macOS, that is not the root MSBuild hands us paths under, and mixing the
+        /// two produces relative paths matching nothing in the commit.
+        /// </param>
+        public MsBuildGitFileSystem(Repository repository, Commit? commit, string? workingDirectory = null)
         {
             _repository = repository;
             _commit = commit;
+            _workingDirectory = workingDirectory ?? repository.Info.WorkingDirectory;
         }
 
         private string NormalizePathToWorkDir(string path)
-            => Path.Combine(_repository.Info.WorkingDirectory, path);
+            => Path.Combine(_workingDirectory, path);
 
         private string NormalizePathToGitDir(string path)
             => GitChangesProvider.IsWindows
-                ? Path.GetRelativePath(_repository.Info.WorkingDirectory, path)
+                ? Path.GetRelativePath(_workingDirectory, path)
                     .Replace('\\', '/')
-                : Path.GetRelativePath(_repository.Info.WorkingDirectory, path);
+                : Path.GetRelativePath(_workingDirectory, path);
 
         /// <summary>
         /// Returns <b>true</b> when the path belongs to the file system and not to a commit. <br/>
@@ -73,7 +83,7 @@ namespace DotnetAffected.Core.FileSystem
         /// <param name="path"></param>
         protected bool UseFileSystem(string path)
         {
-            if (_commit is null || !path.StartsWith(_repository.Info.WorkingDirectory))
+            if (_commit is null || !path.StartsWith(_workingDirectory))
                 return true;
 
             // This covers the cases where the SDK is installed inside the working directory,
