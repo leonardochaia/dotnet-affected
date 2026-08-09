@@ -1,6 +1,8 @@
 ﻿using DotnetAffected.Abstractions;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace DotnetAffected.Core
 {
@@ -17,12 +19,14 @@ namespace DotnetAffected.Core
         /// <param name="fromRef"></param>
         /// <param name="toRef"></param>
         /// <param name="exclusionRegex"></param>
+        /// <param name="assumeChanges"></param>
         public AffectedOptions(
             string? repositoryPath = null,
             string? filterFilePath = null,
             string? fromRef = null,
             string? toRef = null,
-            string? exclusionRegex = null)
+            string? exclusionRegex = null,
+            IEnumerable<string>? assumeChanges = null)
         {
             RepositoryPath = DetermineRepositoryPath(repositoryPath, filterFilePath);
 
@@ -37,6 +41,7 @@ namespace DotnetAffected.Core
             FromRef = fromRef ?? string.Empty;
             ToRef = toRef ?? string.Empty;
             ExclusionRegex = exclusionRegex;
+            AssumeChanges = assumeChanges?.ToArray() ?? Array.Empty<string>();
         }
 
         /// <summary>
@@ -65,6 +70,12 @@ namespace DotnetAffected.Core
         /// Gets the regular expression to use for excluding projects.
         /// </summary>
         public string? ExclusionRegex { get; }
+
+        /// <summary>
+        /// Gets the projects to treat as changed, instead of determining them from Git.
+        /// Each entry is a path to a project file, a project's ProjectName, or a project file name.
+        /// </summary>
+        public string[] AssumeChanges { get; }
 
         private static string DetermineRepositoryPath(string? repositoryPath, string? filterfilePath)
         {

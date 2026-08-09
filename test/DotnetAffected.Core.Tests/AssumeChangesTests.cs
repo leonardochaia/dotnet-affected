@@ -14,18 +14,13 @@ namespace DotnetAffected.Core.Tests
 
         public AssumeChangesTests()
         {
-            var options = new AffectedOptions(this.Repository.Path);
-            this._affectedSummaryLazy = new Lazy<AffectedSummary>(() =>
+            var options = new AffectedOptions(this.Repository.Path, assumeChanges: new[]
             {
-                var factory = new ProjectGraphFactory(options);
-                var graph = factory.BuildProjectGraph();
-                var changesProvider = new AssumptionChangesProvider(graph, new[]
-                {
-                    _projectName
-                });
-                var executor = new AffectedExecutor(options, graph, changesProvider);
-                return executor.Execute();
+                _projectName
             });
+
+            this._affectedSummaryLazy = new Lazy<AffectedSummary>(
+                () => new AffectedExecutor(options).Execute());
         }
 
         private AffectedSummary AffectedSummary => _affectedSummaryLazy.Value;

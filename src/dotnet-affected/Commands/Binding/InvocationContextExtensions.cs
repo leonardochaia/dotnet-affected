@@ -12,20 +12,12 @@ namespace Affected.Cli.Commands
         public static (IAffectedExecutor Executor, AffectedOptions Options) BuildAffectedExecutor(
             this InvocationContext ctx)
         {
-            var assumeChanges = ctx.ParseResult.GetValueForOption(AffectedGlobalOptions.AssumeChangesOption);
-
             var options = ctx.GetAffectedOptions();
             var graph = new ProjectGraphFactory(options).BuildProjectGraph();
 
-            var assumptions = assumeChanges?.ToArray() ?? Array.Empty<string>();
-
-            IChangesProvider changesProvider = assumptions.Any()
-                ? new AssumptionChangesProvider(graph, assumptions)
-                : new GitChangesProvider();
-
             var executor = new AffectedExecutor(options,
                 graph,
-                changesProvider,
+                new GitChangesProvider(),
                 new PredictionChangedProjectsProvider(graph, options));
 
             return (executor, options);

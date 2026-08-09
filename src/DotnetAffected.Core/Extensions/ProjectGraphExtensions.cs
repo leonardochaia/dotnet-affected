@@ -1,6 +1,7 @@
 ﻿using Microsoft.Build.Graph;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace DotnetAffected.Core
@@ -52,41 +53,46 @@ namespace DotnetAffected.Core
         }
 
         /// <summary>
-        /// Searches for the node that matches the given <paramref name="name"/>.
+        /// Searches for the nodes matching an assumed change, which may be given as a path to a
+        /// project file, as a project's ProjectName property, or as a project file name without its
+        /// extension. A relative path is resolved against <paramref name="repositoryPath"/>.
         /// </summary>
+        /// <remarks>
+        /// A multi targeted project contributes an outer node plus one node per framework, all
+        /// sharing a path. They collapse to a single node here, which is what mapping the project
+        /// file through the predictors used to produce.
+        /// </remarks>
         /// <param name="graph"></param>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public static ProjectGraphNode? FindNodeByName(
+        /// <param name="assumption"></param>
+        /// <param name="repositoryPath"></param>
+        /// <returns>Empty when the assumption matches no project in the graph.</returns>
+        public static IEnumerable<ProjectGraphNode> FindNodesByAssumption(
             this ProjectGraph graph,
-            string name)
+            string assumption,
+            string repositoryPath)
         {
+            var assumedPath = Path.GetFullPath(Path.IsPathRooted(assumption)
+                ? assumption
+                : Path.Combine(repositoryPath, assumption));
+
             return graph.ProjectNodes
-                .FirstOrDefault(n => n.GetProjectName()
-                    .Equals(name, StringComparison.OrdinalIgnoreCase));
+                .Where(node => Matches(node, assumption, assumedPath))
+                .Deduplicate();
         }
 
-        /// <summary>
-        /// Searches for a list of nodes where the names matches the provided ones.
-        /// </summary>
-        /// <param name="graph"></param>
-        /// <param name="names"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public static IEnumerable<ProjectGraphNode> FindNodesByName(
-            this ProjectGraph graph,
-            IEnumerable<string> names)
+        private static bool Matches(ProjectGraphNode node, string assumption, string assumedPath)
         {
-            foreach (var projName in names)
-            {
-                var node = graph.FindNodeByName(projName);
-                if (node is null)
-                {
-                    throw new InvalidOperationException($"Couldn't find project with name {projName}");
-                }
+            var fullPath = node.GetFullPath();
 
-                yield return node;
-            }
+            return fullPath.Equals(assumedPath, PathComparison)
+                   || node.GetProjectName()
+                       .Equals(assumption, StringComparison.OrdinalIgnoreCase)
+                   || Path.GetFileNameWithoutExtension(fullPath)
+                       .Equals(assumption, StringComparison.OrdinalIgnoreCase);
         }
+
+        private static StringComparison PathComparison => GitChangesProvider.IsWindows
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
     }
 }
