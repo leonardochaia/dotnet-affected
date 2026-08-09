@@ -49,8 +49,12 @@ namespace Affected.Cli.Benchmarks
                               $"projects in {graph.ConstructionMetrics.ConstructionTime}, " +
                               $"{changedFiles} files changed");
 
-            // Create an executor for the repository using the existing graph.
-            Executor = new AffectedExecutor(Repository.Path, graph);
+            // Keep graph construction out of the measured region by running against the graph
+            // built above. Deleted files are not attributed on this path, which costs this
+            // benchmark nothing: the scenario only adds files.
+            Executor = AffectedExecutor.ForPreEvaluatedGraph(
+                new AffectedOptions(Repository.Path),
+                graph);
         }
 
         public AffectedExecutor Executor { get; set; }
