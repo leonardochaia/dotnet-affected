@@ -18,14 +18,35 @@ namespace DotnetAffected.Core.Processor
         /// <returns></returns>
         public AffectedSummary Process(AffectedProcessorContext context)
         {
-            // Get files that changed according to changes provider.
-            context.ChangedFiles = DiscoverChangedFiles(context)
-                .ToArray();
+            IEnumerable<ProjectGraphNode> changedProjects;
 
-            // Map the files that changed to their corresponding project/s.
+            if (context.Options.AssumeChanges.Length > 0)
+            {
+                // Get the projects that match the assumptions, and treat them as if they changed.
+                var assumedProjects = ResolveAssumedProjects(context)
+                    .ToArray();
+
+                // Set changed files to the full paths of the assumed projects, so that they are reported as changed.
+                context.ChangedFiles = assumedProjects
+                    .Select(node => node.GetFullPath())
+                    .Distinct()
+                    .ToArray();
+
+                changedProjects = assumedProjects;
+            }
+            else
+            {
+                // Get files that changed according to changes provider.
+                context.ChangedFiles = DiscoverChangedFiles(context)
+                    .ToArray();
+
+                // Map the files that changed to their corresponding project/s.
+                changedProjects = DiscoverProjectsForFiles(context);
+            }
+
             var excludedProjects = new List<ProjectGraphNode>();
             context.ChangedProjects = ApplyExclusionPattern(
-                DiscoverProjectsForFiles(context),
+                changedProjects,
                 context.Options,
                 excludedProjects);
 
@@ -55,6 +76,38 @@ namespace DotnetAffected.Core.Processor
         /// <returns></returns>
         protected virtual IEnumerable<string> DiscoverChangedFiles(AffectedProcessorContext context)
             => context.ChangesProvider.GetChangedFiles(context.RepositoryPath, context.FromRef, context.ToRef);
+
+        /// <summary>
+        /// Resolves <see cref="AffectedOptions.AssumeChanges"/> against the graph.
+        /// </summary>
+        /// <remarks>
+        /// By running assumption detection at this stage, users can reference projects
+        /// by project name, project path, or any other identifier that the graph can resolve.
+        /// </remarks>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        /// <exception cref="AssumedProjectNotFoundException">When an assumption matches no project.</exception>
+        protected virtual IEnumerable<ProjectGraphNode> ResolveAssumedProjects(AffectedProcessorContext context)
+        {
+            foreach (var assumption in context.Options.AssumeChanges)
+            {
+                var nodes = context.Graph
+                    .FindNodesByAssumption(assumption, context.RepositoryPath)
+                    .ToArray();
+
+                // Returning nothing would report no affected projects, which is indistinguishable
+                // from a correct answer, so a typo has to be loud.
+                if (nodes.Length == 0)
+                {
+                    throw new AssumedProjectNotFoundException(assumption);
+                }
+
+                foreach (var node in nodes)
+                {
+                    yield return node;
+                }
+            }
+        }
 
         /// <summary>
         /// Discover which projects have changed based on the changed files

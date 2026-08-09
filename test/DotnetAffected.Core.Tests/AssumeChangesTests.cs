@@ -14,18 +14,13 @@ namespace DotnetAffected.Core.Tests
 
         public AssumeChangesTests()
         {
-            var options = new AffectedOptions(this.Repository.Path);
-            this._affectedSummaryLazy = new Lazy<AffectedSummary>(() =>
+            var options = new AffectedOptions(this.Repository.Path, assumeChanges: new[]
             {
-                var factory = new ProjectGraphFactory(options);
-                var graph = factory.BuildProjectGraph();
-                var changesProvider = new AssumptionChangesProvider(graph, new[]
-                {
-                    _projectName
-                });
-                var executor = new AffectedExecutor(options, graph, changesProvider);
-                return executor.Execute();
+                _projectName
             });
+
+            this._affectedSummaryLazy = new Lazy<AffectedSummary>(
+                () => new AffectedExecutor(options).Execute());
         }
 
         private AffectedSummary AffectedSummary => _affectedSummaryLazy.Value;
@@ -43,6 +38,23 @@ namespace DotnetAffected.Core.Tests
             var projectInfo = AffectedSummary.ProjectsWithChangedFiles.Single();
             Assert.Equal(_projectName, projectInfo.GetProjectName());
             Assert.Equal(msBuildProject.FullPath, projectInfo.GetFullPath());
+        }
+
+        [Fact]
+        public void When_assumption_matches_no_project_should_throw()
+        {
+            this.Repository.CreateCsProject(_projectName);
+            this.Repository.StageAndCommit();
+
+            var options = new AffectedOptions(this.Repository.Path, assumeChanges: new[]
+            {
+                "NoSuchProject"
+            });
+
+            var exception = Assert.Throws<AssumedProjectNotFoundException>(
+                () => new AffectedExecutor(options).Execute());
+
+            Assert.Equal("NoSuchProject", exception.Assumption);
         }
 
         [Fact]

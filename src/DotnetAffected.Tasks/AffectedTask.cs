@@ -37,10 +37,15 @@ namespace DotnetAffected.Tasks
         {
             try
             {
-                var affectedOptions = new AffectedOptions(Root, null, FromRef ?? "", ToRef ?? "");
+                // Item specs are passed through as given: a glob expands to project paths, while a
+                // bare item like "MyProject" is matched by project name.
+                var assumeChanges = AssumeChanges?.Select(c => c.ItemSpec)
+                    .ToArray() ?? Array.Empty<string>();
 
-                if (AssumeChanges is not null
-                    && AssumeChanges.Length > 0
+                var affectedOptions = new AffectedOptions(Root, null, FromRef ?? "", ToRef ?? "",
+                    null, assumeChanges);
+
+                if (assumeChanges.Length > 0
                     && (!string.IsNullOrWhiteSpace(affectedOptions.FromRef) ||
                         !string.IsNullOrWhiteSpace(affectedOptions.ToRef)))
                 {
@@ -49,14 +54,10 @@ namespace DotnetAffected.Tasks
                 }
 
                 var graph = new ProjectGraphFactory(affectedOptions).BuildProjectGraph();
-                IChangesProvider changesProvider = AssumeChanges?.Any() == true
-                    ? new AssumptionChangesProvider(graph,
-                        AssumeChanges.Select(c => Path.GetFileNameWithoutExtension(c.ItemSpec)))
-                    : new GitChangesProvider();
 
                 var executor = new AffectedExecutor(affectedOptions,
                     graph,
-                    changesProvider,
+                    new GitChangesProvider(),
                     new PredictionChangedProjectsProvider(graph, affectedOptions));
 
                 var results = executor.Execute();
