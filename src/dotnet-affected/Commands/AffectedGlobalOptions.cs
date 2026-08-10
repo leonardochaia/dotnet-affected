@@ -55,12 +55,32 @@ namespace Affected.Cli.Commands
 
         public static readonly ToOption ToOption = new(FromOption);
 
+        public static readonly Option<string> ExcludeOutputRegexOption = new(
+            new[]
+            {
+                "--exclude-output"
+            },
+            description: "A dotnet Regular Expression matched against each project's full path.\n" +
+                         "Matching projects are still evaluated, and still carry changes through to\n" +
+                         "the projects depending on them, but are kept out of the output.");
+
+        public static readonly Option<string> ExcludeDiscoveryRegexOption = new(
+            new[]
+            {
+                "--exclude-discovery"
+            },
+            description: "A dotnet Regular Expression matched against each project's full path.\n" +
+                         "Matching projects are never loaded, so one that MSBuild cannot evaluate\n" +
+                         "stops failing the run. Nothing can depend on them either.");
+
+        // Kept for compatibility, the same way --solution-path is.
         public static readonly Option<string> ExclusionRegexOption = new(
             new[]
             {
                 "--exclude", "-e"
             },
-            description: "A dotnet Regular Expression used to exclude discovered and affected projects.");
+            description: "[OBSOLETE: use --exclude-output] A dotnet Regular Expression used to\n" +
+                         "exclude projects from the output.");
     }
 
     internal sealed class ToOption : Option<string>

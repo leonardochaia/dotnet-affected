@@ -21,13 +21,22 @@ namespace Affected.Cli.Commands
                 filterFilePath = solutionFilePath;
             }
             
+            // --exclude is deprecated in favour of --exclude-output, which wins when both are given.
+            var excludeOutputRegex = parseResult.GetValueForOption(AffectedGlobalOptions.ExcludeOutputRegexOption);
+
+            if (string.IsNullOrEmpty(excludeOutputRegex))
+            {
+                excludeOutputRegex = parseResult.GetValueForOption(AffectedGlobalOptions.ExclusionRegexOption);
+            }
+
             return new AffectedOptions(
                 parseResult.GetValueForOption(AffectedGlobalOptions.RepositoryPathOptions),
                 filterFilePath,
                 parseResult.GetValueForOption(AffectedGlobalOptions.FromOption),
                 parseResult.GetValueForOption(AffectedGlobalOptions.ToOption),
-                parseResult.GetValueForOption(AffectedGlobalOptions.ExclusionRegexOption),
-                parseResult.GetValueForOption(AffectedGlobalOptions.AssumeChangesOption)
+                excludeOutputRegex,
+                parseResult.GetValueForOption(AffectedGlobalOptions.AssumeChangesOption),
+                parseResult.GetValueForOption(AffectedGlobalOptions.ExcludeDiscoveryRegexOption)
             );
         }
     }

@@ -48,14 +48,32 @@ namespace DotnetAffected.Core.Processor
                 .Where(file => !File.Exists(file))
                 .ToArray();
 
+            ProjectGraphFactory factory;
             if (deletedFiles.Length == 0)
-                return new ProjectGraphFactory(Options).BuildProjectGraph();
+            {
+                factory = new ProjectGraphFactory(Options);
+            }
+            else
+            {
+                var contents = ChangesProvider.ReadFilesAt(RepositoryPath, FromRef, deletedFiles);
+                var fileSystem = new DeletedFilesOverlayFileSystem(RepositoryPath, contents);
 
-            var contents = ChangesProvider.ReadFilesAt(RepositoryPath, FromRef, deletedFiles);
-            var fileSystem = new DeletedFilesOverlayFileSystem(RepositoryPath, contents);
+                factory = new ProjectGraphFactory(Options, fileSystem);
+            }
 
-            return new ProjectGraphFactory(Options, fileSystem).BuildProjectGraph();
+            var graph = factory.BuildProjectGraph();
+
+            // Only the factory knows what discovery left out, and only once it has run.
+            ProjectsExcludedFromDiscovery = factory.ExcludedProjects.ToArray();
+
+            return graph;
         }
+
+        /// <summary>
+        /// Projects that <see cref="AffectedOptions.ExcludeDiscoveryRegex"/> kept out of the graph.
+        /// Populated once <see cref="Graph"/> has been accessed.
+        /// </summary>
+        internal string[] ProjectsExcludedFromDiscovery { get; private set; } = Array.Empty<string>();
 
         internal string[] ChangedFiles { get; set; } = Array.Empty<string>();
         internal ProjectGraphNode[] ChangedProjects { get; set; } = Array.Empty<ProjectGraphNode>();

@@ -284,8 +284,33 @@ WRITE: /home/lchaia/dev/dotnet-affected/affected.json
 
 ## Excluding Projects
 
-Projects can be excluded by using the `--exclude` (shorthand `-e`) argument. It expects a dotnet Regular Expression
-that will be matched against each Project's Full Path.
+There are two ways to exclude a project, and they differ by *when* they apply. Both expect a dotnet Regular Expression
+matched against each Project's Full Path.
+
+| Option | When it applies | Effect |
+|---|---|---|
+| `--exclude-discovery` | before the project graph is built | The project is never loaded or evaluated. Nothing can depend on it, and it cannot be assumed changed. |
+| `--exclude-output` | after affected projects are determined | The project is evaluated as usual and still carries changes through to whatever depends on it. It is only kept out of the results. |
+
+`--exclude` (shorthand `-e`) is the former name of `--exclude-output` and still works.
+
+Use `--exclude-output` to stop building or testing something you otherwise reason about normally, which is the common
+case. Use `--exclude-discovery` when a project must not be evaluated at all, typically because MSBuild cannot evaluate
+it. A legacy `.sqlproj` importing SSDT targets that only ship with Visual Studio will otherwise fail the entire run
+while the graph is being built.
+
+```shell
+dotnet affected --exclude-discovery "\.sqlproj$"
+```
+
+Two consequences worth knowing:
+
+- **`--exclude-output` does not stop changes travelling through a project.** Given `A <- B <- C` where `B` is excluded
+  from the output and `A` changes, `C` is still reported as affected. `--exclude-discovery` does sever that path,
+  because `B` is not in the graph at all.
+- **`--exclude-discovery` cannot help a project that something references.** MSBuild evaluates whatever the remaining
+  projects reference, so an unevaluatable project still fails the run if a non-excluded project has a `ProjectReference`
+  to it. In practice a database project is referenced by nothing, which is the case this addresses.
 
 In the below example, `dotnet-affected.Tests` is excluded due to the regular expression provided.
 ```shell

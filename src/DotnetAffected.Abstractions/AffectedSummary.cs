@@ -1,4 +1,5 @@
 ﻿using Microsoft.Build.Graph;
+using System;
 
 namespace DotnetAffected.Abstractions
 {
@@ -15,18 +16,21 @@ namespace DotnetAffected.Abstractions
         /// <param name="affectedProjects"></param>
         /// <param name="excludedProjects"></param>
         /// <param name="changedPackages"></param>
+        /// <param name="projectsExcludedFromDiscovery"></param>
         public AffectedSummary(
             string[] filesThatChanged,
             ProjectGraphNode[] projectsWithChangedFiles,
             ProjectGraphNode[] affectedProjects,
             ProjectGraphNode[] excludedProjects,
-            PackageChange[] changedPackages)
+            PackageChange[] changedPackages,
+            string[]? projectsExcludedFromDiscovery = null)
         {
             FilesThatChanged = filesThatChanged;
             ProjectsWithChangedFiles = projectsWithChangedFiles;
             AffectedProjects = affectedProjects;
             ExcludedProjects = excludedProjects;
             ChangedPackages = changedPackages;
+            ProjectsExcludedFromDiscovery = projectsExcludedFromDiscovery ?? Array.Empty<string>();
         }
 
         /// <summary>
@@ -45,9 +49,15 @@ namespace DotnetAffected.Abstractions
         public ProjectGraphNode[] AffectedProjects { get; }
 
         /// <summary>
-        /// Gets a list of projects that had changes or were affected but were excluded from discovery.
+        /// Gets a list of projects that had changes or were affected but were kept out of the output.
         /// </summary>
         public ProjectGraphNode[] ExcludedProjects { get; }
+
+        /// <summary>
+        /// Gets the paths of projects that were never discovered, and therefore never evaluated.
+        /// Paths rather than projects: nothing evaluated them, which is the point of excluding them.
+        /// </summary>
+        public string[] ProjectsExcludedFromDiscovery { get; }
 
         /// <summary>
         /// Gets the list of packages that changed.

@@ -20,13 +20,15 @@ namespace DotnetAffected.Core
         /// <param name="toRef"></param>
         /// <param name="exclusionRegex"></param>
         /// <param name="assumeChanges"></param>
+        /// <param name="excludeDiscoveryRegex"></param>
         public AffectedOptions(
             string? repositoryPath = null,
             string? filterFilePath = null,
             string? fromRef = null,
             string? toRef = null,
             string? exclusionRegex = null,
-            IEnumerable<string>? assumeChanges = null)
+            IEnumerable<string>? assumeChanges = null,
+            string? excludeDiscoveryRegex = null)
         {
             RepositoryPath = DetermineRepositoryPath(repositoryPath, filterFilePath);
 
@@ -42,6 +44,7 @@ namespace DotnetAffected.Core
             ToRef = toRef ?? string.Empty;
             ExclusionRegex = exclusionRegex;
             AssumeChanges = assumeChanges?.ToArray() ?? Array.Empty<string>();
+            ExcludeDiscoveryRegex = excludeDiscoveryRegex;
         }
 
         /// <summary>
@@ -67,9 +70,14 @@ namespace DotnetAffected.Core
         public string ToRef { get; }
 
         /// <summary>
-        /// Gets the regular expression to use for excluding projects.
+        /// Gets the regular expression to use for excluding projects from the output. Matching
+        /// projects are still evaluated, and still carry changes through to the projects that
+        /// depend on them. They are only kept out of the results.
         /// </summary>
         public string? ExclusionRegex { get; }
+
+        /// <inheritdoc />
+        public string? ExcludeDiscoveryRegex { get; }
 
         /// <summary>
         /// Gets the projects to treat as changed, instead of determining them from Git.
