@@ -18,7 +18,7 @@ namespace Affected.Cli.Tests.Formatters
                 new ProjectInfo("TestProject", projectPath)
             };
 
-            var output = await formatter.Format(projects);
+            var output = await formatter.Format(projects, FormatterTestContext.Default);
 
             CustomAssertions.LineSequenceEquals(output,
                 l => Assert.Contains("Microsoft.Build.Traversal/4.1.82", l),
@@ -41,7 +41,7 @@ namespace Affected.Cli.Tests.Formatters
                 new ProjectInfo("TestProject", firstProjectPath), new ProjectInfo("OtherTest", secondProjectPath)
             };
 
-            var output = await formatter.Format(projects);
+            var output = await formatter.Format(projects, FormatterTestContext.Default);
 
             CustomAssertions.LineSequenceEquals(output,
                 l => Assert.Contains("Microsoft.Build.Traversal/4.1.82", l),

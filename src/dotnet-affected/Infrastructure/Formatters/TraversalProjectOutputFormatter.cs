@@ -13,7 +13,7 @@ namespace Affected.Cli.Formatters
         public string Type => "traversal";
         public string NewFileExtension => ".proj";
 
-        public Task<string> Format(IEnumerable<IProjectInfo> projects)
+        public Task<string> Format(IEnumerable<IProjectInfo> projects, OutputFormatterContext context)
         {
             var projectRootElement = @"<Project Sdk=""Microsoft.Build.Traversal/4.1.82""></Project>";
             var stringReader = new StringReader(projectRootElement);

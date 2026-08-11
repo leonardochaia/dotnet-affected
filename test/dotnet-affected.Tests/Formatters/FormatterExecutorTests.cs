@@ -33,7 +33,7 @@ namespace Affected.Cli.Tests.Formatters
             await executor.Execute(projects, new[]
             {
                 formatterType
-            }, Repository.Path, "affected", false, true);
+            }, Repository.Path, "affected", null, false, true);
 
             var outputPath = Path.Combine(Repository.Path, "affected.txt");
             var outputContents = await File.ReadAllTextAsync(outputPath);
@@ -63,7 +63,7 @@ namespace Affected.Cli.Tests.Formatters
             await executor.Execute(projects, new[]
             {
                 formatterType
-            }, Repository.Path, outputFileName, false, true);
+            }, Repository.Path, outputFileName, null, false, true);
 
             // Assert
             var outputPath = Path.Combine(Repository.Path, $"{outputFileName}.txt");

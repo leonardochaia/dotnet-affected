@@ -30,6 +30,7 @@ namespace Affected.Cli
             IEnumerable<string> formatters,
             string outputDirectory,
             string outputName,
+            string? filterFilePath,
             bool dryRun,
             bool verbose = false)
         {
@@ -49,16 +50,16 @@ namespace Affected.Cli
                     throw new InvalidOperationException("Couldn't find formatter of type: " + type);
                 }
 
-                // Format the projects and calculate output path.
-                var outputContents = await formatter.Format(allProjects);
+                var outputFileName = outputName + formatter.NewFileExtension;
+                var outputPath = Path.Combine(outputDirectory, outputFileName);
+
+                var outputContents = await formatter.Format(allProjects,
+                    new OutputFormatterContext(outputPath, filterFilePath));
 
                 if (string.IsNullOrWhiteSpace(outputContents))
                 {
                     throw new InvalidOperationException($"Formatter {type} returned no output");
                 }
-
-                var outputFileName = outputName + formatter.NewFileExtension;
-                var outputPath = Path.Combine(outputDirectory, outputFileName);
 
                 if (dryRun)
                 {
