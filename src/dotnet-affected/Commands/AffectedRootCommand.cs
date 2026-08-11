@@ -1,4 +1,6 @@
 ﻿using Affected.Cli.Views;
+using DotnetAffected.Core;
+using System;
 using System.CommandLine;
 using System.CommandLine.Rendering;
 using System.Linq;
@@ -76,13 +78,39 @@ namespace Affected.Cli.Commands
                 "--format", "-f"
             })
         {
-            this.Description = "Space-seperated output file formats. Possible values: <traversal, text, json>.";
+            this.Description = "Space-seperated output file formats. Possible values: <traversal, text, json, slnf>.";
 
             this.SetDefaultValue(new[]
             {
                 "traversal"
             });
             this.AllowMultipleArgumentsPerToken = true;
+
+            // slnf is the only format referencing a file other than its own,
+            // fail at parse time instead of after building the whole graph.
+            this.AddValidator(optionResult =>
+            {
+                var formats = optionResult.GetValueOrDefault<string[]>();
+                if (formats is null || !formats.Any(format =>
+                        format.Equals("slnf", StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    return;
+                }
+
+                // --solution-path is the deprecated alias of --filter-file-path.
+                var filterFilePath =
+                    optionResult.FindResultFor(AffectedGlobalOptions.FilterFilePathOption)
+                        ?.GetValueOrDefault<string>()
+                    ?? optionResult.FindResultFor(AffectedGlobalOptions.SolutionPathOption)
+                        ?.GetValueOrDefault<string>();
+
+                if (!SolutionFilter.CanCreateFrom(filterFilePath))
+                {
+                    optionResult.ErrorMessage =
+                        "The slnf format needs a Solution to reference. Point --filter-file-path at " +
+                        "a Solution (.sln, .slnx) or a Solution Filter (.slnf).";
+                }
+            });
         }
     }
 

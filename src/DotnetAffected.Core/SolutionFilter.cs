@@ -58,11 +58,56 @@ namespace DotnetAffected.Core
         public IReadOnlyList<string> ProjectPaths { get; }
 
         /// <summary>
+        /// Gets whether a filter can be created referencing <paramref name="filterFilePath"/>.
+        /// Inspects the path only, nothing is read.
+        /// </summary>
+        /// <param name="filterFilePath">Path to a solution or solution filter, if any.</param>
+        /// <returns>Whether <see cref="Create"/> would succeed.</returns>
+        public static bool CanCreateFrom(string? filterFilePath)
+        {
+            if (string.IsNullOrWhiteSpace(filterFilePath))
+            {
+                return false;
+            }
+
+            return filterFilePath!.EndsWith(".sln")
+                   || filterFilePath.EndsWith(".slnx")
+                   || filterFilePath.EndsWith(".slnf");
+        }
+
+        /// <summary>
+        /// Creates a filter over <paramref name="projectPaths"/>, referencing the
+        /// solution behind <paramref name="filterFilePath"/>.
+        /// </summary>
+        /// <remarks>
+        /// Filtering an existing solution filter narrows it down,
+        /// both end up referencing the same solution.
+        /// </remarks>
+        /// <param name="filterFilePath">Path to a solution (.sln, .slnx) or solution filter (.slnf).</param>
+        /// <param name="projectPaths">Paths to the projects to include.</param>
+        /// <returns>The new <see cref="SolutionFilter"/>, which has not been written anywhere.</returns>
+        public static SolutionFilter Create(string? filterFilePath, IEnumerable<string> projectPaths)
+        {
+            if (!CanCreateFrom(filterFilePath))
+            {
+                throw new InvalidOperationException(
+                    $"Cannot create a solution filter referencing {filterFilePath ?? "nothing"}: " +
+                    "a solution (.sln, .slnx) or another solution filter (.slnf) is required.");
+            }
+
+            var solutionPath = filterFilePath!.EndsWith(".slnf")
+                ? LoadFromFile(filterFilePath).SolutionPath
+                : filterFilePath;
+
+            return new SolutionFilter(solutionPath, projectPaths);
+        }
+
+        /// <summary>
         /// Reads a solution filter from disk.
         /// </summary>
         /// <param name="filterFilePath">Path to the <c>.slnf</c> file.</param>
         /// <returns>The parsed <see cref="SolutionFilter"/>.</returns>
-        public static SolutionFilter Load(string filterFilePath)
+        public static SolutionFilter LoadFromFile(string filterFilePath)
         {
             if (string.IsNullOrWhiteSpace(filterFilePath))
             {

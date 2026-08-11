@@ -15,7 +15,7 @@ namespace DotnetAffected.Core
             // but this makes the warning go away.
             ArgumentNullException.ThrowIfNull(options.FilterFilePath);
 
-            return SolutionFilter.Load(options.FilterFilePath).ProjectPaths;
+            return SolutionFilter.LoadFromFile(options.FilterFilePath).ProjectPaths;
         }
     }
 }
