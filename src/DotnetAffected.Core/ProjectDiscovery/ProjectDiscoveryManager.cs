@@ -20,6 +20,13 @@ namespace DotnetAffected.Core
                 return new SolutionFileProjectDiscoverer().DiscoverProjects(options);
             }
             
+            // Solution filters cannot go through SolutionSerializers,
+            // Microsoft.VisualStudio.SolutionPersistence does not support them.
+            if (options.FilterFilePath.EndsWith(".slnf"))
+            {
+                return new SolutionFilterProjectDiscoverer().DiscoverProjects(options);
+            }
+
             if (options.FilterFilePath.EndsWith(".proj"))
             {
                 return new MSBuildProjectDiscoverer().DiscoverProjects(options);
