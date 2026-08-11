@@ -4,6 +4,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="$(SourcesPath)DotnetAffected.Core/DotnetAffected.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="LibGit2Sharp"/>
         <PackageReference Include="Microsoft.Build.Locator"/>
     </ItemGroup>
