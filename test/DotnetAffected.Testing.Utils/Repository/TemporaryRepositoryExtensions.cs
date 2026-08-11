@@ -1,4 +1,5 @@
-﻿using Microsoft.Build.Construction;
+﻿using DotnetAffected.Core;
+using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Graph;
 using System;
@@ -161,6 +162,19 @@ namespace DotnetAffected.Testing.Utils
             var solutionPath = Path.Combine(repo.Path, solutionName);
 
             await File.WriteAllTextAsync(solutionPath, solutionContents);
+        }
+
+        public static Task CreateSolutionFilterAsync(
+            this TemporaryRepository repo,
+            string solutionFilterName,
+            string solutionName,
+            params string[] projectPaths)
+        {
+            var solutionPath = Path.Combine(repo.Path, solutionName);
+            var solutionFilterPath = Path.Combine(repo.Path, solutionFilterName);
+
+            return new SolutionFilter(solutionPath, projectPaths)
+                .SaveAsync(solutionFilterPath);
         }
 
         public static Task CreateTraversalProjectAsync(
