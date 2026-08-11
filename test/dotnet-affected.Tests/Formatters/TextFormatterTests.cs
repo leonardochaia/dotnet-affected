@@ -17,7 +17,7 @@ namespace Affected.Cli.Tests.Formatters
                 new ProjectInfo("TestProject", projectPath)
             };
 
-            var output = await formatter.Format(projects);
+            var output = await formatter.Format(projects, FormatterTestContext.Default);
 
             Assert.Contains(projectPath, output);
         }
@@ -34,7 +34,7 @@ namespace Affected.Cli.Tests.Formatters
                 new ProjectInfo("TestProject", firstProjectPath), new ProjectInfo("OtherTest", secondProjectPath)
             };
 
-            var output = await formatter.Format(projects);
+            var output = await formatter.Format(projects, FormatterTestContext.Default);
 
             Assert.Contains(firstProjectPath, output);
             Assert.Contains(secondProjectPath, output);

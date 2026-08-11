@@ -61,6 +61,7 @@ namespace Affected.Cli.Commands
                     outputOptions.Formatters,
                     outputOptions.OutputDir,
                     outputOptions.OutputName,
+                    options.FilterFilePath,
                     outputOptions.DryRun,
                     verbose);
             });

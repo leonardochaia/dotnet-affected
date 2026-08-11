@@ -25,7 +25,8 @@ namespace Affected.Cli
         /// into an specific output.
         /// </summary>
         /// <param name="projects">List of projects to format.</param>
+        /// <param name="context">Information about the output being generated.</param>
         /// <returns>The formatted output.</returns>
-        Task<string> Format(IEnumerable<IProjectInfo> projects);
+        Task<string> Format(IEnumerable<IProjectInfo> projects, OutputFormatterContext context);
     }
 }
