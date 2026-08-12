@@ -127,6 +127,50 @@ namespace Affected.Cli.Tests
         }
 
         [Fact]
+        public async Task When_any_changes_using_exclude_output_should_exclude_projects()
+        {
+            var msBuildProject = this.Repository.CreateCsProject("InventoryManagement");
+
+            var otherProject = this.Repository.CreateCsProject("PurchasingManagement");
+            this.Repository.CreateFsProject("PurchasingManagement.Api");
+            this.Repository.CreateVbProject("PurchasingManagement.Api2");
+
+            var (output, exitCode) = await this.InvokeAsync(
+                $"-p {Repository.Path} --dry-run --verbose --exclude-output .Purchasing.");
+
+            Assert.Equal(0, exitCode);
+
+            Assert.Contains($"Include=\"{msBuildProject.FullPath}\"", output);
+            Assert.DoesNotContain($"Include=\"{otherProject.FullPath}\"", output);
+
+            Assert.Contains($"3 projects were excluded", output);
+            Assert.Contains($"Excluded Projects", output);
+        }
+
+        /// <summary>
+        /// --exclude is the former name of --exclude-output. Giving both is a mistake rather than
+        /// a combination, so the current name wins outright instead of the two being unioned.
+        /// </summary>
+        [Fact]
+        public async Task When_both_exclude_options_are_given_exclude_output_should_win()
+        {
+            var msBuildProject = this.Repository.CreateCsProject("InventoryManagement");
+            var otherProject = this.Repository.CreateCsProject("PurchasingManagement");
+
+            var (output, exitCode) = await this.InvokeAsync(
+                $"-p {Repository.Path} --dry-run --verbose " +
+                $"--exclude .Inventory. --exclude-output .Purchasing.");
+
+            Assert.Equal(0, exitCode);
+
+            // Only --exclude-output applied: the project --exclude named is still in the output.
+            Assert.Contains($"Include=\"{msBuildProject.FullPath}\"", output);
+            Assert.DoesNotContain($"Include=\"{otherProject.FullPath}\"", output);
+
+            Assert.Contains($"1 projects were excluded", output);
+        }
+
+        [Fact]
         public async Task When_excluding_from_discovery_should_report_it_separately()
         {
             var msBuildProject = this.Repository.CreateCsProject("InventoryManagement");
