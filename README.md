@@ -220,6 +220,17 @@ dotnet-affected currently supports following **format options**:
 - `traversal`: Traversal SDK project file.
 - `text`: Plain text file containing all affected project paths.
 - `json`: JSON file containing all affected project names and paths.
+- `slnf`: [Solution Filter](https://learn.microsoft.com/en-us/visualstudio/msbuild/solution-filters) narrowing a Solution down to the affected projects.
+
+The `slnf` format needs a Solution to reference, so it requires `--filter-file-path` to
+point at a Solution (`.sln`, `.slnx`) or at another Solution Filter (`.slnf`), in which
+case the generated filter references the same Solution. Paths are written relative to
+the generated file, so it stays valid wherever `--output-dir` puts it:
+
+```text
+$ dotnet affected --filter-file-path Application.slnx --format slnf
+$ dotnet test --solution affected.slnf
+```
 
 Example:
 ```text

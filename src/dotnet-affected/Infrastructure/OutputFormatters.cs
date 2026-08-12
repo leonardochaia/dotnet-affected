@@ -6,7 +6,8 @@ namespace Affected.Cli
     {
         public static readonly IOutputFormatter[] All =
         {
-            new TextOutputFormatter(), new TraversalProjectOutputFormatter(), new JsonOutputFormatter()
+            new TextOutputFormatter(), new TraversalProjectOutputFormatter(), new JsonOutputFormatter(),
+            new SolutionFilterFileOutputFormatter()
         };
     }
 }

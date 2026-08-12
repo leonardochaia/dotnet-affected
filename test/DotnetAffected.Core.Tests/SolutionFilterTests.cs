@@ -193,7 +193,7 @@ namespace DotnetAffected.Core.Tests
                     })
                     .SaveAsync(filterFilePath);
 
-                var loaded = SolutionFilter.Load(filterFilePath);
+                var loaded = SolutionFilter.LoadFromFile(filterFilePath);
 
                 Assert.Equal(Path.GetFullPath(solutionPath), loaded.SolutionPath);
                 Assert.Equal(new[]
@@ -211,6 +211,83 @@ namespace DotnetAffected.Core.Tests
         public void Constructor_should_require_a_solution_path()
         {
             Assert.Throws<ArgumentException>(() => new SolutionFilter("", Array.Empty<string>()));
+        }
+
+        [Theory]
+        [InlineData("Application.sln", true)]
+        [InlineData("Application.slnx", true)]
+        [InlineData("ci.slnf", true)]
+        [InlineData("dirs.proj", false)]
+        [InlineData("Application.csproj", false)]
+        [InlineData("", false)]
+        [InlineData(null, false)]
+        public void CanCreateFrom_should_only_accept_what_references_a_solution(string filterFilePath, bool expected)
+        {
+            Assert.Equal(expected, SolutionFilter.CanCreateFrom(filterFilePath));
+        }
+
+        [Theory]
+        [InlineData("Application.sln")]
+        [InlineData("Application.slnx")]
+        public void Create_from_a_solution_should_reference_it(string solutionName)
+        {
+            var solutionPath = PathIn(solutionName);
+            var projectPath = PathIn("Libs", "Lib.csproj");
+
+            var filter = SolutionFilter.Create(solutionPath, new[]
+            {
+                projectPath
+            });
+
+            Assert.Equal(solutionPath, filter.SolutionPath);
+            Assert.Equal(new[]
+            {
+                projectPath
+            }, filter.ProjectPaths);
+        }
+
+        [Fact]
+        public async Task Create_from_an_existing_filter_should_reference_the_same_solution()
+        {
+            var directory = Path.Combine(Path.GetTempPath(), $"dotnet-affected-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(directory);
+
+            try
+            {
+                var solutionPath = Path.Combine(directory, "Application.slnx");
+                var existingFilterPath = Path.Combine(directory, "ci.slnf");
+
+                await new SolutionFilter(solutionPath, new[]
+                    {
+                        Path.Combine(directory, "Libs", "Lib.csproj")
+                    })
+                    .SaveAsync(existingFilterPath);
+
+                // Narrowing a filter down still references the solution, not the filter.
+                var filter = SolutionFilter.Create(existingFilterPath, new[]
+                {
+                    Path.Combine(directory, "Libs", "Lib.csproj")
+                });
+
+                Assert.Equal(solutionPath, filter.SolutionPath);
+            }
+            finally
+            {
+                Directory.Delete(directory, true);
+            }
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("dirs.proj")]
+        public void Create_without_a_solution_to_reference_should_throw(string filterFilePath)
+        {
+            var exception = Assert.Throws<InvalidOperationException>(
+                () => SolutionFilter.Create(filterFilePath, Array.Empty<string>()));
+
+            Assert.Contains("a solution (.sln, .slnx) or another solution filter (.slnf) is required",
+                exception.Message);
         }
     }
 }
