@@ -1,29 +1,44 @@
 using DotnetAffected.Abstractions;
 using DotnetAffected.Testing.Utils;
-using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace DotnetAffected.Core.Tests
 {
     /// <summary>
-    /// Edges of excluding projects from discovery, where it interacts with the rest of the pipeline.
+    /// Projects that MSBuild cannot evaluate at all, such as a .sqlproj importing SSDT targets
+    /// that only ship with Visual Studio, take the whole run down when the graph is built.
+    ///
+    /// Excluding them is the documented escape hatch, so the exclusion pattern has to be honored
+    /// while discovering projects, before they are ever handed to the graph. These cover that,
+    /// and the edges where it meets the rest of the pipeline.
     /// </summary>
     public class ExcludeDiscoveryTests : BaseRepositoryTest
     {
         private const string SolutionPath = "test-solution.sln";
 
         /// <summary>
-        /// Unconditionally imports something that is not there, which is what makes a legacy SSDT
-        /// database project unevaluatable outside of Visual Studio.
+        /// Mimics the import that makes a legacy SSDT database project unevaluatable outside of
+        /// Visual Studio. The import is unconditional, so evaluation throws
+        /// InvalidProjectFileException however little else the project declares.
         /// </summary>
         private const string UnevaluatableProject = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <Import Project=""$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets"" />
 </Project>
 ";
+
+        /// <summary>
+        /// Writes an unevaluatable database project and returns its full path.
+        /// </summary>
+        private async Task<string> CreateSqlProjectAsync()
+        {
+            var relativePath = Path.Combine("Database", "Database.sqlproj");
+            await Repository.CreateTextFileAsync(relativePath, UnevaluatableProject);
+
+            return Path.Combine(Repository.Path, relativePath);
+        }
 
         private AffectedSummary Execute(string excludeDiscoveryRegex, params string[] assumeChanges)
             => new AffectedExecutor(new AffectedOptions(
@@ -34,20 +49,58 @@ namespace DotnetAffected.Core.Tests
                 .Execute();
 
         [Fact]
+        public async Task When_excluded_project_cannot_be_evaluated_it_should_not_fail()
+        {
+            var project = Repository.CreateCsProject("InventoryManagement");
+            var sqlProjectPath = await CreateSqlProjectAsync();
+
+            await Repository.CreateSolutionAsync(SolutionPath, project.FullPath, sqlProjectPath);
+
+            var summary = Execute(@"\.sqlproj$");
+
+            var projectInfo = Assert.Single(summary.ProjectsWithChangedFiles);
+            Assert.Equal(project.FullPath, projectInfo.GetFullPath());
+        }
+
+        [Fact]
+        public async Task When_excluded_project_cannot_be_evaluated_other_projects_should_still_be_affected()
+        {
+            var project = Repository.CreateCsProject("InventoryManagement");
+            var dependant = Repository.CreateCsProject(
+                "InventoryManagement.Tests",
+                p => p.AddProjectDependency(project.FullPath));
+
+            var sqlProjectPath = await CreateSqlProjectAsync();
+
+            await Repository.CreateSolutionAsync(
+                SolutionPath, project.FullPath, dependant.FullPath, sqlProjectPath);
+
+            Repository.StageAndCommit();
+
+            await Repository.CreateTextFileAsync(
+                Path.Combine("InventoryManagement", "file.cs"), "// Initial content");
+
+            var summary = Execute(@"\.sqlproj$");
+
+            var changedProject = Assert.Single(summary.ProjectsWithChangedFiles);
+            Assert.Equal(project.FullPath, changedProject.GetFullPath());
+
+            var affectedProject = Assert.Single(summary.AffectedProjects);
+            Assert.Equal(dependant.FullPath, affectedProject.GetFullPath());
+        }
+
+        [Fact]
         public async Task Excluded_projects_should_be_reported_by_path()
         {
             var project = Repository.CreateCsProject("InventoryManagement");
+            var sqlProjectPath = await CreateSqlProjectAsync();
 
-            var sqlProjectPath = Path.Combine("Database", "Database.sqlproj");
-            await Repository.CreateTextFileAsync(sqlProjectPath, UnevaluatableProject);
-
-            await Repository.CreateSolutionAsync(
-                SolutionPath, project.FullPath, Path.Combine(Repository.Path, sqlProjectPath));
+            await Repository.CreateSolutionAsync(SolutionPath, project.FullPath, sqlProjectPath);
 
             var summary = Execute(@"\.sqlproj$");
 
             var excluded = Assert.Single(summary.ProjectsExcludedFromDiscovery);
-            Assert.Equal(Path.Combine(Repository.Path, sqlProjectPath), excluded);
+            Assert.Equal(sqlProjectPath, excluded);
         }
 
         /// <summary>
@@ -62,9 +115,7 @@ namespace DotnetAffected.Core.Tests
         [Fact]
         public async Task When_an_excluded_project_is_referenced_it_is_still_evaluated()
         {
-            var sqlProjectPath = Path.Combine(Repository.Path, "Database", "Database.sqlproj");
-            await Repository.CreateTextFileAsync(
-                Path.Combine("Database", "Database.sqlproj"), UnevaluatableProject);
+            var sqlProjectPath = await CreateSqlProjectAsync();
 
             // The reference is what drags the excluded project back into evaluation.
             var project = Repository.CreateCsProject(
@@ -86,12 +137,9 @@ namespace DotnetAffected.Core.Tests
         public async Task When_assuming_changes_for_an_excluded_project_should_fail()
         {
             var project = Repository.CreateCsProject("InventoryManagement");
+            var sqlProjectPath = await CreateSqlProjectAsync();
 
-            var sqlProjectPath = Path.Combine("Database", "Database.sqlproj");
-            await Repository.CreateTextFileAsync(sqlProjectPath, UnevaluatableProject);
-
-            await Repository.CreateSolutionAsync(
-                SolutionPath, project.FullPath, Path.Combine(Repository.Path, sqlProjectPath));
+            await Repository.CreateSolutionAsync(SolutionPath, project.FullPath, sqlProjectPath);
 
             var exception = Assert.Throws<AssumedProjectNotFoundException>(
                 () => Execute(@"\.sqlproj$", "Database"));
