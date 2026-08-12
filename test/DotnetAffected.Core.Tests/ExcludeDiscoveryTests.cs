@@ -1,5 +1,7 @@
 using DotnetAffected.Abstractions;
 using DotnetAffected.Testing.Utils;
+using Microsoft.Build.Exceptions;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Xunit;
@@ -126,7 +128,14 @@ namespace DotnetAffected.Core.Tests
 
             var exception = Record.Exception(() => Execute(@"\.sqlproj$"));
 
-            Assert.NotNull(exception);
+            // Pinned to the evaluation failure specifically. Asserting only that something threw
+            // would keep passing once it starts throwing for some unrelated reason, which is the
+            // one way a test like this can quietly stop testing anything.
+            var aggregate = Assert.IsType<AggregateException>(exception);
+            var inner = Assert.IsType<InvalidProjectFileException>(
+                Assert.Single(aggregate.InnerExceptions));
+
+            Assert.Equal(sqlProjectPath, inner.ProjectFile);
         }
 
         /// <summary>
