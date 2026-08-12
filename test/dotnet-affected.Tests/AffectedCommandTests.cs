@@ -125,5 +125,43 @@ namespace Affected.Cli.Tests
             Assert.Contains($"3 projects were excluded", output);
             Assert.Contains($"Excluded Projects", output);
         }
+
+        [Fact]
+        public async Task When_excluding_from_discovery_should_report_it_separately()
+        {
+            var msBuildProject = this.Repository.CreateCsProject("InventoryManagement");
+            var otherProject = this.Repository.CreateCsProject("PurchasingManagement");
+
+            var (output, exitCode) = await this.InvokeAsync(
+                $"-p {Repository.Path} --dry-run --verbose --exclude-discovery .Purchasing.");
+
+            Assert.Equal(0, exitCode);
+
+            Assert.Contains($"Include=\"{msBuildProject.FullPath}\"", output);
+            Assert.DoesNotContain($"Include=\"{otherProject.FullPath}\"", output);
+
+            // Reported apart from the projects excluded from the output, which stay at zero.
+            Assert.Contains($"0 projects were excluded", output);
+            Assert.Contains($"1 projects were excluded from discovery", output);
+            Assert.Contains($"Projects Excluded from Discovery", output);
+
+            // Which project it was is asserted against the traversal output above rather than
+            // against the table. The table renders at a fixed width and truncates the Path
+            // column, so whether an absolute path survives depends on how long the platform's
+            // temp directory happens to be. ExcludeDiscoveryTests pins the exact path.
+        }
+
+        [Fact]
+        public async Task When_nothing_is_excluded_from_discovery_should_not_report_it()
+        {
+            this.Repository.CreateCsProject("InventoryManagement");
+
+            var (output, exitCode) =
+                await this.InvokeAsync($"-p {Repository.Path} --dry-run --verbose");
+
+            Assert.Equal(0, exitCode);
+
+            Assert.DoesNotContain($"excluded from discovery", output);
+        }
     }
 }
