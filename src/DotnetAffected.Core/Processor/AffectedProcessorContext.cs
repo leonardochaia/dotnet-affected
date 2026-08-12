@@ -4,7 +4,6 @@ using Microsoft.Build.Graph;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace DotnetAffected.Core.Processor
 {
@@ -44,29 +43,19 @@ namespace DotnetAffected.Core.Processor
         /// </summary>
         private ProjectGraph BuildProjectGraph()
         {
-            var deletedFiles = ChangedFiles
-                .Where(file => !File.Exists(file))
-                .ToArray();
+            // Discovery happens here rather than inside the factory: it is the only step that
+            // knows what was excluded, and an excluded project cannot be reported through the
+            // graph it was deliberately kept out of.
+            var discovery = new ProjectDiscoveryManager()
+                .DiscoverProjects(Options);
 
-            ProjectGraphFactory factory;
-            if (deletedFiles.Length == 0)
-            {
-                factory = new ProjectGraphFactory(Options);
-            }
-            else
-            {
-                var contents = ChangesProvider.ReadFilesAt(RepositoryPath, FromRef, deletedFiles);
-                var fileSystem = new DeletedFilesOverlayFileSystem(RepositoryPath, contents);
+            ProjectsExcludedFromDiscovery = discovery.ExcludedProjects;
 
-                factory = new ProjectGraphFactory(Options, fileSystem);
-            }
+            var fileSystem = DeletedFilesOverlayFileSystem.TryCreate(
+                ChangesProvider, RepositoryPath, FromRef, ChangedFiles);
 
-            var graph = factory.BuildProjectGraph();
-
-            // Only the factory knows what discovery left out, and only once it has run.
-            ProjectsExcludedFromDiscovery = factory.ExcludedProjects.ToArray();
-
-            return graph;
+            return new ProjectGraphFactory(Options, fileSystem)
+                .BuildProjectGraph(discovery.Projects);
         }
 
         /// <summary>

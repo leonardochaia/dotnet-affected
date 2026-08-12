@@ -4,7 +4,6 @@ using Microsoft.Build.Evaluation;
 using Microsoft.Build.Evaluation.Context;
 using Microsoft.Build.FileSystem;
 using Microsoft.Build.Graph;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -33,27 +32,22 @@ namespace DotnetAffected.Core
         }
 
         /// <summary>
-        /// Gets the projects that discovery deliberately left out, as paths. Populated by
-        /// <see cref="BuildProjectGraph"/>; empty until it has run.
-        /// </summary>
-        public IReadOnlyCollection<string> ExcludedProjects { get; private set; } = Array.Empty<string>();
-
-        /// <summary>
         /// Builds a <see cref="ProjectGraph"/> from all discovered projects.
         /// </summary>
         /// <returns>A new Project Graph.</returns>
         public ProjectGraph BuildProjectGraph()
+            => BuildProjectGraph(new ProjectDiscoveryManager()
+                .DiscoverProjects(_options)
+                .Projects);
+
+        /// <summary>
+        /// Builds a <see cref="ProjectGraph"/> from projects that have already been discovered,
+        /// for callers that need to know what discovery left out. Discovery is the only place
+        /// that knows, and it cannot report it through a graph it is deliberately absent from.
+        /// </summary>
+        /// <returns>A new Project Graph.</returns>
+        internal ProjectGraph BuildProjectGraph(IReadOnlyCollection<string> allProjects)
         {
-            // Discover all projects and build the graph
-            var discovery = new ProjectDiscoveryManager()
-                .DiscoverProjects(_options);
-
-            var allProjects = discovery.Projects;
-            ExcludedProjects = discovery.ExcludedProjects;
-
-            if (ExcludedProjects.Count > 0)
-                WriteLine($"Excluded {ExcludedProjects.Count} Projects from discovery");
-
             WriteLine($"Building Dependency Graph");
 
             var output = _fileSystem is null

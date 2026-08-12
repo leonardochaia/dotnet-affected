@@ -1,3 +1,4 @@
+using DotnetAffected.Abstractions;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.FileSystem;
@@ -36,6 +37,34 @@ namespace DotnetAffected.Core.FileSystem
         /// parent has to reach them, otherwise a recursive glob stops before the deleted file.
         /// </summary>
         private readonly HashSet<string> _deletedDirectories;
+
+        /// <summary>
+        /// Creates an overlay putting back whatever <paramref name="changedFiles"/> says was
+        /// deleted, or <c>null</c> when the diff deleted nothing.
+        ///
+        /// Null is the useful answer rather than an empty overlay: an overlay forces graph
+        /// construction through a per project <c>ProjectInstanceFactory</c>, which costs over a
+        /// third more time and allocations than letting MSBuild build the graph itself. With
+        /// nothing to put back that buys nothing, so the caller evaluates against the real file
+        /// system instead.
+        /// </summary>
+        public static DeletedFilesOverlayFileSystem? TryCreate(
+            IChangesProvider changesProvider,
+            string repositoryPath,
+            string fromRef,
+            string[] changedFiles)
+        {
+            var deletedFiles = changedFiles
+                .Where(file => !File.Exists(file))
+                .ToArray();
+
+            if (deletedFiles.Length == 0)
+                return null;
+
+            var contents = changesProvider.ReadFilesAt(repositoryPath, fromRef, deletedFiles);
+
+            return new DeletedFilesOverlayFileSystem(repositoryPath, contents);
+        }
 
         public DeletedFilesOverlayFileSystem(
             string repositoryRoot,
