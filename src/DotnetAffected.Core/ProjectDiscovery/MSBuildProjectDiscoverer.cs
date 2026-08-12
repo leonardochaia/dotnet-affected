@@ -21,8 +21,8 @@ namespace DotnetAffected.Core
             }
 
             var traversalProjectDirectory = Path.GetDirectoryName(traversalProjectPath);
-            var traversalProject = new Project(traversalProjectPath);
-            
+            var traversalProject = TraversalProject.Load(traversalProjectPath);
+
             return traversalProject
                 .GetItems("ProjectReference")
                 .Select(i => i.EvaluatedInclude)
