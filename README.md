@@ -528,3 +528,17 @@ Or open your favorite ide through the activated command line and it will use the
 source ./eng/activate.sh
 rider Affected.sln
 ```
+
+### Benchmarks
+
+There are BenchmarkDotNet suites covering both the affected detection algorithm and a full
+`dotnet affected` run. They execute on every push to `main` and can be triggered manually from the
+Actions tab, with results recorded on the `benchmark-data` branch and charted on the documentation
+site.
+
+```shell
+dotnet run -c Release -f net10.0 --project benchmarks/dotnet-affected.Benchmarks -- --filter '*' --job short
+```
+
+See [benchmarks/README.md](benchmarks/README.md) for what each suite measures, the regression
+thresholds, and why timings from CI are trends rather than numbers.
