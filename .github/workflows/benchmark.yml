@@ -1,0 +1,153 @@
+name: Benchmarks
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      filter:
+        description: 'BenchmarkDotNet --filter glob'
+        default: '*'
+        required: false
+        type: string
+      job:
+        description: 'BenchmarkDotNet --job (dry, short, medium, long, default)'
+        default: 'short'
+        required: false
+        type: string
+
+# Needed to push the results to the benchmark-data branch and to comment on commits.
+permissions:
+  contents: write
+
+# Every run appends to the same files on the data branch, so runs must not overlap.
+concurrency:
+  group: benchmarks
+  cancel-in-progress: false
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
+  DOTNET_NOLOGO: '1'
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  NUGET_XMLDOC_MODE: 'skip'
+  DOTNET_MULTILEVEL_LOOKUP: 0
+  CI_BUILD: 'true'
+  BENCHMARK_ARTIFACTS: ${{ github.workspace }}/artifacts/benchmarks
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install .NET
+        run: |
+          ./eng/install-sdk.sh
+          echo "DOTNET_ROOT=$GITHUB_WORKSPACE/eng/.dotnet" >> $GITHUB_ENV
+          echo "$GITHUB_WORKSPACE/eng/.dotnet" >> $GITHUB_PATH
+
+      - name: Print host info
+        run: dotnet --info
+
+      # The benchmark project multi-targets. Only the newest TFM is measured, so
+      # building the others would just be CI time spent on nothing.
+      - name: Build
+        run: >
+          dotnet build benchmarks/dotnet-affected.Benchmarks/dotnet-affected.Benchmarks.csproj
+          -c Release -f net10.0
+
+      # --join collapses both benchmark classes into a single report, which is what
+      # the publishing steps below consume.
+      - name: Run benchmarks
+        env:
+          BENCHMARK_FILTER: ${{ inputs.filter || '*' }}
+          BENCHMARK_JOB: ${{ inputs.job || 'short' }}
+        run: >
+          dotnet run -c Release -f net10.0 --no-build
+          --project benchmarks/dotnet-affected.Benchmarks
+          --
+          --filter "$BENCHMARK_FILTER"
+          --job "$BENCHMARK_JOB"
+          --join
+          --exporters json markdown
+          --artifacts "$BENCHMARK_ARTIFACTS"
+
+      # BenchmarkDotNet stamps the run timestamp into the file names.
+      - name: Locate report
+        id: report
+        run: |
+          results="$BENCHMARK_ARTIFACTS/results"
+          echo "json=$(ls "$results"/*-report-full-compressed.json | head -n 1)" >> "$GITHUB_OUTPUT"
+          echo "markdown=$(ls "$results"/*-report-github.md | head -n 1)" >> "$GITHUB_OUTPUT"
+
+      - name: Write job summary
+        run: |
+          {
+            echo "## Benchmark results"
+            echo
+            echo "> Measured on a shared GitHub-hosted runner. Timings are only meaningful"
+            echo "> as a trend against previous runs on the same infrastructure, never as"
+            echo "> absolute numbers. Allocated bytes are deterministic and can be trusted."
+            echo
+            cat "${{ steps.report.outputs.markdown }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # github-action-benchmark's BenchmarkDotNet adapter only reads Statistics.Mean, so
+      # allocations are extracted separately and tracked as their own series.
+      - name: Extract allocations
+        run: |
+          jq '[.Benchmarks[] | {
+                name: .FullName,
+                unit: "bytes",
+                value: .Memory.BytesAllocatedPerOperation
+              }]' "${{ steps.report.outputs.json }}" > "$BENCHMARK_ARTIFACTS/allocations.json"
+
+      - uses: actions/upload-artifact@v4
+        name: 'Upload Benchmark Results'
+        if: always()
+        with:
+          name: benchmark-results
+          path: artifacts/benchmarks/**/*
+
+      # Publishing is skipped for anything but main: forks cannot access the token, and
+      # one point per branch is not a history of anything.
+      #
+      # These write to benchmark-data, which nothing serves. GitHub Pages allows a single
+      # source per repository and the docs site owns it, so the charts this action
+      # generates would never be reachable. The docs build reads the data instead.
+      - name: Publish wall clock
+        if: github.event_name == 'push'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: dotnet-affected (time)
+          tool: benchmarkdotnet
+          output-file-path: ${{ steps.report.outputs.json }}
+          gh-pages-branch: benchmark-data
+          benchmark-data-dir-path: dev/bench/time
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          # Shared runners drift far enough that anything tighter is all false positives.
+          # See https://blog.martincostello.com/continuous-benchmarks-on-a-budget/
+          alert-threshold: '200%'
+          comment-on-alert: true
+          fail-on-alert: false
+
+      - name: Publish allocations
+        if: github.event_name == 'push'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: dotnet-affected (allocations)
+          tool: customSmallerIsBetter
+          output-file-path: ${{ env.BENCHMARK_ARTIFACTS }}/allocations.json
+          gh-pages-branch: benchmark-data
+          benchmark-data-dir-path: dev/bench/allocations
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          # Allocated bytes do not vary between runs, so a 5% move is a real move.
+          alert-threshold: '105%'
+          comment-on-alert: true
+          fail-on-alert: true
