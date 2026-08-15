@@ -1,0 +1,7 @@
+# Keep pnpm's content-addressable store inside node_modules, so it lives on the same
+# filesystem as the install (containerised workflows) and never lands in the repo root.
+storeDir: node_modules/.pnpm-store
+
+allowBuilds:
+  esbuild: true
+  sharp: true

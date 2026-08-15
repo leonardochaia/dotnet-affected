@@ -1,0 +1,65 @@
+---
+title: dotnet-affected
+description: A .NET tool that determines which projects are affected by a set of changes, for large repositories and monorepos.
+template: splash
+head:
+  - tag: title
+    content: dotnet-affected — build only what changed
+hero:
+  tagline: Build and test only the projects your changes actually affect.
+  actions:
+    - text: Get started
+      link: /getting-started/installation/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/leonardochaia/dotnet-affected
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## What it does
+
+dotnet-affected compares two versions of your code — usually a commit range in CI, or `HEAD` against your working
+directory — and works out which MSBuild projects changed and which projects depend on them.
+
+<CardGrid>
+	<Card title="Detects changed projects" icon="magnifier">
+		Maps every changed file to the project that references it, including files that are not source code.
+	</Card>
+	<Card title="Follows the dependency graph" icon="random">
+		Uses the MSBuild `ProjectGraph` to find every project transitively affected by a change.
+	</Card>
+	<Card title="Tracks NuGet packages" icon="seti:npm">
+		With Central Package Management, detects added, removed and updated packages in
+		`Directory.Packages.props`.
+	</Card>
+	<Card title="Watches build inputs" icon="document">
+		Changes to `Directory.Build.props`, `.targets` and other imported files are picked up too.
+	</Card>
+	<Card title="Outputs what you need" icon="rocket">
+		A [Traversal SDK](https://github.com/microsoft/MSBuildSdks/tree/main/src/Traversal) project you can
+		`dotnet build`, or plain text and JSON for other tooling.
+	</Card>
+	<Card title="Works with your projects" icon="approve-check">
+		`.csproj`, `.fsproj` and `.vbproj`, in both SDK and non-SDK style.
+	</Card>
+</CardGrid>
+
+## Start here
+
+<CardGrid>
+	<Card title="Installation" icon="download">
+		[Install the tool](/getting-started/installation/) as a local or global .NET tool.
+	</Card>
+	<Card title="Quick start" icon="open-book">
+		[Run it for the first time](/getting-started/quick-start/) and read the output.
+	</Card>
+	<Card title="How it works" icon="setting">
+		[Understand the model](/getting-started/how-it-works/) behind changed vs. affected projects.
+	</Card>
+	<Card title="CLI reference" icon="list-format">
+		[Every option](/reference/cli/), including `--filter-file-path` and the exclusion flags.
+	</Card>
+</CardGrid>
