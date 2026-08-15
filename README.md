@@ -69,18 +69,30 @@ Usage:
 Options:
   -p, --repository-path <repository-path>  Path to the root of the repository, where the .git directory is.
                                            [Defaults to current directory, or solution's directory when using --solution-path]
-  --solution-path <solution-path>          Path to a Solution file (.sln) used to discover projects that may be affected.
+  --solution-path <solution-path>          [OBSOLETE: use --filter-file-path] Path to a Solution file (.sln) used to discover projects that may be affected.
                                            When omitted, will search for project files inside --repository-path.
+  --filter-file-path <filter-file-path>    Path to a filter file (.sln, .slnx, .slnf) used to discover projects that may be affected.
+                                           When omitted, will search for project files inside --repository-path.
+  --no-gitignore                           Discover projects inside paths that git ignores, such as build output or nested clones.
+                                           [Only applies when searching --repository-path, not when using --filter-file-path] [default: False]
   -v, --verbose                            Write useful messages or just the desired output. [default: False]
   --assume-changes <assume-changes>        Hypothetically assume that given projects have changed instead of using Git diff to determine them.
   --from <from>                            A branch or commit to compare against --to.
-  --to <to>                                A branch or commit to compare against --from
-  -f, --format <format>                    Space separated list of formatters to write the output. [default: traversal]
-  --dry-run                                Doesn't create files, outputs to stdout instead. [default: False]
-  --output-dir <output-dir>                The directory where the output file(s) will be generated
-                                           If relative, it's relative to the --repository-path
-  --output-name <output-name>              The name for the file to create for each format.
-                                           Format extension is appended to this name. [default: affected]
+  --to <to>                                A branch or commit to compare against --from.
+  --exclude-output <exclude-output>        A dotnet Regular Expression matched against each project's full path.
+                                           Matching projects are still evaluated, and still carry changes through to
+                                           the projects depending on them, but are kept out of the output.
+  --exclude-discovery <exclude-discovery>  A dotnet Regular Expression matched against each project's full path.
+                                           Matching projects are never loaded, so one that MSBuild cannot evaluate
+                                           stops failing the run. Nothing can depend on them either.
+  -e, --exclude <exclude>                  [OBSOLETE: use --exclude-output] A dotnet Regular Expression used to
+                                           exclude projects from the output.
+  -f, --format <format>                    Space-seperated output file formats. Possible values: <traversal, text, json, slnf>. [default: traversal]
+  --dry-run                                Only output to stdout. No output files will be created. [default: False]
+  --output-dir <output-dir>                The directory where the output file(s) will be generated.
+                                           Relative paths will be based on --repository-path.
+  --output-name <output-name>              The filename to create.
+                                           Format file extensions will be appended. [default: affected]
   --version                                Show version information
   -?, -h, --help                           Show help and usage information
 
@@ -149,6 +161,23 @@ need to specify `--repository-path`. For example:
 ```shell
 dotnet affected --repository-path /home/lchaia/monorepo --solution-path /home/lchaia/monorepo/my-big-project/MyBigProjectSolution.sln
 ```
+
+### Ignored paths
+
+The search honours your `.gitignore`: paths git ignores are not repository content, so build output, tooling scratch
+directories, git worktrees and nested clones are skipped, along with the copies of your projects that live inside them.
+A project that is tracked by git is always discovered, even when a pattern matches it, which is what `git add -f` means.
+
+Pass `--no-gitignore` to search every directory instead, as previous versions did.
+
+```shell
+dotnet affected --no-gitignore
+```
+
+With the MSBuild SDK, set `DotnetAffectedHonourGitIgnore` to `false` for the same effect.
+
+Note this only applies when searching `--repository-path`. Discovery from a Solution or Traversal project uses the
+projects that file lists, ignored or not.
 
 ## Build/test affected projects
 

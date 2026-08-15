@@ -21,6 +21,7 @@ namespace DotnetAffected.Core
         /// <param name="exclusionRegex"></param>
         /// <param name="assumeChanges"></param>
         /// <param name="excludeDiscoveryRegex"></param>
+        /// <param name="honourGitIgnore">Defaults to <b>true</b>.</param>
         public AffectedOptions(
             string? repositoryPath = null,
             string? filterFilePath = null,
@@ -28,7 +29,8 @@ namespace DotnetAffected.Core
             string? toRef = null,
             string? exclusionRegex = null,
             IEnumerable<string>? assumeChanges = null,
-            string? excludeDiscoveryRegex = null)
+            string? excludeDiscoveryRegex = null,
+            bool honourGitIgnore = true)
         {
             RepositoryPath = DetermineRepositoryPath(repositoryPath, filterFilePath);
 
@@ -45,6 +47,7 @@ namespace DotnetAffected.Core
             ExclusionRegex = exclusionRegex;
             AssumeChanges = assumeChanges?.ToArray() ?? Array.Empty<string>();
             ExcludeDiscoveryRegex = excludeDiscoveryRegex;
+            HonourGitIgnore = honourGitIgnore;
         }
 
         /// <summary>
@@ -84,6 +87,9 @@ namespace DotnetAffected.Core
         /// Each entry is a path to a project file, a project's ProjectName, or a project file name.
         /// </summary>
         public string[] AssumeChanges { get; }
+
+        /// <inheritdoc />
+        public bool HonourGitIgnore { get; }
 
         private static string DetermineRepositoryPath(string? repositoryPath, string? filterfilePath)
         {
