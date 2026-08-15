@@ -29,6 +29,8 @@ namespace Affected.Cli.Commands
             this.AddGlobalOption(AffectedGlobalOptions.AssumeChangesOption);
             this.AddGlobalOption(AffectedGlobalOptions.FromOption);
             this.AddGlobalOption(AffectedGlobalOptions.ToOption);
+            this.AddGlobalOption(AffectedGlobalOptions.ExcludeOutputRegexOption);
+            this.AddGlobalOption(AffectedGlobalOptions.ExcludeDiscoveryRegexOption);
             this.AddGlobalOption(AffectedGlobalOptions.ExclusionRegexOption);
 
             this.AddOption(FormatOption);

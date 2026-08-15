@@ -36,11 +36,18 @@ namespace DotnetAffected.Core
         /// </summary>
         /// <returns>A new Project Graph.</returns>
         public ProjectGraph BuildProjectGraph()
-        {
-            // Discover all projects and build the graph
-            var allProjects = new ProjectDiscoveryManager()
-                .DiscoverProjects(_options);
+            => BuildProjectGraph(new ProjectDiscoveryManager()
+                .DiscoverProjects(_options)
+                .Projects);
 
+        /// <summary>
+        /// Builds a <see cref="ProjectGraph"/> from projects that have already been discovered,
+        /// for callers that need to know what discovery left out. Discovery is the only place
+        /// that knows, and it cannot report it through a graph it is deliberately absent from.
+        /// </summary>
+        /// <returns>A new Project Graph.</returns>
+        internal ProjectGraph BuildProjectGraph(IReadOnlyCollection<string> allProjects)
+        {
             WriteLine($"Building Dependency Graph");
 
             var output = _fileSystem is null

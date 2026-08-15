@@ -66,7 +66,8 @@ namespace DotnetAffected.Core.Processor
                 context.AffectedProjects,
                 excludedProjects.Distinct()
                     .ToArray(),
-                context.ChangedPackages);
+                context.ChangedPackages,
+                context.ProjectsExcludedFromDiscovery);
         }
 
         /// <summary>

@@ -39,6 +39,14 @@ namespace Affected.Cli.Views
                 Add(new ContentView("\nExcluded Projects"));
                 Add(new ProjectInfoTable(summary.ExcludedProjects));
             }
+
+            // Kept apart from Excluded Projects above: those were evaluated and carried their
+            // changes onwards, these were never loaded at all.
+            if (summary.ProjectsExcludedFromDiscovery.Any())
+            {
+                Add(new ContentView("\nProjects Excluded from Discovery"));
+                Add(new ProjectPathTable(summary.ProjectsExcludedFromDiscovery));
+            }
         }
     }
 }

@@ -4,7 +4,6 @@ using Microsoft.Build.Graph;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace DotnetAffected.Core.Processor
 {
@@ -44,18 +43,26 @@ namespace DotnetAffected.Core.Processor
         /// </summary>
         private ProjectGraph BuildProjectGraph()
         {
-            var deletedFiles = ChangedFiles
-                .Where(file => !File.Exists(file))
-                .ToArray();
+            // Discovery happens here rather than inside the factory: it is the only step that
+            // knows what was excluded, and an excluded project cannot be reported through the
+            // graph it was deliberately kept out of.
+            var discovery = new ProjectDiscoveryManager()
+                .DiscoverProjects(Options);
 
-            if (deletedFiles.Length == 0)
-                return new ProjectGraphFactory(Options).BuildProjectGraph();
+            ProjectsExcludedFromDiscovery = discovery.ExcludedProjects;
 
-            var contents = ChangesProvider.ReadFilesAt(RepositoryPath, FromRef, deletedFiles);
-            var fileSystem = new DeletedFilesOverlayFileSystem(RepositoryPath, contents);
+            var fileSystem = DeletedFilesOverlayFileSystem.TryCreate(
+                ChangesProvider, RepositoryPath, FromRef, ChangedFiles);
 
-            return new ProjectGraphFactory(Options, fileSystem).BuildProjectGraph();
+            return new ProjectGraphFactory(Options, fileSystem)
+                .BuildProjectGraph(discovery.Projects);
         }
+
+        /// <summary>
+        /// Projects that <see cref="AffectedOptions.ExcludeDiscoveryRegex"/> kept out of the graph.
+        /// Populated once <see cref="Graph"/> has been accessed.
+        /// </summary>
+        internal string[] ProjectsExcludedFromDiscovery { get; private set; } = Array.Empty<string>();
 
         internal string[] ChangedFiles { get; set; } = Array.Empty<string>();
         internal ProjectGraphNode[] ChangedProjects { get; set; } = Array.Empty<ProjectGraphNode>();

@@ -14,6 +14,15 @@ namespace Affected.Cli.Views
             Add(new ContentView($"{summary.AffectedProjects.Count()} projects are affected by these changes"));
             Add(new ContentView($"{summary.ExcludedProjects.Count()} projects were excluded"));
 
+            // Only when it happened. The two exclusions differ in kind, not degree, so a
+            // permanent "0 projects were excluded from discovery" would be noise on every run
+            // that never asked for it.
+            if (summary.ProjectsExcludedFromDiscovery.Any())
+            {
+                Add(new ContentView(
+                    $"{summary.ProjectsExcludedFromDiscovery.Length} projects were excluded from discovery"));
+            }
+
             Add(new WithChangesAndAffectedView(summary));
         }
     }

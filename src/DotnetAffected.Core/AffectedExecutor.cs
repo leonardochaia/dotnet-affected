@@ -52,6 +52,11 @@ namespace DotnetAffected.Core
         /// Deleted files are not attributed to their project since restoring them requires
         /// evaluating the projects after the diff has been read, and a graph passed here was by
         /// definition evaluated before it, so the files are simply absent from it.
+        ///
+        /// <see cref="AffectedOptions.ExcludeDiscoveryRegex"/> is ignored for the same reason.
+        /// It applies while projects are being discovered, and a graph passed here was built
+        /// from whatever the caller discovered, so there is nothing left to keep out of it.
+        /// <see cref="AffectedSummary.ProjectsExcludedFromDiscovery"/> is therefore empty.
         /// </remarks>
         /// <param name="options"></param>
         /// <param name="graph"></param>
