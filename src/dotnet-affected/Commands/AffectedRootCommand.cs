@@ -25,6 +25,7 @@ namespace Affected.Cli.Commands
             this.AddGlobalOption(AffectedGlobalOptions.RepositoryPathOptions);
             this.AddGlobalOption(AffectedGlobalOptions.SolutionPathOption);
             this.AddGlobalOption(AffectedGlobalOptions.FilterFilePathOption);
+            this.AddGlobalOption(AffectedGlobalOptions.NoGitIgnoreOption);
             this.AddGlobalOption(AffectedGlobalOptions.VerboseOption);
             this.AddGlobalOption(AffectedGlobalOptions.AssumeChangesOption);
             this.AddGlobalOption(AffectedGlobalOptions.FromOption);

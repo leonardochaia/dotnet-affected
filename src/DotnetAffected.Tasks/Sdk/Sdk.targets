@@ -13,13 +13,15 @@
 
         <PropertyGroup>
             <DotnetAffectedRoot Condition="'$(DotnetAffectedRoot)' == ''">$(MSBuildStartupDirectory)</DotnetAffectedRoot>
+            <DotnetAffectedHonourGitIgnore Condition="'$(DotnetAffectedHonourGitIgnore)' == ''">true</DotnetAffectedHonourGitIgnore>
         </PropertyGroup>
 
         <DotnetAffected.Tasks.AffectedTask Root="$(DotnetAffectedRoot)"
                                            AssumeChanges="@(DotnetAffectedAssumeChanges)"
                                            FromRef="$(DotnetAffectedFromRef)"
                                            ToRef="$(DotnetAffectedToRef)"
-                                           FilterClasses="@(AffectedFilterClass)">
+                                           FilterClasses="@(AffectedFilterClass)"
+                                           HonourGitIgnore="$(DotnetAffectedHonourGitIgnore)">
             <Output TaskParameter="FilterInstances" ItemName="AffectedFilterInstance" />
             <Output TaskParameter="ModifiedProjects" PropertyName="_ModifiedProjects" />
             <Output TaskParameter="ModifiedProjectsCount" PropertyName="DotnetAffectedProjectCount" />

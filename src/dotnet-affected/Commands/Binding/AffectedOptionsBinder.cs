@@ -36,7 +36,8 @@ namespace Affected.Cli.Commands
                 parseResult.GetValueForOption(AffectedGlobalOptions.ToOption),
                 excludeOutputRegex,
                 parseResult.GetValueForOption(AffectedGlobalOptions.AssumeChangesOption),
-                parseResult.GetValueForOption(AffectedGlobalOptions.ExcludeDiscoveryRegexOption)
+                parseResult.GetValueForOption(AffectedGlobalOptions.ExcludeDiscoveryRegexOption),
+                honourGitIgnore: !parseResult.GetValueForOption(AffectedGlobalOptions.NoGitIgnoreOption)
             );
         }
     }

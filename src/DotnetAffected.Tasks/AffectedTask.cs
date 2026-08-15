@@ -25,6 +25,8 @@ namespace DotnetAffected.Tasks
 
         public ITaskItem[]? FilterClasses { get; set; }
 
+        public bool HonourGitIgnore { get; set; } = true;
+
         [Output] public ITaskItem[] FilterInstances { get; private set; } = null!;
 
         [Output] public string[] ModifiedProjects { get; private set; } = null!;
@@ -43,7 +45,7 @@ namespace DotnetAffected.Tasks
                     .ToArray() ?? Array.Empty<string>();
 
                 var affectedOptions = new AffectedOptions(Root, null, FromRef ?? "", ToRef ?? "",
-                    null, assumeChanges);
+                    null, assumeChanges, honourGitIgnore: HonourGitIgnore);
 
                 if (assumeChanges.Length > 0
                     && (!string.IsNullOrWhiteSpace(affectedOptions.FromRef) ||

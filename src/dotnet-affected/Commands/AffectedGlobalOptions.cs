@@ -31,6 +31,16 @@ namespace Affected.Cli.Commands
             description: "Path to a filter file (.sln, .slnx, .slnf) used to discover projects that may be affected.\n" +
                          "When omitted, will search for project files inside --repository-path.");
 
+        public static readonly Option<bool> NoGitIgnoreOption = new(
+            aliases: new[]
+            {
+                "--no-gitignore"
+            },
+            getDefaultValue: () => false,
+            description: "Discover projects inside paths that git ignores, such as build output " +
+                         "or nested clones.\n" +
+                         "[Only applies when searching --repository-path, not when using --filter-file-path]");
+
         public static readonly Option<bool> VerboseOption = new(aliases: new[]
             {
                 "--verbose", "-v"
