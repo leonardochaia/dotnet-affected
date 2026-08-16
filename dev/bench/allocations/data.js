@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786891690855,
+  "lastUpdate": 1786892705104,
   "repoUrl": "https://github.com/leonardochaia/dotnet-affected",
   "entries": {
     "dotnet-affected (allocations)": [
@@ -175,6 +175,50 @@ window.BENCHMARK_DATA = {
           {
             "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
             "value": 997337864,
+            "unit": "bytes"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "leonardochaia@users.noreply.github.com",
+            "name": "Leonardo Chaia",
+            "username": "leonardochaia"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "699ebb47f75710db5c9b739703687c5995e70f78",
+          "message": "ci: default CI to the Release configuration (#179)\n\n* ci: default CI to the Release configuration\n\nPull request CI built Debug while releases packed Release, which left the configuration\nnobody ships as the only one anybody tests. A failure that only appears under\noptimisation would have waited for a tag to show itself.\n\nThe codebase has no #if DEBUG, no Debug.Assert and no MSBuild condition on\nConfiguration, so the two differ only in optimisation and the DEBUG symbol, and nothing\nhere depends on either.\n\nThe input stays, so a caller that wants Debug can still ask for it.\n\n* fix(test): stop the Tasks pack racing the build that starts it\n\nDotnetAffected.Tasks.Tests packs the Tasks SDK during its own build, so the tests\nconsume it as a package rather than as build output. The Exec hardcodes -c Release, and\nuntil the CI default changed the outer build was Debug, so the two wrote to bin/Debug\nand bin/Release and never met.\n\nOnce both are Release they share an output directory, and the nested pack and the outer\nbuild write DotnetAffected.Abstractions at the same time:\n\n    error MSB4018: System.IO.IOException: The process cannot access the file\n    '.../DotnetAffected.Abstractions/bin/Release/net8.0/DotnetAffected.Abstractions.deps.json'\n    because it is being used by another process.\n\nBeing a race it is not reliable about it. It failed on ubuntu and passed on macOS and\nWindows in the same CI run, and passes locally.\n\n--artifacts-path gives the nested build its own bin and obj. It is a command line global\nproperty, so it covers Tasks and everything it references, which is what the collision\nwas actually about. The package still lands where the test project looks for it: -o is\nexplicit and is unaffected.\n\nVerified by deleting src/DotnetAffected.Abstractions/bin/Release and running the Exec's\ncommand on its own. It no longer recreates the directory -- the deps.json now lands in\nobj/tasks-pack -- and the nupkg is still written to the test project's bin. Release build\nis clean and all Tasks tests pass on all three target frameworks.\n\nThe comment at the top of this target already warned about locks and races. The\nconfiguration split had been quietly holding this one off.",
+          "timestamp": "2026-08-16T11:53:51-03:00",
+          "tree_id": "b00dffc21f420a93c52795b3b974594881f07b47",
+          "url": "https://github.com/leonardochaia/dotnet-affected/commit/699ebb47f75710db5c9b739703687c5995e70f78"
+        },
+        "date": 1786892704684,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 6395291808,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 498717296,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 14386221040,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 997339568,
             "unit": "bytes"
           }
         ]
