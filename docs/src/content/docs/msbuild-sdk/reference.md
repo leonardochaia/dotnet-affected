@@ -36,6 +36,35 @@ result.
 | `ProjectReference`            | Item     | item list | The changed and affected projects; replaces whatever was there before           |
 | `AffectedFilterInstance`      | Item     | item list | One item per project per filter class, carrying the requested property values   |
 
+## Adjusting the result
+
+`ProjectReference` is an ordinary item list once `DotnetAffectedCheck` has replaced it, so a target running after the
+check can add to it or take from it:
+
+```xml
+<Project Sdk="DotnetAffected.Tasks;Microsoft.Build.Traversal">
+    <Target Name="_AdjustAffected" AfterTargets="DotnetAffectedCheck">
+        <Message Text="Found $(DotnetAffectedProjectCount) affected projects" Importance="high" />
+
+        <ItemGroup>
+            <!-- Never build these, however they were reached -->
+            <ProjectReference Remove="$(MSBuildThisFileDirectory)src/DevTools/**/*.csproj" />
+
+            <!-- Always build these, whether or not anything touched them -->
+            <ProjectReference Include="$(MSBuildThisFileDirectory)src/Core/**/*.csproj" />
+        </ItemGroup>
+    </Target>
+</Project>
+```
+
+Adding projects this way overrides the analysis rather than informing it: an included project is built even when
+nothing changed, and its dependents are *not* pulled in with it. To have a project's changes propagate through the
+graph, use [`--assume-changes`](/guides/assume-changes/)'s SDK equivalent, `DotnetAffectedAssumeChanges`, instead.
+
+:::caution
+`DotnetAffectedProjectCount` is set by the check, so it reflects the result *before* these adjustments.
+:::
+
 ## Extensibility hooks
 
 | Property                      | Description                                                                     |
