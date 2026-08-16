@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786851377383,
+  "lastUpdate": 1786890420529,
   "repoUrl": "https://github.com/leonardochaia/dotnet-affected",
   "entries": {
     "dotnet-affected (time)": [
@@ -96,6 +96,54 @@ window.BENCHMARK_DATA = {
             "value": 1158387192,
             "unit": "ns",
             "range": "± 4142680.5720611624"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "leonardochaia@users.noreply.github.com",
+            "name": "Leonardo Chaia",
+            "username": "leonardochaia"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ba0ba830ed83ecce1d407901c6ab5395f2c5d9c8",
+          "message": "chore: remove version.json (#177)\n\nNothing reads it. Versioning is MinVer's, configured by MinVerTagPrefix in\nDirectory.Build.props and the package reference in package-defaults.props, and it\nderives every package version from the git tags. There is no Nerdbank.GitVersioning\nreference anywhere in the repository for version.json to configure.\n\nIt has claimed 2.2.0-preview since 2021 while four majors shipped around it, which is\nthe clearest evidence available that it never mattered. Removing it leaves the\ncomputed version untouched: 6.2.1-preview.0.19 before and after, the v6.2.0 tag plus\nthe commits since.\n\nLeft in place it is a second place to look for the version and the obvious thing to\nedit when cutting v7, where editing it would do nothing at all.",
+          "timestamp": "2026-08-16T11:15:54-03:00",
+          "tree_id": "c313f4638186192aef41513547c2094b49c462c6",
+          "url": "https://github.com/leonardochaia/dotnet-affected/commit/ba0ba830ed83ecce1d407901c6ab5395f2c5d9c8"
+        },
+        "date": 1786890420196,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 12378408608.666666,
+            "unit": "ns",
+            "range": "± 147506890.2927489"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 495409675.6666667,
+            "unit": "ns",
+            "range": "± 2784994.4425584287"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 34019604812.333332,
+            "unit": "ns",
+            "range": "± 458871251.271609"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 1032344152.6666666,
+            "unit": "ns",
+            "range": "± 5507671.392149076"
           }
         ]
       }
