@@ -3,6 +3,7 @@ using DotnetAffected.Core;
 using System;
 using System.CommandLine.Binding;
 using System.CommandLine.Invocation;
+using System.CommandLine.IO;
 
 namespace Affected.Cli.Commands
 {
@@ -27,8 +28,37 @@ namespace Affected.Cli.Commands
         {
             var (executor, options) = ctx.BuildAffectedExecutor();
             var summary = executor.Execute();
+
+            ctx.ReportDiagnostics(summary);
+
             summary.ThrowIfNoChanges();
             return (options, summary);
+        }
+
+        /// <summary>
+        /// Writes diagnostics to standard error, so that they stay out of whatever the chosen
+        /// formatter is writing to standard output.
+        /// </summary>
+        private static void ReportDiagnostics(this InvocationContext ctx, AffectedSummary summary)
+        {
+            var verbose = ctx.ParseResult.GetValueForOption(AffectedGlobalOptions.VerboseOption);
+
+            foreach (var diagnostic in summary.Diagnostics)
+            {
+                switch (diagnostic.Severity)
+                {
+                    case AffectedDiagnosticSeverity.Warning:
+                        ctx.Console.Error.WriteLine($"warning: {diagnostic.Message}");
+                        break;
+
+                    // Kept behind --verbose on purpose: a change to something no project builds,
+                    // documentation being the usual one, is normal and would otherwise be noise
+                    // on a large share of runs.
+                    case AffectedDiagnosticSeverity.Info when verbose:
+                        ctx.Console.Error.WriteLine($"info: {diagnostic.Message}");
+                        break;
+                }
+            }
         }
 
         public static AffectedOptions GetAffectedOptions(
