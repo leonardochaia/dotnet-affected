@@ -5,8 +5,8 @@ sidebar:
   order: 2
 ---
 
-Run the tool from the root of your repository. With no arguments, it compares your working directory against the
-current `HEAD`.
+Run the tool from the root of your repository. With no arguments, it compares your working tree against the current
+`HEAD`, counting everything staged, unstaged and untracked.
 
 ```bash
 dotnet affected --verbose
@@ -60,6 +60,21 @@ dotnet test affected.proj
 ```
 
 See [Build and test what changed](/guides/build-and-test/) for the full workflow.
+
+## Comparing against something else
+
+`--from` names the baseline — a branch, tag or commit — and `--uncommitted` chooses how much of the working tree
+counts on top of it:
+
+```bash
+# Everything since the branch was cut, working tree included
+dotnet affected --from origin/main
+
+# Commits only, ignoring a dirty working tree — what CI wants
+dotnet affected --from origin/main --uncommitted none
+```
+
+See [Choosing what to compare](/guides/commit-ranges/).
 
 ## Look before you write
 

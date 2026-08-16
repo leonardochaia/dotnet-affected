@@ -11,6 +11,62 @@ change nothing else.
 
 ## Behaviour changes
 
+### Every comparison ends at the working tree
+
+This is the change most likely to need an edit to your scripts.
+
+In v6, `--from` and `--to` named two revisions. But the project graph was *always* built from the working tree, so a
+`--to` naming anything else compared the files that changed up to one revision against the project structure of
+another. A project added between the two ends was counted among the changed files and then reported under no project
+at all — silently, with exit code `0`.
+
+v7 makes the working tree the fixed end of every comparison:
+
+- `--from` names the baseline, and defaults to `HEAD`.
+- `--to` is accepted only when it names the commit already checked out, which makes it a no-op. Anything else is
+  refused with an error. It warns on every use and will be **removed in v8**.
+- `--uncommitted <all|staged|none>` chooses what the working tree contributes on top of the commits since `--from`.
+
+```bash
+# v6
+dotnet affected --from origin/main --to "$CURRENT_COMMIT_HASH"
+
+# v7 — CI already has that commit checked out
+dotnet affected --from origin/main --uncommitted none
+```
+
+To compare two arbitrary revisions, check the later one out first:
+
+```bash
+git checkout releases/v2.0.0
+dotnet affected --from releases/v1.0.0 --uncommitted none
+```
+
+**`--from` now includes uncommitted changes.** In v6, `--from X --to Y` compared two commits and ignored the working
+tree entirely; in v7 the same `--from X` also picks up whatever is staged, unstaged or untracked. Pass
+`--uncommitted none` for the old behaviour — and prefer it in CI, so a step that writes to a tracked file before
+dotnet-affected runs cannot change the answer.
+
+With the MSBuild SDK the same applies: `DotnetAffectedFromRef` names the baseline, `DotnetAffectedUncommitted` takes
+`All`, `Staged` or `None`, and `DotnetAffectedToRef` warns and is going away.
+
+See [Choosing what to compare](/guides/commit-ranges/).
+
+### Changed project files nothing owns are reported
+
+A changed `.csproj` that is not in the graph now produces a warning naming why it is missing — `--exclude-discovery`
+matched it, the filter file does not reference it, or git ignores the path it is under. v6 counted such a file among
+the changes and reported nothing for it, which was indistinguishable from a correct empty result.
+
+Expect warnings on runs that were previously quiet. They point at a real gap between what changed and what was
+analysed.
+
+### NuGet versions are read from the right revisions
+
+Package comparison used `--from` as the *new* side and `HEAD` as the old, inverting the reported versions and missing
+uncommitted version bumps entirely. v7 reads `Directory.Packages.props` from the same two revisions the file diff
+uses.
+
 ### Discovery honours `.gitignore`
 
 Filesystem discovery now skips paths git ignores, where v6 searched every directory under `--repository-path`.
@@ -126,14 +182,46 @@ Change detection and affected detection were reworked, and pruning ignored direc
 discovery's work on a big repository. No option controls any of this — it applies to the same commands you already
 run.
 
+## If you use the GitHub Action
+
+The action major now tracks the dotnet-affected major it drives, so upgrading the tool means upgrading the action:
+
+```yaml
+# v6
+- uses: leonardochaia/dotnet-affected-action@v1
+
+# v7
+- uses: leonardochaia/dotnet-affected-action@v7
+```
+
+`@v1` targets 6.x, is deprecated, and logs a warning on every run — `v1.5` is its last release. It now installs the
+latest 6.x rather than whatever is newest on NuGet, which is what kept it from silently picking up this major.
+
+:::caution
+Pinned to `@v1.4` or earlier? Those tags install an unpinned dotnet-affected and will pull in 7.x as soon as it is
+published — an action written against v6 driving a v7 CLI. Move to `@v7`, or hold the tool back explicitly:
+
+```yaml
+- uses: leonardochaia/dotnet-affected-action@v1.4
+  with:
+    toolVersion: '6.*'
+```
+:::
+
+Also drop the `to` input while you are there: it maps to the deprecated `--to`, and Actions already checks out the
+commit being built. See [GitHub Action](/github-action/).
+
 ## Library API changes
 
 Only relevant if you reference `DotnetAffected.Core` or `DotnetAffected.Abstractions` directly.
 
 | Change                                                                 | Impact                                                            |
 |------------------------------------------------------------------------|--------------------------------------------------------------------|
+| `IChangesProvider.GetChangedFiles` takes an `UncommittedChanges` instead of a `to` ref | **Breaking for implementers**                     |
 | `AssumptionChangesProvider` removed                                    | **Breaking.** Pass `AffectedOptions.AssumeChanges` instead — assumptions are resolved against the graph now |
 | `IChangesProvider` gained `ReadFilesAt`                                | **Breaking for implementers.** Needed to restore deleted files      |
+| `AffectedSummary` gained `Diagnostics`                                 | Additive. Carries warnings so the CLI and the MSBuild task can report them their own way |
+| `ToRefNotAtHeadException` added                                        | Thrown when `--to` names anything but the checked-out commit        |
 | `IDiscoveryOptions` gained `ExcludeDiscoveryRegex` and `HonourGitIgnore` | **Breaking for implementers**                                       |
 | `IOutputFormatter.Format` takes an `OutputFormatterContext`            | **Breaking for implementers.** Carries the output path and filter file |
 | `AffectedOptions` constructor gained optional parameters               | Source-compatible; recompile required                              |
@@ -143,9 +231,14 @@ Only relevant if you reference `DotnetAffected.Core` or `DotnetAffected.Abstract
 
 ## Upgrade checklist
 
-1. Bump the tool: `dotnet tool update dotnet-affected`, or the SDK version in `global.json` / your `.props` file.
-2. Run `dotnet affected describe --verbose` and compare it with `--no-gitignore`. Investigate any project that
+1. Bump the tool: `dotnet tool update dotnet-affected`, or the SDK version in `global.json` / your `.props` file. On
+   GitHub Actions, move the action from `@v1` to `@v7`.
+2. **Drop `--to`.** Make sure the revision it named is the one checked out, and add `--uncommitted none` to keep the
+   comparison commit-only. Same for `DotnetAffectedToRef` in `.props` files.
+3. Run `dotnet affected describe --verbose` and compare it with `--no-gitignore`. Investigate any project that
    disappears.
-3. Replace `-e`/`--exclude` with `--exclude-output` in scripts and pipelines.
-4. Check that every `--assume-changes` value still resolves — they now fail rather than pass silently.
-5. Expect more changed projects on ranges containing deletions.
+4. Replace `-e`/`--exclude` with `--exclude-output` in scripts and pipelines.
+5. Check that every `--assume-changes` value still resolves — they now fail rather than pass silently.
+6. Read any new warnings about changed project files belonging to no project: they were always happening, v6 just did
+   not say so.
+7. Expect more changed projects on ranges containing deletions.

@@ -21,8 +21,8 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 
 ## What it does
 
-dotnet-affected compares two versions of your code — usually a commit range in CI, or `HEAD` against your working
-directory — and works out which MSBuild projects changed and which projects depend on them.
+dotnet-affected compares your working tree against a baseline commit — a branch or the last successful build in CI,
+`HEAD` by default — and works out which MSBuild projects changed and which projects depend on them.
 
 <CardGrid>
 	<Card title="Detects changed projects" icon="magnifier">

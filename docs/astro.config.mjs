@@ -6,6 +6,9 @@ import mermaid from 'astro-mermaid';
 
 // https://astro.build/config
 export default defineConfig({
+	// Served at the apex domain, so no `base`. Set here rather than left to default
+	// because the sitemap and canonical URLs are built from it.
+	site: 'https://dotnet-affected.com',
 	integrations: [
 		// Must come before starlight: it rewrites ```mermaid code blocks before
 		// Starlight's syntax highlighting claims them.
@@ -41,7 +44,7 @@ export default defineConfig({
 					label: 'Guides',
 					items: [
 						{ label: 'Build and test what changed', slug: 'guides/build-and-test' },
-						{ label: 'Comparing commit ranges', slug: 'guides/commit-ranges' },
+						{ label: 'Choosing what to compare', slug: 'guides/commit-ranges' },
 						{ label: 'Project discovery', slug: 'guides/project-discovery' },
 						{ label: 'Output formats', slug: 'guides/output-formats' },
 						{ label: 'Excluding projects', slug: 'guides/excluding-projects' },
@@ -51,9 +54,14 @@ export default defineConfig({
 				},
 				{
 					label: 'Continuous integration',
+					items: [{ label: 'Overview', slug: 'ci' }],
+				},
+				{
+					label: 'GitHub Action',
 					items: [
-						{ label: 'Overview', slug: 'ci' },
-						{ label: 'GitHub Actions', slug: 'ci/github-actions' },
+						{ label: 'Overview', slug: 'github-action' },
+						{ label: 'Reference', slug: 'github-action/reference' },
+						{ label: 'Examples', slug: 'github-action/examples' },
 					],
 				},
 				{

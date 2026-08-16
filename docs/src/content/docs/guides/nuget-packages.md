@@ -11,7 +11,9 @@ detects package version changes and treats the projects that reference those pac
 ## What triggers detection
 
 Package detection runs when the diff contains a file named `Directory.Packages.props`. The tool then evaluates each
-affected project **twice** — once as of `--from`, once as of `--to` — and compares the resulting package sets.
+affected project **twice** — once at the `--from` baseline, once at the working tree — and compares the resulting
+package sets. Those are the same two revisions the file diff uses, so an uncommitted version bump counts exactly like
+any other uncommitted change, subject to `--uncommitted`.
 
 Which items are compared depends on how the project manages versions:
 

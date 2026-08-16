@@ -9,7 +9,7 @@ sidebar:
 
 ```mermaid
 flowchart TD
-    A["Git diff<br/>from → to"] --> B["Changed files"]
+    A["Git diff<br/>--from → working tree"] --> B["Changed files"]
     B --> C["Discover projects<br/>minus --exclude-discovery"]
     C --> C2["Evaluate into ProjectGraph"]
     C2 --> D["Map files to projects"]
@@ -23,8 +23,9 @@ flowchart TD
     I --> J
 ```
 
-1. **Diff.** The configured range is compared with Git, producing the list of changed files. With no range, that is
-   the working directory against `HEAD`.
+1. **Diff.** The working tree is compared with Git against the `--from` baseline, producing the list of changed files.
+   `--uncommitted` decides whether staged changes, unstaged changes and untracked files count on top of the commits.
+   With nothing specified, that is `HEAD` against a working tree where everything counts.
 2. **Discover and evaluate projects.** All `.csproj`, `.fsproj` and `.vbproj` under the repository path are found — or
    just the ones a [filter file](/guides/project-discovery/) lists — then `--exclude-discovery` removes any that
    should never be loaded, and MSBuild evaluates the rest into a `ProjectGraph` that records which project depends on
@@ -32,11 +33,18 @@ flowchart TD
 3. **Map files to projects.** Every changed file is attributed to the projects that reference it. This is broader than
    "files in the project folder": it covers any item MSBuild pulls in, and imported files like `Directory.Build.props`,
    which belong to every project importing them.
-4. **Diff NuGet packages.** If `Directory.Packages.props` changed, the package sets on both sides are compared — see
-   [NuGet package changes](/guides/nuget-packages/).
+4. **Diff NuGet packages.** If `Directory.Packages.props` changed, the package sets are compared across the same two
+   revisions the file diff used — see [NuGet package changes](/guides/nuget-packages/).
 5. **Walk the graph.** From the changed projects and changed packages, dependents are followed transitively.
 6. **Format the output.** The changed and affected projects are written in the requested
    [formats](/guides/output-formats/).
+
+:::note[Project files nothing owns]
+A changed `.csproj` that is not in the graph is reported as a warning naming why it is missing — `--exclude-discovery`
+matched it, the filter file does not reference it, or git ignores the path it is under. It still counts among the
+changed files while nothing is reported as changed or affected by it, which otherwise looks exactly like a correct
+empty result. Deleted project files are not reported: a graph without them is the right answer.
+:::
 
 :::note[Why the diff comes first]
 The graph is built *after* the diff, not before. A deleted file matches no glob and satisfies no `Exists()` condition,
@@ -170,7 +178,8 @@ commit — and an `IChangedProjectsProvider`, which decides how changed files ma
 implementations are `GitChangesProvider` and `PredictionChangedProjectsProvider`; the test suite substitutes its own,
 and `--assume-changes` works by skipping the change discovery step entirely.
 
-## Comparing something other than your working directory
+## Comparing something other than `HEAD`
 
-By default the comparison is `HEAD` against your working directory. In CI you usually want a commit range instead,
-which is what [`--from` and `--to`](/guides/commit-ranges/) are for.
+The comparison always ends at your working tree, since that is where projects are discovered and evaluated.
+[`--from`](/guides/commit-ranges/) chooses the baseline, and `--uncommitted` chooses how much of the working tree
+counts on top of the commits since then.

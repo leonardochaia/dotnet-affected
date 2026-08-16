@@ -24,8 +24,15 @@ Options:
                                            [Only applies when searching --repository-path, not when using --filter-file-path] [default: False]
   -v, --verbose                            Write useful messages or just the desired output. [default: False]
   --assume-changes <assume-changes>        Hypothetically assume that given projects have changed instead of using Git diff to determine them.
-  --from <from>                            A branch or commit to compare against --to.
-  --to <to>                                A branch or commit to compare against --from.
+  --from <from>                            A branch or commit to compare the working tree against.
+                                           [Defaults to HEAD]
+  --to <to>                                [OBSOLETE: removed in v8] The commit the working tree is checked
+                                           out at. Projects are discovered and evaluated from the working
+                                           tree, so any other value is refused.
+  --uncommitted <All|None|Staged>          What the working tree contributes on top of the commits since --from.
+                                             all:    staged and unstaged changes, including untracked files
+                                             staged: staged changes only, as a pre-commit hook wants
+                                             none:   compare commits only, ignoring a dirty working tree [default: All]
   --exclude-output <exclude-output>        A dotnet Regular Expression matched against each project's full path.
                                            Matching projects are still evaluated, and still carry changes through to
                                            the projects depending on them, but are kept out of the output.
@@ -159,14 +166,44 @@ Useful for answering "what would break if I touched this?" without touching it �
 
 ### `--from`
 
-A branch, tag or commit to compare against `--to`. When `--to` is omitted, the comparison runs against `HEAD`.
+The branch, tag or commit to compare the **working tree** against. Defaults to `HEAD`.
+
+There is no option for the other end: projects are discovered and evaluated from the working tree, so that is always
+where the comparison ends. To compare two revisions, check the later one out first.
+
+### `--uncommitted`
+
+How much of the working tree counts on top of the commits since `--from`. Defaults to `All`.
+
+| Value    | Counts                                                                   |
+|----------|---------------------------------------------------------------------------|
+| `all`    | Staged and unstaged changes, including files git does not track yet       |
+| `staged` | Staged changes only — what a pre-commit hook wants                        |
+| `none`   | Neither; the comparison is between commits and ignores a dirty work tree  |
+
+```bash
+dotnet affected --from origin/main --uncommitted none
+```
+
+Recommended in CI, so that a step writing to a tracked file before dotnet-affected runs — code generation, a version
+stamp — cannot change which projects are reported.
 
 ### `--to`
 
-A branch, tag or commit to compare against `--from`. Requires `--from`; using it alone fails with
-`--from is required when using --to`.
+**Obsolete, removed in v8.** It is only accepted when it names the commit the working tree is already checked out at,
+which makes it a no-op; any other value is refused:
 
-See [Comparing commit ranges](/guides/commit-ranges/).
+```text
+--to was given 'v1.0.0', but the working tree is checked out at 3a3266a. Projects are discovered and evaluated
+from the working tree, so that is the only revision whose project structure can be analysed: a project that
+exists at 'v1.0.0' but not on disk would be counted among the files that changed while being reported under no
+project at all. Check out 'v1.0.0' before running and drop --to to compare against the working tree.
+```
+
+Passing it at all prints `warning: --to is deprecated and will be removed in v8.` on stderr. It still requires
+`--from`.
+
+See [Choosing what to compare](/guides/commit-ranges/).
 
 ### `--exclude-output`
 

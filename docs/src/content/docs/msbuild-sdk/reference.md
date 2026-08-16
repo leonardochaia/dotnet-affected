@@ -21,8 +21,9 @@ result.
 |--------------------------------|----------|------------|----------------------------------------------------------------------------------------------------------------|
 | `UsingDotnetAffectedTasks`     | Property | bool       | Whether `DotnetAffectedCheck` runs. Empty or `true` runs it; any other value disables the SDK. Default: `true` |
 | `DotnetAffectedRoot`           | Property | string     | Repository root, where `.git` lives. Default: `$(MSBuildStartupDirectory)`                                     |
-| `DotnetAffectedFromRef`        | Property | string     | Branch or commit to compare from. Default: empty, meaning the working directory                                |
-| `DotnetAffectedToRef`          | Property | string     | Branch or commit to compare to. Default: empty, meaning `HEAD`                                                 |
+| `DotnetAffectedFromRef`        | Property | string     | Branch or commit to compare the working tree against. Default: empty, meaning `HEAD`                           |
+| `DotnetAffectedUncommitted`    | Property | string     | What the working tree contributes on top of the commits since `FromRef`: `All`, `Staged` or `None`. Default: `All` |
+| `DotnetAffectedToRef`          | Property | string     | **Deprecated, removed in v8.** Only accepted when it names the commit the working tree is checked out at        |
 | `DotnetAffectedHonourGitIgnore`| Property | bool       | Whether discovery skips paths git ignores. Set to `false` to search everything. Default: `true`                |
 | `DotnetAffectedAssumeChanges`  | Item     | item list  | Projects to treat as changed instead of using Git. Globs expand to paths; bare values match by project name    |
 | `AffectedFilterClass`          | Item     | item list  | Property templates read from each affected project — see [Filtering](/msbuild-sdk/filtering/)                  |

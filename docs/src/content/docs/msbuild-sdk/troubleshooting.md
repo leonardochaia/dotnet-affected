@@ -53,6 +53,19 @@ Set them at evaluation time (a top-level `PropertyGroup`/`ItemGroup`), or in a t
 `BeforeTargets="DotnetAffectedCheck"`. A target using `AfterTargets="DotnetAffectedCheck"` runs too late to influence
 the result; that hook is for post-processing `ProjectReference` items.
 
+## `DotnetAffectedToRef is deprecated and will be removed in v8`
+
+The task warns whenever the property is set. Projects are discovered and evaluated from the working tree, so the
+property is only accepted when it names the commit already checked out — making it a no-op — and the build fails
+otherwise. Remove it, and use `DotnetAffectedUncommitted` to choose what the working tree contributes.
+
+## `<path> changed, but no project was found for it`
+
+A changed project file that is not in the graph is reported as an MSBuild warning naming why: `--exclude-discovery`
+matched it, the filter file does not reference it, or git ignores the path it is under. The build carries on — the
+file counts among the changes while nothing is reported as changed or affected by it, which is exactly the case that
+used to pass unnoticed.
+
 ## Nothing is built and no error is reported
 
 If no project changed and nothing is affected, the replaced `ProjectReference` list is empty and Traversal has nothing

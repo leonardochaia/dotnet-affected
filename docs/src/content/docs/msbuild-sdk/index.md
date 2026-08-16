@@ -57,7 +57,7 @@ there the Traversal SDK builds exactly those projects.
 
 Two consequences follow:
 
-- Anything that *feeds* the check — the commit range, assumed changes, filter classes — must be in place **before**
+- Anything that *feeds* the check — the baseline, assumed changes, filter classes — must be in place **before**
   `DotnetAffectedCheck` runs: at evaluation time, or in a target with `BeforeTargets="DotnetAffectedCheck"`.
 - Anything that *post-processes* the result belongs in a target with `AfterTargets="DotnetAffectedCheck"`.
 
@@ -72,17 +72,26 @@ Two consequences follow:
 
 ## Choosing the comparison
 
-By default the comparison is the working directory against `HEAD`, exactly like the CLI. Set the range with
-properties:
+By default the comparison is `HEAD` against the working tree, exactly like the CLI. Name the baseline, and choose what
+the working tree contributes:
 
 ```xml
 <Project Sdk="DotnetAffected.Tasks;Microsoft.Build.Traversal">
     <PropertyGroup>
         <DotnetAffectedFromRef>origin/main</DotnetAffectedFromRef>
-        <DotnetAffectedToRef>$(BUILD_SOURCEVERSION)</DotnetAffectedToRef>
+        <!-- All (default), Staged, or None -->
+        <DotnetAffectedUncommitted>None</DotnetAffectedUncommitted>
     </PropertyGroup>
 </Project>
 ```
+
+There is no property for the other end of the comparison: projects are discovered and evaluated from the working tree,
+so that is always where it ends. `DotnetAffectedToRef` still exists, warns when used, and will be removed in v8.
+
+:::note
+An unparseable `DotnetAffectedUncommitted` fails the build rather than falling back to the default — silently
+analysing something other than what was asked for is worse than stopping.
+:::
 
 Or bypass Git entirely and assume changes, by name or by glob:
 

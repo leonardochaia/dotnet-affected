@@ -58,7 +58,7 @@ is affected". The tool fails with a message naming the assumption that could not
 
 ## Combining with other options
 
-`--assume-changes` overrides change detection, so `--from` and `--to` have no effect alongside it. Everything else
+`--assume-changes` overrides change detection, so `--from` and `--uncommitted` have no effect alongside it. Everything else
 still applies: `--exclude-output` filters the result, `--format` and `--output-name` control what gets written, and
 `--dry-run` keeps it all on stdout.
 
