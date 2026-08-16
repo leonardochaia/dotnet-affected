@@ -16,7 +16,7 @@ Create a project file **at the root of the Git repository**. The name is yours t
 convention.
 
 ```xml
-<Project Sdk="DotnetAffected.Tasks/6.2.0;Microsoft.Build.Traversal/4.1.82">
+<Project Sdk="DotnetAffected.Tasks/7.0.0;Microsoft.Build.Traversal/4.1.82">
 </Project>
 ```
 
@@ -32,7 +32,7 @@ Instead of repeating versions in every file, pin them in `global.json`:
 ```json
 {
     "msbuild-sdks": {
-        "DotnetAffected.Tasks": "6.2.0",
+        "DotnetAffected.Tasks": "7.0.0",
         "Microsoft.Build.Traversal": "4.1.82"
     }
 }

@@ -79,10 +79,10 @@ Management — import the SDK files by path instead:
     <ItemGroup>
         <!-- With Central Package Management -->
         <PackageReference Include="DotnetAffected.Tasks" GeneratePathProperty="true" />
-        <PackageVersion Include="DotnetAffected.Tasks" Version="6.2.0" />
+        <PackageVersion Include="DotnetAffected.Tasks" Version="7.0.0" />
 
         <!-- Without it -->
-        <!-- <PackageReference Include="DotnetAffected.Tasks" Version="6.2.0" GeneratePathProperty="true" /> -->
+        <!-- <PackageReference Include="DotnetAffected.Tasks" Version="7.0.0" GeneratePathProperty="true" /> -->
     </ItemGroup>
 
     <Import Project="$(PKGDotnetAffected_Tasks)/Sdk/Sdk.props" />
