@@ -1,6 +1,8 @@
 ﻿using DotnetAffected.Abstractions;
 using Microsoft.Build.Graph;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -36,6 +38,8 @@ namespace DotnetAffected.Core.Processor
             }
             else
             {
+                EnsureWorkingTreeIsAtToRef(context);
+
                 // Get files that changed according to changes provider.
                 context.ChangedFiles = DiscoverChangedFiles(context)
                     .ToArray();
@@ -67,7 +71,80 @@ namespace DotnetAffected.Core.Processor
                 excludedProjects.Distinct()
                     .ToArray(),
                 context.ChangedPackages,
-                context.ProjectsExcludedFromDiscovery);
+                context.ProjectsExcludedFromDiscovery,
+                DiagnoseUnattributedProjectFiles(context));
+        }
+
+        /// <summary>
+        /// Reports project files that changed while belonging to no project in the graph.
+        /// </summary>
+        /// <remarks>
+        /// Discovery decides what the graph contains, and a project it left out is indexed by
+        /// nothing: its file counts among the files that changed while no project is ever reported
+        /// for it. The count and the results then disagree, silently, with a successful exit code.
+        ///
+        /// A project file that is no longer on disk is not reported: it was deleted, and a graph
+        /// not containing it is the correct answer rather than an omission.
+        /// </remarks>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        protected virtual AffectedDiagnostic[] DiagnoseUnattributedProjectFiles(AffectedProcessorContext context)
+        {
+            var projectPaths = new HashSet<string>(
+                context.Graph.ProjectNodes.Select(node => node.GetFullPath()));
+
+            return context.ChangedFiles
+                .Where(IsProjectFile)
+                // Changed files are rooted at the repository path rather than normalized, the
+                // same way PredictionChangedProjectsProvider normalizes before matching.
+                .Select(Path.GetFullPath)
+                .Where(file => !projectPaths.Contains(file) && File.Exists(file))
+                .Select(file => AffectedDiagnostic.Warning(
+                    $"{file} changed, but no project was found for it: {ExplainAbsence(context, file)}. " +
+                    "It is counted among the files that changed while nothing is reported as " +
+                    "changed or affected by it."))
+                .ToArray();
+        }
+
+        private static bool IsProjectFile(string path)
+            => Path.GetExtension(path)
+                .EndsWith("proj", StringComparison.OrdinalIgnoreCase);
+
+        private static string ExplainAbsence(AffectedProcessorContext context, string file)
+        {
+            if (context.ProjectsExcludedFromDiscovery.Contains(file))
+                return "it matches --exclude-discovery, so it was never loaded";
+
+            if (!string.IsNullOrWhiteSpace(context.Options.FilterFilePath))
+                return $"it is not referenced by {context.Options.FilterFilePath}";
+
+            return "it was not discovered under the repository path, which happens when git " +
+                   "ignores the path it is under";
+        }
+
+        /// <summary>
+        /// Fails when <see cref="AffectedOptions.ToRef"/> is not the commit the working tree is
+        /// checked out at.
+        /// </summary>
+        /// <remarks>
+        /// The graph is built by discovering and evaluating projects on disk, and
+        /// <see cref="AffectedOptions.ToRef"/> never takes part in that. Any other value compares
+        /// the files that changed up to one revision against the project structure of another,
+        /// and nothing downstream can tell the two apart.
+        /// </remarks>
+        /// <param name="context"></param>
+        /// <exception cref="ToRefNotAtHeadException">When the working tree is checked out
+        /// somewhere else.</exception>
+        protected virtual void EnsureWorkingTreeIsAtToRef(AffectedProcessorContext context)
+        {
+            if (string.IsNullOrWhiteSpace(context.ToRef))
+                return;
+
+            var headSha = context.ChangesProvider.GetWorkingTreeCommitSha(context.RepositoryPath);
+            var toSha = context.ChangesProvider.ResolveCommitSha(context.RepositoryPath, context.ToRef);
+
+            if (headSha != toSha)
+                throw new ToRefNotAtHeadException(context.ToRef, headSha);
         }
 
         /// <summary>
@@ -76,7 +153,10 @@ namespace DotnetAffected.Core.Processor
         /// <param name="context"></param>
         /// <returns></returns>
         protected virtual IEnumerable<string> DiscoverChangedFiles(AffectedProcessorContext context)
-            => context.ChangesProvider.GetChangedFiles(context.RepositoryPath, context.FromRef, context.ToRef);
+            => context.ChangesProvider.GetChangedFiles(
+                context.RepositoryPath,
+                context.FromRef,
+                context.Options.UncommittedChanges);
 
         /// <summary>
         /// Resolves <see cref="AffectedOptions.AssumeChanges"/> against the graph.

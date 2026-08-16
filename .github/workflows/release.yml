@@ -54,7 +54,6 @@ jobs:
         chmod +x ./dotnet-affected
         ./dotnet-affected -p $GITHUB_WORKSPACE -v \
             --from ${{ steps.last_successful_commit.outputs.commit_hash }} \
-            --to ${{ github.sha }} \
             --format text
 
         exitCode=$?

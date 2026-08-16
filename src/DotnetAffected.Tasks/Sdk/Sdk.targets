@@ -20,6 +20,7 @@
                                            AssumeChanges="@(DotnetAffectedAssumeChanges)"
                                            FromRef="$(DotnetAffectedFromRef)"
                                            ToRef="$(DotnetAffectedToRef)"
+                                           Uncommitted="$(DotnetAffectedUncommitted)"
                                            FilterClasses="@(AffectedFilterClass)"
                                            HonourGitIgnore="$(DotnetAffectedHonourGitIgnore)">
             <Output TaskParameter="FilterInstances" ItemName="AffectedFilterInstance" />

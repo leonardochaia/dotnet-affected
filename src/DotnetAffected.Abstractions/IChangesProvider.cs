@@ -9,13 +9,29 @@ namespace DotnetAffected.Abstractions
     public interface IChangesProvider
     {
         /// <summary>
-        /// Gets the list of files the changed for the provided directory.
+        /// Gets the list of files that changed between <paramref name="from"/> and the working
+        /// tree, which is the only revision whose projects can be analysed.
         /// </summary>
-        /// <param name="directory"></param>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
+        /// <param name="directory">Root of the repository.</param>
+        /// <param name="from">Branch or commit to compare against. Defaults to HEAD when empty.</param>
+        /// <param name="uncommitted">What the working tree contributes on top of the commits.</param>
         /// <returns></returns>
-        IEnumerable<string> GetChangedFiles(string directory, string from, string to);
+        IEnumerable<string> GetChangedFiles(string directory, string from, UncommittedChanges uncommitted);
+
+        /// <summary>
+        /// Gets the commit the working tree is checked out at.
+        /// </summary>
+        /// <param name="directory">Root of the repository.</param>
+        /// <returns>The commit's SHA, or null when the repository has no commits.</returns>
+        string? GetWorkingTreeCommitSha(string directory);
+
+        /// <summary>
+        /// Resolves a branch name or commit-ish to the commit it points at.
+        /// </summary>
+        /// <param name="directory">Root of the repository.</param>
+        /// <param name="commitRef">The branch or commit to resolve.</param>
+        /// <returns>The commit's SHA.</returns>
+        string ResolveCommitSha(string directory, string commitRef);
 
         /// <summary>
         /// Uses the underlying changes provider to load a <see cref="Project"/> file at <paramref name="commitRef"/>.

@@ -77,8 +77,16 @@ Options:
                                            [Only applies when searching --repository-path, not when using --filter-file-path] [default: False]
   -v, --verbose                            Write useful messages or just the desired output. [default: False]
   --assume-changes <assume-changes>        Hypothetically assume that given projects have changed instead of using Git diff to determine them.
-  --from <from>                            A branch or commit to compare against --to.
-  --to <to>                                A branch or commit to compare against --from.
+  --from <from>                            A branch or commit to compare the working tree against.
+                                           [Defaults to HEAD]
+  --to <to>                                [OBSOLETE: removed in v8] The commit the working tree is checked
+                                           out at. Projects are discovered and evaluated from the working
+                                           tree, so any other value is refused.
+  --uncommitted <All|None|Staged>          What the working tree contributes on top of the commits since --from.
+                                             all:    staged and unstaged changes, including untracked files
+                                             staged: staged changes only, as a pre-commit hook wants
+                                             none:   compare commits only, ignoring a dirty working tree
+                                           [default: All]
   --exclude-output <exclude-output>        A dotnet Regular Expression matched against each project's full path.
                                            Matching projects are still evaluated, and still carry changes through to
                                            the projects depending on them, but are kept out of the output.
@@ -224,22 +232,38 @@ You can then use `dotnet test` (or any other `dotnet` commands) against the resu
 dotnet test affected.proj
 ```
 
-## Affected projects between commit ranges
+## Choosing what to compare against
 
-By default, dotnet-affected will compare changes between your working directory against the current HEAD. This can be
-changed by providing the `--from` and `--to` parameters. Commit sha or branch names can be used.
-
-Examples:
+Projects are discovered and evaluated from your working directory, so the working directory is always the
+end of the comparison. `--from` chooses the other end, and accepts a commit sha or a branch name. It
+defaults to `HEAD`.
 
 ```shell
-# Compares HEAD against working directory
+# Compares HEAD against the working directory
 dotnet affected
 
-# Compares HEAD against branch chore/target-net7
+# Compares branch chore/target-net7 against the working directory
 dotnet affected --from chore/target-net7
+```
 
-# Compares main against branch chore/target-net7
-dotnet affected --from chore/target-net7 --to main
+There is no option for the other end of the comparison. To compare two arbitrary revisions, check the 
+later one out first.
+
+`--to` is obsolete and will be deprecated in v8.
+
+### Uncommitted work
+
+`--uncommitted` chooses how much of the working directory counts on top of the commits since `--from`:
+
+```shell
+# Everything, including files git does not track yet. The default.
+dotnet affected --uncommitted all
+
+# Staged changes only, which is what a pre-commit hook wants
+dotnet affected --uncommitted staged
+
+# Nothing: compare commits only, ignoring a dirty working directory
+dotnet affected --from origin/main --uncommitted none
 ```
 
 ## Output Formatting
@@ -371,8 +395,9 @@ DRY-RUN: CONTENTS:
 
 ## Continuous Integration
 
-For usage in CI, it's recommended to use the `--from` and `--to` options with the environment variables provided by your
-build tool.
+For usage in CI, it's recommended to use the `--from` option with the environment variables provided by your
+build tool. CI checks out the revision being built, so the working directory is already the end of the
+comparison you want, and `--from` is the only ref to supply.
 
 dotnet-affected can be used in any CI system where you `dotnet` is present. You can install the tool and run
 `dotnet affected` commands as if locally.
@@ -386,9 +411,7 @@ For example, for building a branch a setup like this could be used:
 
 ```shell
 # Replace env vars with what your CI system gives you
-dotnet affected \
-    --from $LAST_SUCCESSFUL_BUILD_COMMIT \
-    --to $CURRENT_COMMIT_HASH
+dotnet affected --from $LAST_SUCCESSFUL_BUILD_COMMIT
 dotnet test affected.proj
 ```
 
@@ -407,12 +430,17 @@ for [building branches with GitHub actions here](https://github.com/leonardochai
 
 ### Building Pull Requests
 
-For building PRs, we need to provide the target branch/commit and the PR branch/commit.
+For building PRs, the baseline is the merge base: the commit the branch was actually cut from.
 
 ```shell
-dotnet affected generate --from origin/main --to $CURRENT_COMMIT_HASH
+dotnet affected --from "$(git merge-base origin/main HEAD)"
 dotnet test affected.proj
 ```
+
+Use the merge base rather than the base branch's tip. GitHub's `base.sha`, for instance, is the tip at the
+time the PR was opened, and if the base branch has moved since, comparing from it sweeps in every unrelated
+commit that landed in the meantime. Note that the merge base needs history, so a shallow checkout has to
+fetch enough of it (`fetch-depth: 0` with `actions/checkout`).
 
 You can see a complete example
 for [building PRs with GitHub actions here](https://github.com/leonardochaia/dotnet-affected-action#for-building-prs).
@@ -451,8 +479,12 @@ In order to determine what projects need to be deployed since our previous relea
 determine which projects were affected from the previous release to the current one.
 
 ```shell
-dotnet affected --from releases/v1.0.0 --to releases/v2.0.0
+git checkout releases/v2.0.0
+dotnet affected --from releases/v1.0.0 --uncommitted none
 ```
+
+The checkout matters: projects are discovered from the working directory, so it has to be at the release
+being deployed. `--uncommitted none` keeps a dirty working directory from leaking into the answer.
 
 Of course this assumes that your .NET dependencies also represent system's dependencies. For example, if your systems
 communicate through HTTP and you don't share any assemblies between them, this won't work. But, if your systems share a

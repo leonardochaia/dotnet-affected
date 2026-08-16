@@ -23,6 +23,8 @@ namespace DotnetAffected.Tasks
 
         public string? ToRef { get; set; }
 
+        public string? Uncommitted { get; set; }
+
         public ITaskItem[]? FilterClasses { get; set; }
 
         public bool HonourGitIgnore { get; set; } = true;
@@ -45,7 +47,8 @@ namespace DotnetAffected.Tasks
                     .ToArray() ?? Array.Empty<string>();
 
                 var affectedOptions = new AffectedOptions(Root, null, FromRef ?? "", ToRef ?? "",
-                    null, assumeChanges, honourGitIgnore: HonourGitIgnore);
+                    null, assumeChanges, honourGitIgnore: HonourGitIgnore,
+                    uncommittedChanges: ParseUncommitted());
 
                 if (assumeChanges.Length > 0
                     && (!string.IsNullOrWhiteSpace(affectedOptions.FromRef) ||
@@ -53,6 +56,17 @@ namespace DotnetAffected.Tasks
                 {
                     Log.LogWarning(
                         "DotnetAffected AssumeChanges is set along with FromRef/ToRef. Only AssumeChanges is used.");
+                }
+                else if (!string.IsNullOrWhiteSpace(affectedOptions.ToRef))
+                {
+                    // Warned about even when it validates, for the same reason the CLI does.
+                    // See DeprecationMiddleware.
+                    Log.LogWarning(
+                        "DotnetAffectedToRef is deprecated and will be removed in v8. Projects are " +
+                        "discovered and evaluated from the working tree, so it is only accepted when " +
+                        "it names the commit the working tree is checked out at, which makes it a " +
+                        "no-op. Remove it, and use DotnetAffectedUncommitted to choose what the " +
+                        "working tree contributes.");
                 }
 
                 // Deliberately no graph: the executor defers building it until the changed files
@@ -63,6 +77,15 @@ namespace DotnetAffected.Tasks
                     changesProvider: new GitChangesProvider());
 
                 var results = executor.Execute();
+
+                foreach (var diagnostic in results.Diagnostics)
+                {
+                    if (diagnostic.Severity == AffectedDiagnosticSeverity.Warning)
+                        Log.LogWarning(diagnostic.Message);
+                    else
+                        Log.LogMessage(MessageImportance.Low, diagnostic.Message);
+                }
+
                 var modifiedProjectInstances = new HashSet<ProjectInstance>();
                 var modifiedProjects = new List<string>();
                 var filterInstances = new List<ITaskItem>();
@@ -104,6 +127,23 @@ namespace DotnetAffected.Tasks
             }
 
             return !Log.HasLoggedErrors;
+        }
+
+        /// <summary>
+        /// MSBuild properties arrive as strings, so an unparseable one has to be refused here
+        /// rather than silently falling back to the default and analysing something else.
+        /// </summary>
+        private UncommittedChanges ParseUncommitted()
+        {
+            if (string.IsNullOrWhiteSpace(Uncommitted))
+                return UncommittedChanges.All;
+
+            if (Enum.TryParse<UncommittedChanges>(Uncommitted, ignoreCase: true, out var parsed))
+                return parsed;
+
+            throw new ArgumentException(
+                $"DotnetAffectedUncommitted was given '{Uncommitted}'. " +
+                $"Expected one of: {string.Join(", ", Enum.GetNames(typeof(UncommittedChanges)))}.");
         }
 
         private Dictionary<string, string>[] BuildFilterClassMetadata()
