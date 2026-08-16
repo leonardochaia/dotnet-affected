@@ -17,6 +17,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       os_matrix: "[\"ubuntu-latest\"]"
+      configuration: 'Release'
 
   release:
     needs: build
