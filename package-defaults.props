@@ -8,6 +8,17 @@
         <Title>$(AssemblyTitle)</Title>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
+        <!-- Shown on the listing page. Description is per package: these four do different things and
+             one sentence cannot introduce all of them. -->
+        <PackageProjectUrl>https://dotnet-affected.com</PackageProjectUrl>
+        <PackageTags>msbuild;monorepo;affected;incremental-build;ci;continuous-integration;git;dotnet-tool</PackageTags>
+
+        <!-- The readme packed into the package. A project with a readme of its own sets
+             PackageReadmeSource above its import of this file. -->
+        <PackageReadmeSource Condition="'$(PackageReadmeSource)' == ''">$(MSBuildThisFileDirectory)README.md</PackageReadmeSource>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Copyright>Copyright (c) Leonardo Chaia</Copyright>
+
         <RepositoryUrl>https://github.com/leonardochaia/dotnet-affected.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -22,6 +33,11 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="MinVer" PrivateAssets="All"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- PackageReadmeFile names a file inside the package, so the readme has to be put there. -->
+        <None Include="$(PackageReadmeSource)" Pack="true" PackagePath="\" Visible="false"/>
     </ItemGroup>
 
     <ItemGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true'">

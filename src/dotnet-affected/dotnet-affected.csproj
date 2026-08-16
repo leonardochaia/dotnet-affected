@@ -6,6 +6,8 @@
         <OutputType>Exe</OutputType>
         <ToolCommandName>dotnet-affected</ToolCommandName>
         <PackAsTool>true</PackAsTool>
+
+        <Description>A .NET CLI tool that works out which MSBuild projects a set of changes affects, so large repositories and monorepos can build and test a fraction of themselves instead of all of it. Compares the working tree against a baseline commit, maps changed files to the projects that own them, and walks the project graph for everything depending on those.</Description>
     </PropertyGroup>
 
     <ItemGroup>

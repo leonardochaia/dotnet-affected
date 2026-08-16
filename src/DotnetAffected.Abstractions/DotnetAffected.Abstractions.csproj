@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <Import Project="$(PackageDefaultsPropsPath)" />
 
+    <PropertyGroup>
+        <Description>The interfaces and option types the dotnet-affected packages are written against. Reference this to supply your own changes provider or output formatter without taking a dependency on the implementation.</Description>
+    </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
     </ItemGroup>

@@ -3,6 +3,8 @@
 
     <PropertyGroup>
         <RootNamespace>DotnetAffected.Core</RootNamespace>
+
+        <Description>The implementation behind the dotnet-affected CLI: reading changes from git, discovering and evaluating projects, and traversing the MSBuild project graph to find what a change affects. Reference this to determine affected projects from your own code rather than through the command line.</Description>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="$(SourcesPath)/DotnetAffected.Abstractions/DotnetAffected.Abstractions.csproj" />
