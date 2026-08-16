@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786890420529,
+  "lastUpdate": 1786891689066,
   "repoUrl": "https://github.com/leonardochaia/dotnet-affected",
   "entries": {
     "dotnet-affected (time)": [
@@ -144,6 +144,54 @@ window.BENCHMARK_DATA = {
             "value": 1032344152.6666666,
             "unit": "ns",
             "range": "± 5507671.392149076"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "leonardochaia@users.noreply.github.com",
+            "name": "Leonardo Chaia",
+            "username": "leonardochaia"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "284ffb87294beaa3541661237176b3a334516ec1",
+          "message": "ci: fix the release workflow (#178)\n\n* ci: update actions/checkout to v4\n\nv2 runs on the Node 16 runtime, which GitHub has retired. The release builds through\nbuild.yml, so both files needed it.\n\n* ci: pack releases in the Release configuration\n\nbuild.yml ran a bare dotnet build and then packed --configuration Debug, and the\nrelease job published exactly those artifacts. Every package on nuget.org from v2\nonwards is an unoptimised build with DEBUG defined.\n\nThe configuration is now an input, defaulted to Debug so pull request CI is unchanged,\nand release.yml passes Release. The bin/Debug/net10.0 paths in the tool smoke tests and\nthe artifact upload had to move with it.\n\nVerified locally, since no CI run has ever built this configuration: the solution\nbuilds clean in Release under /WarnAsError, and pack produces all four packages with\ntheir symbol packages.\n\n* ci: make affected detection run on the releases it gates\n\nThe gate never engaged on a tag. last-successful-commit-action was asked for the last\nsuccessful run of release.yml on branch ${{ github.ref_name }}, which on a tag push is\nthe tag. No run had ever been on that tag, the lookup returned nothing, Detect Affected\nwas skipped for want of a commit_hash, and the empty hash then satisfied the condition\nguarding the push. Every tagged release published by falling through the gate rather\nthan passing it. Only a manual dispatch from main ever ran the detection.\n\nThe range is now the previous release: the nearest tag reachable from the released\ncommit's parent, which is what a release compares against and needs nothing outside\ngit to work out. Restricted to v* so it agrees with MinVerTagPrefix about which tags\nare releases -- the repository carries tags that are not, and one of those chosen as\nthe starting point would be a wrong answer nothing would report. With no earlier tag,\nthe first release publishes.\n\nThis drops nrwl/last-successful-commit-action, archived since 2023 and declaring\nnode12, and replaces ::set-output with $GITHUB_OUTPUT.\n\nskip_affected is gone. It never worked either: it was read as\ngithub.event.inputs.skip_affected, which is always a string, and the string 'false' is\ntruthy in an expression, so both settings of the box skipped detection and deployed.\nDetection is not optional now.\n\nWhat gets published is unchanged. The detection is a gate, not a filter: if anything is\naffected all four packages are pushed, and they have to be, because every package is\nversioned from the same tag and DotnetAffected.Core depends on DotnetAffected.Abstractions\nat that exact version.\n\nVerified against the real history: v6.2.0 resolves its range to v6.1.0, v6.0.0 to\nv6.0.0-preview-1, and the root commit to nothing. Both gate outcomes were exercised\nagainst this repository -- exit 0 with changes, exit 166 without.",
+          "timestamp": "2026-08-16T11:36:13-03:00",
+          "tree_id": "ff9c848c7be2384bf27ad42148b3567bce1f5de2",
+          "url": "https://github.com/leonardochaia/dotnet-affected/commit/284ffb87294beaa3541661237176b3a334516ec1"
+        },
+        "date": 1786891688609,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 13970000957,
+            "unit": "ns",
+            "range": "± 146856871.94969124"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 561895129.3333334,
+            "unit": "ns",
+            "range": "± 2916275.389899303"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 37116326720.666664,
+            "unit": "ns",
+            "range": "± 1330496877.6820662"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 1157027199.3333333,
+            "unit": "ns",
+            "range": "± 5236426.009316405"
           }
         ]
       }
