@@ -52,8 +52,12 @@ jobs:
       run: |
         set +e
         chmod +x ./dotnet-affected
+        # No end ref: the workflow runs with ${{ github.sha }} checked out, and the working
+        # directory is what dotnet-affected discovers projects from. --uncommitted none keeps
+        # the result depending on the commits alone, whatever earlier steps wrote.
         ./dotnet-affected -p $GITHUB_WORKSPACE -v \
             --from ${{ steps.last_successful_commit.outputs.commit_hash }} \
+            --uncommitted none \
             --format text
 
         exitCode=$?

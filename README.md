@@ -399,6 +399,10 @@ For usage in CI, it's recommended to use the `--from` option with the environmen
 build tool. CI checks out the revision being built, so the working directory is already the end of the
 comparison you want, and `--from` is the only ref to supply.
 
+Pass `--uncommitted none` as well. It makes the result depend only on the commits, so a step that writes to a
+tracked file before dotnet-affected runs, code generation or a version stamp for instance, cannot change which
+projects are reported.
+
 dotnet-affected can be used in any CI system where you `dotnet` is present. You can install the tool and run
 `dotnet affected` commands as if locally.
 
@@ -411,7 +415,7 @@ For example, for building a branch a setup like this could be used:
 
 ```shell
 # Replace env vars with what your CI system gives you
-dotnet affected --from $LAST_SUCCESSFUL_BUILD_COMMIT
+dotnet affected --from $LAST_SUCCESSFUL_BUILD_COMMIT --uncommitted none
 dotnet test affected.proj
 ```
 
@@ -433,7 +437,7 @@ for [building branches with GitHub actions here](https://github.com/leonardochai
 For building PRs, the baseline is the merge base: the commit the branch was actually cut from.
 
 ```shell
-dotnet affected --from "$(git merge-base origin/main HEAD)"
+dotnet affected --from "$(git merge-base origin/main HEAD)" --uncommitted none
 dotnet test affected.proj
 ```
 
