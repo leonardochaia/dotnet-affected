@@ -108,12 +108,39 @@ CI reproducible; pinning a *different major* than the action targets will be ref
   id: affected
   with:
     from: ${{ steps.base.outputs.sha }}
-    solution-path: MySolution.sln
-    exclude: '\.Benchmarks\.csproj$'
+    filter-file-path: src/MySolution.slnx
+    exclude-output: '\.Benchmarks\.csproj$'
+    exclude-discovery: '/legacy/'
 ```
 
-`solution-path` also passes the workspace as `--repository-path`, so a solution living in a subdirectory still finds
-the git root.
+`--repository-path` is always passed and defaults to the workspace, so a filter file in a subdirectory still resolves
+against the git root and the output still lands where the action reads it back from.
+
+## Producing a solution filter
+
+```yaml
+- uses: leonardochaia/dotnet-affected-action@v7
+  id: affected
+  with:
+    from: ${{ steps.base.outputs.sha }}
+    filter-file-path: MySolution.sln
+    output-format: text slnf
+```
+
+`slnf` needs a solution to reference, so it goes together with `filter-file-path`. Keep `text` in the list — the
+`affected` output is read from `affected.txt`, and without it every run looks like nothing was affected.
+
+## Including uncommitted work
+
+The action compares the commits alone whenever `from` is set, so steps that generate or stamp files before it run
+cannot change the result. Override it when you want the working tree counted:
+
+```yaml
+- uses: leonardochaia/dotnet-affected-action@v7
+  with:
+    from: origin/main
+    uncommitted: all
+```
 
 ## Using a matrix
 

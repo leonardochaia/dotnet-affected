@@ -38,6 +38,11 @@ The reason for the rule: `@v1` used to install whatever dotnet-affected was newe
 major it was never written against the moment one was published — arguments and exit codes included. Tying the action
 major to the tool major is what stops that.
 
+:::note[There is no `@v6`]
+The rule starts with dotnet-affected 7. The action went straight from `@v1` — which targeted 6.x throughout its life —
+to `@v7`, so that from here on the two numbers line up. Nothing was skipped.
+:::
+
 :::caution[If you pin to `@v1.4` or earlier]
 Those tags are immutable and install an unpinned dotnet-affected, so they will pull in 7.x as soon as it is published
 — a v6-era action driving a v7 tool. Either move to `@v7`, or hold the tool back explicitly:
@@ -57,8 +62,8 @@ Those tags are immutable and install an unpinned dotnet-affected, so they will p
    `~/.dotnet/tools` on the path. A tool that is already installed is tolerated rather than treated as a failure.
 2. Reads back `dotnet affected --version` and stops if the major is newer than the one the action targets. A version
    it cannot parse is let through — this check must never be the thing that breaks a run that would otherwise work.
-3. Runs `dotnet affected` with the flags built from the inputs, writing `affected.proj` and `affected.txt` into the
-   workspace.
+3. Runs `dotnet affected` with the flags built from the inputs, always passing `--repository-path` so the output
+   lands where the action reads it back from, and writing `affected.proj` and `affected.txt` there.
 4. Sets the `affected` output to the contents of `affected.txt`.
 
 The [reference](/github-action/reference/) has the exact mapping from inputs to CLI flags.

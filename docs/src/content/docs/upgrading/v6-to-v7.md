@@ -208,8 +208,27 @@ published — an action written against v6 driving a v7 CLI. Move to `@v7`, or h
 ```
 :::
 
-Also drop the `to` input while you are there: it maps to the deprecated `--to`, and Actions already checks out the
-commit being built. See [GitHub Action](/github-action/).
+There is no `@v6`: the action targeted 6.x throughout `@v1`'s life, and jumps to `@v7` so the two numbers line up from
+here on.
+
+`@v7` keeps every v6-era input working, so the version bump is the only required edit. Three of them are deprecated
+and warn:
+
+| Input           | On `@v7`                                                        |
+|-----------------|------------------------------------------------------------------|
+| `to`            | Ignored entirely — the comparison already ends at the checked-out commit |
+| `solution-path` | Sends `--filter-file-path`; use that input instead                |
+| `exclude`       | Sends `--exclude-output`; use that input instead                  |
+
+`@v7` also gains inputs for the options v6 could not reach: `uncommitted`, `filter-file-path`, `exclude-discovery`,
+`no-gitignore` and `repository-path`, and `slnf` becomes a usable `output-format`.
+
+:::note
+With `from` set, the action defaults `uncommitted` to `none`, which is what preserves your old `from` + `to`
+semantics: the comparison stays between commits, and steps running before it cannot change the answer.
+:::
+
+See [GitHub Action](/github-action/).
 
 ## Library API changes
 
