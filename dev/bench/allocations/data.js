@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786892705104,
+  "lastUpdate": 1786902703709,
   "repoUrl": "https://github.com/leonardochaia/dotnet-affected",
   "entries": {
     "dotnet-affected (allocations)": [
@@ -219,6 +219,50 @@ window.BENCHMARK_DATA = {
           {
             "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
             "value": 997339568,
+            "unit": "bytes"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "leonardochaia@users.noreply.github.com",
+            "name": "Leonardo Chaia",
+            "username": "leonardochaia"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cb53bef37ba8eda1214c95f381586f5763fa221e",
+          "message": "chore: adds nuget package metadata (#181)\n\nNone of the four packages set `Description`, `PackageProjectUrl`,\n`PackageTags`, `PackageReadmeFile` or `Copyright`, so they arrive on\nnuget.org as a title and a version and `dotnet pack` warned about the\nmissing readme on every run:",
+          "timestamp": "2026-08-16T14:40:24-03:00",
+          "tree_id": "2e9474614a2186412f8c1c8738839742bd63c0e4",
+          "url": "https://github.com/leonardochaia/dotnet-affected/commit/cb53bef37ba8eda1214c95f381586f5763fa221e"
+        },
+        "date": 1786902703073,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 6394597024,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 498716824,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 14373330752,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 997338072,
             "unit": "bytes"
           }
         ]
