@@ -5,6 +5,8 @@
     <PropertyGroup>
         <RootNamespace>DotnetAffected.Tasks</RootNamespace>
 
+        <Description>An MSBuild project SDK that builds only the projects a set of changes affects, for repositories that drive CI from MSBuild rather than from a command line. Filters the project tree and hands execution to Microsoft.Build.Traversal. The SDK version tracks the dotnet-affected version.</Description>
+
         <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
 
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
