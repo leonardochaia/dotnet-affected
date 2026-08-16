@@ -5,24 +5,19 @@ on:
     tags:
         - 'v*'
   workflow_dispatch:
-    inputs:
-      skip_affected:
-        description: 'Whether to skip detecting if anything is affected or not'
-        default: false
-        required: false
-        type: boolean
 
 jobs:
   build:
     uses: ./.github/workflows/build.yml
     with:
       os_matrix: "[\"ubuntu-latest\"]"
+      configuration: 'Release'
 
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -32,14 +27,6 @@ jobs:
           echo "DOTNET_ROOT=$GITHUB_WORKSPACE/eng/.dotnet" >> $GITHUB_ENV
           echo "$GITHUB_WORKSPACE/eng/.dotnet" >> $GITHUB_PATH
 
-    - uses: nrwl/last-successful-commit-action@v1
-      name: Build Commit Range
-      id: last_successful_commit
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: ${{ github.ref_name }}
-        workflow_id: 'release.yml'
-
     - uses: actions/download-artifact@v4
       name: Download build artifacts
       with:
@@ -48,25 +35,44 @@ jobs:
 
     - name: Detect Affected
       id: affected
-      if: success() && steps.last_successful_commit.outputs.commit_hash != '' && !github.event.inputs.skip_affected
       run: |
+        # The range is the release before this one: the nearest tag reachable from this
+        # commit's parent. What used to stand here asked for the last successful run of
+        # this workflow on ${{ github.ref_name }}, which on a tag push is the tag, so no
+        # run had ever been on it, the lookup came back empty and detection was skipped
+        # on every release it was meant to gate.
+        #
+        # Matched against v* so this agrees with MinVerTagPrefix on what a release tag is.
+        # The repository carries tags that are not releases, and one of those picked up as
+        # the starting point is a wrong answer nothing would report.
+        from=$(git describe --tags --abbrev=0 --match 'v*' "${{ github.sha }}^" 2>/dev/null || true)
+
+        if [ -z "$from" ]; then
+            echo "No earlier tag to compare against. Publishing."
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            exit 0
+        fi
+
+        echo "Comparing against $from"
+
         set +e
         chmod +x ./dotnet-affected
         # No end ref: the workflow runs with ${{ github.sha }} checked out, and the working
         # directory is what dotnet-affected discovers projects from. --uncommitted none keeps
         # the result depending on the commits alone, whatever earlier steps wrote.
         ./dotnet-affected -p $GITHUB_WORKSPACE -v \
-            --from ${{ steps.last_successful_commit.outputs.commit_hash }} \
+            --from "$from" \
             --uncommitted none \
             --format text
 
         exitCode=$?
+        set -e
 
         if [ $exitCode -eq 0 ]; then
-            echo "::set-output name=should_deploy::true"
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
             echo "Affected projects detected. Will deploy"
         elif [ $exitCode -eq 166 ]; then
-            echo "::set-output name=should_deploy::false"                        
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
             echo "No affected projects detected."
         else
             echo "Failed to run dotnet affected"
@@ -75,11 +81,11 @@ jobs:
 
     - uses: actions/download-artifact@v4
       name: Download Package Artifact
-      if: success() && (steps.affected.outputs.should_deploy == 'true' || github.event.inputs.skip_affected || steps.last_successful_commit.outputs.commit_hash == '')
+      if: steps.affected.outputs.should_deploy == 'true'
       with:
         name: packages
         path: "."
 
     - name: Push to NuGet
-      if: success() && (steps.affected.outputs.should_deploy == 'true' || github.event.inputs.skip_affected || steps.last_successful_commit.outputs.commit_hash == '')
+      if: steps.affected.outputs.should_deploy == 'true'
       run: dotnet nuget push *.nupkg --skip-duplicate -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}}

@@ -16,7 +16,12 @@
             <_DotnetAffectedPkgFiles Include="$(MSBuildThisFileDirectory)bin/*DotnetAffected.Tasks.*.snupkg"/>
         </ItemGroup>
         <Delete Files="@(_DotnetAffectedPkgFiles)"/>
-        <Exec Command="dotnet pack -c Release --include-symbols $(SourcesPath)DotnetAffected.Tasks/DotnetAffected.Tasks.csproj -o $(MSBuildThisFileDirectory)bin  -maxcpucount:1"/>
+        <!-- artifacts-path keeps this build's bin and obj to itself. It is a command line global
+             property, so it applies to Tasks and everything it references, and the pack can no
+             longer land in the same output directory as the build that started it. Without it the
+             two write DotnetAffected.Abstractions concurrently whenever the outer build is also
+             Release, and one of them loses the file. -->
+        <Exec Command="dotnet pack -c Release --include-symbols $(SourcesPath)DotnetAffected.Tasks/DotnetAffected.Tasks.csproj -o $(MSBuildThisFileDirectory)bin --artifacts-path $(MSBuildThisFileDirectory)obj/tasks-pack  -maxcpucount:1"/>
     </Target>
 
     <Target Name="_AfterBuild" BeforeTargets="VSTest">
