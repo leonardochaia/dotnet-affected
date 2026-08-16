@@ -19,6 +19,14 @@ namespace DotnetAffected.Core.Tests
         private AffectedSummary Execute(AffectedOptions options)
             => new AffectedExecutor(options, changesProvider: new GitChangesProvider()).Execute();
 
+        /// <summary>
+        /// Changed files are rooted at the repository path but keep the separators git reports,
+        /// so on Windows they read as C:\repo\Project/Project.csproj while MSBuild's FullPath is
+        /// fully backslashed. Everything that matches them normalizes first, and so does this.
+        /// </summary>
+        private static void AssertChanged(AffectedSummary summary, string fullPath)
+            => Assert.Contains(summary.FilesThatChanged, file => Path.GetFullPath(file) == fullPath);
+
         [Fact]
         public async Task When_changed_project_is_outside_the_solution_should_warn()
         {
@@ -34,7 +42,7 @@ namespace DotnetAffected.Core.Tests
                 Repository.Path,
                 Path.Combine(Repository.Path, SolutionPath)));
 
-            Assert.Contains(outsideSolution.FullPath, summary.FilesThatChanged);
+            AssertChanged(summary, outsideSolution.FullPath);
             Assert.DoesNotContain(summary.ProjectsWithChangedFiles,
                 p => p.GetFullPath() == outsideSolution.FullPath);
 
@@ -79,7 +87,7 @@ namespace DotnetAffected.Core.Tests
 
             var summary = Execute(new AffectedOptions(Repository.Path));
 
-            Assert.Contains(deleted.FullPath, summary.FilesThatChanged);
+            AssertChanged(summary, deleted.FullPath);
             Assert.Empty(summary.Diagnostics);
         }
 
