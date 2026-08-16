@@ -18,13 +18,30 @@ namespace DotnetAffected.Core
         internal static readonly bool IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
         /// <inheritdoc />
-        public IEnumerable<string> GetChangedFiles(string directory, string from, string to)
+        public IEnumerable<string> GetChangedFiles(string directory, string from, UncommittedChanges uncommitted)
         {
             using var repository = new Repository(directory);
 
-            var changes = GetChangesForRange<TreeChanges>(repository, from, to);
+            var changes = GetChangesForRange<TreeChanges>(repository, from, uncommitted);
 
             return TreeChangesToPaths(changes, directory);
+        }
+
+        /// <inheritdoc />
+        public string? GetWorkingTreeCommitSha(string directory)
+        {
+            using var repository = new Repository(directory);
+
+            return repository.Head.Tip?.Sha;
+        }
+
+        /// <inheritdoc />
+        public string ResolveCommitSha(string directory, string commitRef)
+        {
+            using var repository = new Repository(directory);
+
+            return GetCommitOrThrow(repository, commitRef)
+                .Sha;
         }
 
         /// <inheritdoc />
@@ -117,47 +134,42 @@ namespace DotnetAffected.Core
             return fs.FileExists(pathToFile) ? fs.CreateProjectAndEagerLoadChildren(pathToFile) : null;
         }
 
-        private static (Commit? From, Commit To) ParseRevisionRanges(
-            Repository repository,
-            string from,
-            string to)
-        {
-            // Find the To Commit or use HEAD.
-            var toCommit = GetCommitOrHead(repository, to);
-
-            // No from: compare against working directory
-            if (string.IsNullOrWhiteSpace(from))
-            {
-                // this.WriteLine($"Finding changes from working directory against {to}");
-                return (null, toCommit);
-            }
-
-            var fromCommit = GetCommitOrThrow(repository, @from);
-            return (fromCommit, toCommit);
-        }
-
+        /// <summary>
+        /// The endpoint of the comparison is never a ref: projects are discovered and evaluated
+        /// from the working tree, so the working tree is what the changes have to be measured
+        /// against. <paramref name="uncommitted"/> only decides how much of it counts, and
+        /// <see cref="UncommittedChanges.None"/> stops at the commit it is checked out at.
+        /// </summary>
         private static T GetChangesForRange<T>(
             Repository repository,
             string from,
-            string to)
+            UncommittedChanges uncommitted)
             where T : class, IDiffResult
         {
-            var (fromCommit, toCommit) = ParseRevisionRanges(repository, from, to);
+            // No from: compare against the commit that is checked out.
+            var fromCommit = GetCommitOrHead(repository, from);
 
-            return fromCommit is null
-                ? GetChangesAgainstWorkingDirectory<T>(repository, toCommit.Tree)
-                : GetChangesBetweenTrees<T>(repository, fromCommit.Tree, toCommit.Tree);
+            return uncommitted == UncommittedChanges.None
+                ? GetChangesBetweenTrees<T>(repository, fromCommit.Tree, repository.Head.Tip.Tree)
+                : GetChangesAgainstWorkingDirectory<T>(repository, fromCommit.Tree, uncommitted);
         }
 
         private static T GetChangesAgainstWorkingDirectory<T>(
             Repository repository,
             Tree tree,
+            UncommittedChanges uncommitted,
             IEnumerable<string>? files = null)
             where T : class, IDiffResult
         {
+            // Diffing against the index alone leaves unstaged edits, and files git has not been
+            // told about at all, out of the comparison.
+            var targets = uncommitted == UncommittedChanges.Staged
+                ? DiffTargets.Index
+                : DiffTargets.Index | DiffTargets.WorkingDirectory;
+
             return repository.Diff.Compare<T>(
                 tree,
-                DiffTargets.Index | DiffTargets.WorkingDirectory,
+                targets,
                 files);
         }
 

@@ -109,19 +109,33 @@ namespace DotnetAffected.Core.Processor
                 .Where(node =>
                     changedPackageFiles.Any(f => node.ProjectInstance.FullPath.StartsWith(f.DirectoryName!)));
 
+            // The endpoints match the ones the file diff uses, so that a package version and the
+            // file carrying it are never read from two different revisions. The current side is
+            // the working tree unless the working tree was asked to be left out, in which case
+            // it is the commit that is checked out.
+            //
+            // UncommittedChanges.Staged reads the working tree too, rather than the index: a
+            // project is evaluated through a file system that can represent a commit or the disk,
+            // and the index is neither. An unstaged version bump therefore still counts as a
+            // package change under Staged, which over-reports rather than misses.
+            var currentRef = string.Empty;
+            var currentFallsBackToHead = context.Options.UncommittedChanges == UncommittedChanges.None;
+
             foreach (var graphNode in relatedProjects)
             {
-                var fromFile = context.ChangesProvider.LoadProject(context.RepositoryPath,
-                    graphNode.ProjectInstance.FullPath, context.FromRef, false);
-                var toFile = context.ChangesProvider.LoadProject(context.RepositoryPath,
-                    graphNode.ProjectInstance.FullPath, context.ToRef, true);
+                var currentFile = context.ChangesProvider.LoadProject(context.RepositoryPath,
+                    graphNode.ProjectInstance.FullPath, currentRef, currentFallsBackToHead);
+                var baselineFile = context.ChangesProvider.LoadProject(context.RepositoryPath,
+                    graphNode.ProjectInstance.FullPath, context.FromRef, true);
 
                 // Parse props files into package and version dictionary
-                var fromPackages = NugetHelper.ParseDirectoryPackageProps(fromFile);
-                var toPackages = NugetHelper.ParseDirectoryPackageProps(toFile);
+                var currentPackages = NugetHelper.ParseDirectoryPackageProps(currentFile);
+                var baselinePackages = NugetHelper.ParseDirectoryPackageProps(baselineFile);
 
-                // Compare both dictionaries
-                if (NugetHelper.TryFindDiffPackageDictionaries(fromPackages, toPackages, out var changedPackages))
+                // Compare both dictionaries. The first argument is the side reported as the new
+                // version, so the current one leads.
+                if (NugetHelper.TryFindDiffPackageDictionaries(currentPackages, baselinePackages,
+                        out var changedPackages))
                     changes[graphNode] = changedPackages;
             }
 

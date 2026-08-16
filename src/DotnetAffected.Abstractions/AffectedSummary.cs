@@ -17,14 +17,17 @@ namespace DotnetAffected.Abstractions
         /// <param name="excludedProjects"></param>
         /// <param name="changedPackages"></param>
         /// <param name="projectsExcludedFromDiscovery"></param>
+        /// <param name="diagnostics"></param>
         public AffectedSummary(
             string[] filesThatChanged,
             ProjectGraphNode[] projectsWithChangedFiles,
             ProjectGraphNode[] affectedProjects,
             ProjectGraphNode[] excludedProjects,
             PackageChange[] changedPackages,
-            string[]? projectsExcludedFromDiscovery = null)
+            string[]? projectsExcludedFromDiscovery = null,
+            AffectedDiagnostic[]? diagnostics = null)
         {
+            Diagnostics = diagnostics ?? Array.Empty<AffectedDiagnostic>();
             FilesThatChanged = filesThatChanged;
             ProjectsWithChangedFiles = projectsWithChangedFiles;
             AffectedProjects = affectedProjects;
@@ -63,5 +66,11 @@ namespace DotnetAffected.Abstractions
         /// Gets the list of packages that changed.
         /// </summary>
         public PackageChange[] ChangedPackages { get; }
+
+        /// <summary>
+        /// Gets what is worth saying about the run that is not part of its result, such as a
+        /// project file that changed while belonging to no project in the graph.
+        /// </summary>
+        public AffectedDiagnostic[] Diagnostics { get; }
     }
 }

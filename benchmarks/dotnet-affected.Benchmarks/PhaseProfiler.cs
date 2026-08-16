@@ -1,3 +1,4 @@
+using DotnetAffected.Abstractions;
 using DotnetAffected.Core;
 using DotnetAffected.Testing.Utils;
 using Microsoft.Build.Definition;
@@ -187,7 +188,7 @@ namespace Affected.Cli.Benchmarks
 
             var changedFiles = Measure("git diff (changed files)",
                 () => new GitChangesProvider()
-                    .GetChangedFiles(repository.Path, string.Empty, string.Empty)
+                    .GetChangedFiles(repository.Path, string.Empty, UncommittedChanges.All)
                     .ToArray());
 
             // Every predictor MSBuild.Prediction ships, discarding the results. This is not the

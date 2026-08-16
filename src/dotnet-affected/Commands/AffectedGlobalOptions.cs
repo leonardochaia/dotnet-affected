@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DotnetAffected.Abstractions;
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.Linq;
@@ -61,9 +62,21 @@ namespace Affected.Cli.Commands
             {
                 "--from"
             },
-            description: "A branch or commit to compare against --to.");
+            description: "A branch or commit to compare the working tree against.\n" +
+                         "[Defaults to HEAD]");
 
         public static readonly ToOption ToOption = new(FromOption);
+
+        public static readonly Option<UncommittedChanges> UncommittedOption = new(
+            new[]
+            {
+                "--uncommitted"
+            },
+            getDefaultValue: () => UncommittedChanges.All,
+            description: "What the working tree contributes on top of the commits since --from.\n" +
+                         "  all:    staged and unstaged changes, including untracked files\n" +
+                         "  staged: staged changes only, as a pre-commit hook wants\n" +
+                         "  none:   compare commits only, ignoring a dirty working tree");
 
         public static readonly Option<string> ExcludeOutputRegexOption = new(
             new[]
@@ -101,7 +114,9 @@ namespace Affected.Cli.Commands
                 "--to"
             })
         {
-            this.Description = "A branch or commit to compare against --from.";
+            this.Description = "[OBSOLETE: removed in v8] The commit the working tree is checked\n" +
+                               "out at. Projects are discovered and evaluated from the working\n" +
+                               "tree, so any other value is refused.";
 
             this.AddValidator(optionResult =>
             {

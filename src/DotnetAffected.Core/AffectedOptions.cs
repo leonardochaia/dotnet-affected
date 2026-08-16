@@ -22,6 +22,7 @@ namespace DotnetAffected.Core
         /// <param name="assumeChanges"></param>
         /// <param name="excludeDiscoveryRegex"></param>
         /// <param name="honourGitIgnore">Defaults to <b>true</b>.</param>
+        /// <param name="uncommittedChanges">Defaults to <see cref="UncommittedChanges.All"/>.</param>
         public AffectedOptions(
             string? repositoryPath = null,
             string? filterFilePath = null,
@@ -30,7 +31,8 @@ namespace DotnetAffected.Core
             string? exclusionRegex = null,
             IEnumerable<string>? assumeChanges = null,
             string? excludeDiscoveryRegex = null,
-            bool honourGitIgnore = true)
+            bool honourGitIgnore = true,
+            UncommittedChanges uncommittedChanges = UncommittedChanges.All)
         {
             RepositoryPath = DetermineRepositoryPath(repositoryPath, filterFilePath);
 
@@ -48,6 +50,7 @@ namespace DotnetAffected.Core
             AssumeChanges = assumeChanges?.ToArray() ?? Array.Empty<string>();
             ExcludeDiscoveryRegex = excludeDiscoveryRegex;
             HonourGitIgnore = honourGitIgnore;
+            UncommittedChanges = uncommittedChanges;
         }
 
         /// <summary>
@@ -68,9 +71,21 @@ namespace DotnetAffected.Core
         public string FromRef { get; }
 
         /// <summary>
-        /// Gets the reference up to which changes will be compared from.
+        /// Gets the commit the working tree is expected to be checked out at.
         /// </summary>
+        /// <remarks>
+        /// OBSOLETE, removed in v8. Projects are discovered and evaluated from the working tree,
+        /// so this is only accepted when it names the commit that is checked out, which makes it
+        /// a no-op. Use <see cref="UncommittedChanges"/> to choose what the working tree
+        /// contributes.
+        /// </remarks>
         public string ToRef { get; }
+
+        /// <summary>
+        /// Gets what the working tree contributes on top of the commits between
+        /// <see cref="FromRef"/> and the commit that is checked out.
+        /// </summary>
+        public UncommittedChanges UncommittedChanges { get; }
 
         /// <summary>
         /// Gets the regular expression to use for excluding projects from the output. Matching
