@@ -12,6 +12,10 @@
              one sentence cannot introduce all of them. -->
         <PackageProjectUrl>https://dotnet-affected.com</PackageProjectUrl>
         <PackageTags>msbuild;monorepo;affected;incremental-build;ci;continuous-integration;git;dotnet-tool</PackageTags>
+
+        <!-- The readme packed into the package. A project with a readme of its own sets
+             PackageReadmeSource above its import of this file. -->
+        <PackageReadmeSource Condition="'$(PackageReadmeSource)' == ''">$(MSBuildThisFileDirectory)README.md</PackageReadmeSource>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <Copyright>Copyright (c) Leonardo Chaia</Copyright>
 
@@ -32,9 +36,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <!-- PackageReadmeFile names a file inside the package, so the repository readme has to be put
-             there. MSBuildThisFileDirectory is the repository root, which is where this props file lives. -->
-        <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false"/>
+        <!-- PackageReadmeFile names a file inside the package, so the readme has to be put there. -->
+        <None Include="$(PackageReadmeSource)" Pack="true" PackagePath="\" Visible="false"/>
     </ItemGroup>
 
     <ItemGroup Condition=" '$(ContinuousIntegrationBuild)' == 'true'">

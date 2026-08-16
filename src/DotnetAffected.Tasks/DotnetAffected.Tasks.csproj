@@ -1,5 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+    <PropertyGroup>
+        <!-- Set above the import, which defaults this to the repository readme: properties are
+             evaluated in order and the import consumes it. This SDK has a readme of its own, and it
+             is the one that answers what somebody looking at this package is asking. -->
+        <PackageReadmeSource>$(MSBuildThisFileDirectory)README.md</PackageReadmeSource>
+    </PropertyGroup>
+
     <Import Project="$(PackageDefaultsPropsPath)" />
 
     <PropertyGroup>
