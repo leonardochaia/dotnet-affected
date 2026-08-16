@@ -8,8 +8,8 @@ on:
         required: false
         type: string
       configuration:
-        description: 'MSBuild configuration to build, test and pack. Releases pass Release'
-        default: 'Debug'
+        description: 'MSBuild configuration to build, test and pack'
+        default: 'Release'
         required: false
         type: string
 
