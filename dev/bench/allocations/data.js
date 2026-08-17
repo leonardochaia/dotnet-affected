@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786929381648,
+  "lastUpdate": 1786931945263,
   "repoUrl": "https://github.com/leonardochaia/dotnet-affected",
   "entries": {
     "dotnet-affected (allocations)": [
@@ -307,6 +307,50 @@ window.BENCHMARK_DATA = {
           {
             "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
             "value": 997339168,
+            "unit": "bytes"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "leonardochaia@users.noreply.github.com",
+            "name": "Leonardo Chaia",
+            "username": "leonardochaia"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cab3bddefe8c52ad39f9e3f9da6a72e97182ada8",
+          "message": "docs: add Umami Cloud analytics to the docs site (#182)\n\nAdds the Umami Cloud tracking script to dotnet-affected.com.\n\nInjected on every Starlight page via the `head` option in\n`docs/astro.config.mjs`:\n\n```html\n<script defer src=\"https://cloud.umami.is/script.js\" data-website-id=\"04603e4d-e6d4-43f8-a2d5-da4072c3e72f\"></script>\n```\n\nNote: the script also loads under `astro dev` / `astro preview`, so\nlocal page views will land in the same Umami site. If that's not wanted,\n`data-domains=\"dotnet-affected.com\"` can be added to restrict reporting\nto the production host.",
+          "timestamp": "2026-08-16T22:48:04-03:00",
+          "tree_id": "b4f57afaae81bfd5c726e9636b7f292baa6808e1",
+          "url": "https://github.com/leonardochaia/dotnet-affected/commit/cab3bddefe8c52ad39f9e3f9da6a72e97182ada8"
+        },
+        "date": 1786931944849,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 6365104912,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 498691760,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 14384131552,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 997338320,
             "unit": "bytes"
           }
         ]
