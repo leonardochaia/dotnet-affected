@@ -17,10 +17,9 @@ export const smallest = [...latest.data.measurements].sort(
 
 <BenchmarkHero data={latest.data} />
 
-The win grows with the repository. At {formatProjects(smallest.totalProjects)} projects v7 is
-{' '}{formatSpeedup(smallest.speedup)} faster; at {formatProjects(top.totalProjects)} it is {formatSpeedup(top.speedup)}. That is the
-point worth taking from this page: the larger the repository, the more v7 saves — and large
-repositories are what this tool is for.
+Every figure on this page compares **v7 against {latest.data.comparison.baseline.ref}**, the last v6
+release, over identical generated repositories. The larger the repository, the more v7 saves — which
+is the point worth taking from this page, since large repositories are what this tool is for.
 
 <BenchmarkCharts data={latest.data} />
 
