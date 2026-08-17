@@ -14,6 +14,8 @@ export const top = headline(latest.data);
 export const smallest = [...latest.data.measurements].sort(
 	(a, b) => a.totalProjects - b.totalProjects,
 )[0];
+export const reproductionHours =
+	Math.round(latest.data.measurements.reduce((sum, m) => sum + m.sizeDurationSeconds, 0) / 360) / 10;
 
 <BenchmarkHero data={latest.data} />
 
@@ -28,8 +30,8 @@ is the point worth taking from this page, since large repositories are what this
 <BenchmarkTable data={latest.data} />
 
 Both versions produced the **same affected projects** at every size, so this is not one of them
-doing less work. The run at {formatProjects(top.totalProjects)} projects reports
-{' '}{top.affectedProjects} affected out of {formatProjects(top.totalProjects)}.
+doing less work: the run at {formatProjects(top.totalProjects)} projects reports {formatProjects(top.affectedProjects)} affected
+out of {formatProjects(top.totalProjects)}.
 
 ## Why it scales better
 
@@ -92,19 +94,8 @@ Part of v7's gain comes from discovery no longer walking `.git` or
 [BenchmarkDotNet suites](https://github.com/leonardochaia/dotnet-affected/tree/main/benchmarks) run
 on every push to `main` and isolate the algorithm from discovery; this page is the end-to-end view.
 
-Reproducing the whole comparison takes about
-{Math.round(latest.data.measurements.reduce((sum, m) => sum + m.sizeDurationSeconds, 0) / 360) / 10}
-{' '}hours of wall clock, most of it spent on the baseline at the largest size.
-
-{latest.data.notMeasured?.length ? (
-	<Aside title="Where it stops">
-		{latest.data.notMeasured.map(entry => (
-			<p>
-				<strong>{formatProjects(entry.totalProjects)} projects:</strong> {entry.reason}
-			</p>
-		))}
-	</Aside>
-) : null}
+Reproducing the whole comparison takes about {reproductionHours} hours of wall clock, most of it
+spent on the baseline at the largest size.
 
 ## Data
 
