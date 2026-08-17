@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786932598666,
+  "lastUpdate": 1786995870974,
   "repoUrl": "https://github.com/leonardochaia/dotnet-affected",
   "entries": {
     "dotnet-affected (time)": [
@@ -432,6 +432,54 @@ window.BENCHMARK_DATA = {
             "value": 1140296396.6666667,
             "unit": "ns",
             "range": "± 17509918.2332521"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "leonardochaia@users.noreply.github.com",
+            "name": "Leonardo Chaia",
+            "username": "leonardochaia"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "40f1c1a91e70620754aa612a860f03b7f65eb095",
+          "message": "docs: publish the v6 to v7 performance comparison (#184)\n\nPublishes the v6.2.0 to v7 comparison as a Performance page, and\nsurfaces its headline figure where people decide whether to upgrade.\n\n## The data\n\nOne JSON snapshot per release under `docs/src/data/benchmarks/`, named\nafter the release — `v7.0.0.json` is the generator's output, unedited.\nEvery figure the page shows is computed from it at build time, so\nnothing is transcribed twice, and the release label comes from the file\nname rather than a field, which keeps the snapshot exactly as the run\nproduced it.\n\nSnapshots are never regenerated. A published comparison that changes\nunderneath a reader is not a comparison; a new release adds a file next\nto the old ones.\n\n## The page\n\n`/performance/`: headline figure, two charts, the numbers as a table,\nthe scaling exponents, and the method.\n\nBoth charts render to SVG at build time, so the page ships no client\nJavaScript.\n\n- **Speedup bars are zero based.** Bars encode length, and anchoring\nthem at 1x turned a 4.9x difference in the data into a 17x difference on\nscreen. A dashed reference line marks 1x, where nothing changed.\n- **Wall clock is a dumbbell on a log axis.** Position encoding, so\nthere is no zero to misrepresent, and the sizes span two orders of\nmagnitude — 5.9s to 727s on one linear axis leaves the two smallest\nsizes invisible.\n- **Colour is one hue at two steps**, the before/after pair for a\ndumbbell, validated against both site surfaces (`#ffffff`, `#17181c`) in\nboth modes. The speedup chart is a single series and carries no legend.\n- Hover text on every mark via SVG `<title>`, and the table view carries\nthe exact numbers with the spread behind each mean.\n\n## What the numbers say\n\n| Projects | v6.2.0 | v7 | Speedup |\n|---|---|---|---|\n| 250 | 7.80s | 5.90s | 1.3x |\n| 500 | 17.1s | 10.9s | 1.6x |\n| 1,000 | 79.9s | 28.1s | 2.8x |\n| 2,000 | 727s | 111s | 6.5x |\n\nBoth versions reported the same affected projects at every size, so this\nis not one of them doing less work.\n\nThe page states plainly that these are desktop numbers, comparable to\neach other and nothing else, and that part of the gain is discovery no\nlonger walking `.git` or gitignored paths rather than the graph work\nalone — the BenchmarkDotNet suites on `main` isolate that, and the page\nlinks to them.\n\n## Where it shows up\n\n- **Landing page**: a release callout reading the same snapshot, so the\nfigure follows the data, plus a Performance card in the grid.\n- **Upgrade guide**: a *Why upgrade* section leading with the table,\nabove the behaviour changes.\n- **Sidebar**: under Reference.\n\n## Adding the next release\n\nDrop `v7.1.0.json` into `docs/src/data/benchmarks/`. The page picks up\nthe newest by version order, the landing callout follows it, and older\nsnapshots are listed under Data.",
+          "timestamp": "2026-08-17T16:34:24-03:00",
+          "tree_id": "9b462cfb7350302fe852aa9205eaea75f8f4319f",
+          "url": "https://github.com/leonardochaia/dotnet-affected/commit/40f1c1a91e70620754aa612a860f03b7f65eb095"
+        },
+        "date": 1786995870482,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 10916211273.333334,
+            "unit": "ns",
+            "range": "± 8236866.723235258"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 464008660,
+            "unit": "ns",
+            "range": "± 1814626.7005847236"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 29411712035.666668,
+            "unit": "ns",
+            "range": "± 368186389.9785347"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 968074770.6666666,
+            "unit": "ns",
+            "range": "± 5148503.220979214"
           }
         ]
       }
