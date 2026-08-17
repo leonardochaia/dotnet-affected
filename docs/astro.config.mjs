@@ -40,6 +40,7 @@ export default defineConfig({
 					},
 				},
 			],
+			customCss: ['./src/styles/layout.css'],
 			plugins: [starlightLinksValidator()],
 			sidebar: [
 				{
