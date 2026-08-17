@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786931943661,
+  "lastUpdate": 1786932598666,
   "repoUrl": "https://github.com/leonardochaia/dotnet-affected",
   "entries": {
     "dotnet-affected (time)": [
@@ -384,6 +384,54 @@ window.BENCHMARK_DATA = {
             "value": 1148485155.3333333,
             "unit": "ns",
             "range": "± 2400446.9596461267"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "leonardochaia@users.noreply.github.com",
+            "name": "Leonardo Chaia",
+            "username": "leonardochaia"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cf8fd997c6e3b633d16dc6edc467013fcd610378",
+          "message": "ci: publish to NuGet via trusted publishing (#183)\n\nSwaps the long-lived `NUGET_API_KEY` secret in the release workflow for\n[NuGet trusted\npublishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing#github-actions-setup):\nthe job requests an OIDC token from GitHub, `NuGet/login` exchanges it\nwith nuget.org for an API key good for one hour and a single push, and\nthe push uses that.\n\n### Changes\n\n- `release` job gains `permissions: id-token: write`. Declaring any\npermission drops the rest to `none`, so `contents: read` is spelled out\ntoo, otherwise `actions/checkout` breaks.\n- A `NuGet/login@v1` step sits immediately before the push, behind the\nsame `should_deploy` gate. Placement is deliberate: the key expires in\nan hour, so requesting it at the top of the job would risk it going\nstale behind the affected-detection and artifact-download steps.",
+          "timestamp": "2026-08-16T22:54:14-03:00",
+          "tree_id": "40bf00b098f82145d6f10e29d8a68780464051fe",
+          "url": "https://github.com/leonardochaia/dotnet-affected/commit/cf8fd997c6e3b633d16dc6edc467013fcd610378"
+        },
+        "date": 1786932598160,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 12158698592.666666,
+            "unit": "ns",
+            "range": "± 301836633.31616986"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 541511772,
+            "unit": "ns",
+            "range": "± 8938840.477759294"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 33620701807.333332,
+            "unit": "ns",
+            "range": "± 1174800986.4153674"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 1140296396.6666667,
+            "unit": "ns",
+            "range": "± 17509918.2332521"
           }
         ]
       }
