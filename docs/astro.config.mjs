@@ -30,6 +30,16 @@ export default defineConfig({
 			editLink: {
 				baseUrl: 'https://github.com/leonardochaia/dotnet-affected/edit/main/docs/',
 			},
+			head: [
+				{
+					tag: 'script',
+					attrs: {
+						defer: true,
+						src: 'https://cloud.umami.is/script.js',
+						'data-website-id': '04603e4d-e6d4-43f8-a2d5-da4072c3e72f',
+					},
+				},
+			],
 			plugins: [starlightLinksValidator()],
 			sidebar: [
 				{
