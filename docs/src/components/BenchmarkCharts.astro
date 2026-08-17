@@ -97,14 +97,7 @@ const barPath = (speedup: number, y: number) => {
 							<text class="row-label" x={bars.left - 14} y={y + 4} text-anchor="end">
 								{formatProjects(row.totalProjects)}
 							</text>
-							<rect
-								class="bar"
-								x={bars.left}
-								y={y - 9}
-								width={Math.max(barWidth(row.speedup), 0.5)}
-								height={18}
-								rx="4"
-							/>
+							<path class="bar" d={barPath(row.speedup, y)} />
 							<text class="value" x={barX(row.speedup) + 10} y={y + 4}>{formatSpeedup(row.speedup)}</text>
 						</g>
 					);
