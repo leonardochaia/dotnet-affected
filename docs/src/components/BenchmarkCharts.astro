@@ -1,0 +1,353 @@
+---
+/**
+ * The two charts for a benchmark comparison, rendered to SVG at build time.
+ *
+ * Colours come from the data-viz palette, validated against this site's surfaces
+ * (#ffffff light, #17181c dark): the dumbbell is one hue at two steps — an ordinal
+ * pair, since the two ends are the same measure before and after — and the speedup
+ * bars are a single series, so they carry no legend.
+ */
+import type { BenchmarkComparison } from '../lib/benchmarks';
+import { formatProjects, formatSeconds, formatSpeedup } from '../lib/benchmarks';
+
+interface Props {
+	data: BenchmarkComparison;
+}
+
+const { data } = Astro.props;
+const rows = [...data.measurements].sort((a, b) => a.totalProjects - b.totalProjects);
+const baselineRef = data.comparison.baseline.ref;
+
+// --- dumbbell: wall clock, log axis ------------------------------------------
+// Log because the sizes span two orders of magnitude. It encodes position, not
+// length, so the scale has no zero to be honest about.
+const allSeconds = rows.flatMap(r => [r.baseline.meanSeconds, r.candidate.meanSeconds]);
+const decadeFloor = Math.floor(Math.log10(Math.min(...allSeconds)));
+const decadeCeil = Math.ceil(Math.log10(Math.max(...allSeconds)));
+const ticks = Array.from({ length: decadeCeil - decadeFloor + 1 }, (_, i) =>
+	Math.pow(10, decadeFloor + i),
+);
+
+const dumbbell = { width: 720, rowHeight: 54, top: 34, bottom: 44, left: 96, right: 78 };
+const dumbbellHeight = dumbbell.top + rows.length * dumbbell.rowHeight + dumbbell.bottom;
+const plotWidth = dumbbell.width - dumbbell.left - dumbbell.right;
+
+const xOf = (seconds: number) =>
+	dumbbell.left +
+	((Math.log10(seconds) - decadeFloor) / (decadeCeil - decadeFloor)) * plotWidth;
+const yOf = (index: number) => dumbbell.top + index * dumbbell.rowHeight + dumbbell.rowHeight / 2;
+
+// --- bars: speedup ------------------------------------------------------------
+const bars = { width: 720, rowHeight: 44, top: 24, bottom: 40, left: 96, right: 78 };
+const barsHeight = bars.top + rows.length * bars.rowHeight + bars.bottom;
+const barsPlotWidth = bars.width - bars.left - bars.right;
+const maxSpeedup = Math.max(...rows.map(r => r.speedup));
+// Zero based, and rounded up to a whole multiple so ticks land on integers. Bars
+// encode length, so the axis has to start at nothing: anchoring them at 1x would
+// stretch a 4.9x difference in the data into a 17x difference on screen.
+const speedupMax = Math.ceil(maxSpeedup);
+const speedupTicks = Array.from({ length: speedupMax + 1 }, (_, i) => i);
+const xSpeedup = (speedup: number) => bars.left + (speedup / speedupMax) * barsPlotWidth;
+const barWidth = (speedup: number) => (speedup / speedupMax) * barsPlotWidth;
+const barX = (speedup: number) => bars.left + barWidth(speedup);
+/** Square at the baseline, 4px rounded at the data end. */
+const barPath = (speedup: number, y: number) => {
+	const w = Math.max(barWidth(speedup), 5);
+	const r = Math.min(4, w);
+	return `M ${bars.left} ${y - 9} H ${bars.left + w - r} a ${r} ${r} 0 0 1 ${r} ${r} V ${y + 9 - r} a ${r} ${r} 0 0 1 ${-r} ${r} H ${bars.left} Z`;
+};
+---
+
+<div class="viz-root">
+	<figure class="viz-figure">
+		<figcaption>
+			<strong>How much faster</strong>
+			<span>Speedup over {baselineRef}, by repository size. Higher is better.</span>
+		</figcaption>
+		<svg
+			viewBox={`0 0 ${bars.width} ${barsHeight}`}
+			role="img"
+			aria-label={`Speedup over ${baselineRef} by repository size, from ${formatSpeedup(rows[0].speedup)} at ${formatProjects(rows[0].totalProjects)} projects to ${formatSpeedup(rows[rows.length - 1].speedup)} at ${formatProjects(rows[rows.length - 1].totalProjects)} projects.`}
+		>
+			{
+				speedupTicks.map(tick => (
+					<g>
+						<line
+							class="grid"
+							x1={xSpeedup(tick)}
+							x2={xSpeedup(tick)}
+							y1={bars.top}
+							y2={barsHeight - bars.bottom + 6}
+						/>
+						<text class="tick" x={xSpeedup(tick)} y={barsHeight - bars.bottom + 22} text-anchor="middle"
+							>{tick}×</text
+						>
+					</g>
+				))
+			}
+			{
+				rows.map((row, i) => {
+					const y = bars.top + i * bars.rowHeight + bars.rowHeight / 2;
+					return (
+						<g>
+							<title>
+								{formatProjects(row.totalProjects)} projects: {formatSpeedup(row.speedup)} faster (
+								{formatSeconds(row.baseline.meanSeconds)} → {formatSeconds(row.candidate.meanSeconds)})
+							</title>
+							<text class="row-label" x={bars.left - 14} y={y + 4} text-anchor="end">
+								{formatProjects(row.totalProjects)}
+							</text>
+							<path class="bar" d={barPath(row.speedup, y)} />
+							<text class="value" x={barX(row.speedup) + 10} y={y + 4}>{formatSpeedup(row.speedup)}</text>
+						</g>
+					);
+				})
+			}
+			<line
+				class="reference"
+				x1={xSpeedup(1)}
+				x2={xSpeedup(1)}
+				y1={bars.top}
+				y2={barsHeight - bars.bottom}></line>
+			<text class="reference-label" x={xSpeedup(1) + 6} y={bars.top + 10}>no change</text>
+			<line
+				class="axis"
+				x1={bars.left}
+				x2={bars.left}
+				y1={bars.top}
+				y2={barsHeight - bars.bottom + 6}></line>
+		</svg>
+	</figure>
+
+	<figure class="viz-figure">
+		<figcaption>
+			<strong>Wall clock per run</strong>
+			<span>
+				Mean of the measured iterations. The axis is logarithmic — each gridline is ten times
+				the last.
+			</span>
+		</figcaption>
+		<svg
+			viewBox={`0 0 ${dumbbell.width} ${dumbbellHeight}`}
+			role="img"
+			aria-label={`Wall clock per run at ${baselineRef} against the candidate, for each repository size. The gap widens with size.`}
+		>
+			<g class="legend">
+				<circle class="dot-baseline" cx={dumbbell.left} cy="14" r="6"></circle>
+				<text class="legend-text" x={dumbbell.left + 13} y="18">{baselineRef}</text>
+				<circle class="dot-candidate" cx={dumbbell.left + 92} cy="14" r="6"></circle>
+				<text class="legend-text" x={dumbbell.left + 105} y="18">v7</text>
+			</g>
+			{
+				ticks.map(tick => (
+					<g>
+						<line
+							class="grid"
+							x1={xOf(tick)}
+							x2={xOf(tick)}
+							y1={dumbbell.top}
+							y2={dumbbellHeight - dumbbell.bottom + 6}
+						/>
+						<text
+							class="tick"
+							x={xOf(tick)}
+							y={dumbbellHeight - dumbbell.bottom + 22}
+							text-anchor="middle">{tick < 1 ? tick : `${tick}s`}</text
+						>
+					</g>
+				))
+			}
+			{
+				rows.map((row, i) => {
+					const y = yOf(i);
+					return (
+						<g>
+							<title>
+								{formatProjects(row.totalProjects)} projects: {baselineRef}{' '}
+								{formatSeconds(row.baseline.meanSeconds)}, v7{' '}
+								{formatSeconds(row.candidate.meanSeconds)} ({formatSpeedup(row.speedup)} faster)
+							</title>
+							<text class="row-label" x={dumbbell.left - 14} y={y + 4} text-anchor="end">
+								{formatProjects(row.totalProjects)}
+							</text>
+							<line
+								class="connector"
+								x1={xOf(row.candidate.meanSeconds)}
+								x2={xOf(row.baseline.meanSeconds)}
+								y1={y}
+								y2={y}
+							/>
+							<circle
+								class="dot-baseline"
+								cx={xOf(row.baseline.meanSeconds)}
+								cy={y}
+								r="7"
+							/>
+							<circle
+								class="dot-candidate"
+								cx={xOf(row.candidate.meanSeconds)}
+								cy={y}
+								r="7"
+							/>
+							<text class="value" x={xOf(row.baseline.meanSeconds) + 14} y={y + 4}>
+								{formatSeconds(row.baseline.meanSeconds)}
+							</text>
+						</g>
+					);
+				})
+			}
+			<line
+				class="axis"
+				x1={dumbbell.left}
+				x2={dumbbell.left}
+				y1={dumbbell.top}
+				y2={dumbbellHeight - dumbbell.bottom + 6}></line>
+		</svg>
+		<p class="viz-note">
+			Row labels are total projects. Exact numbers, spread and iteration counts are in the
+			table below.
+		</p>
+	</figure>
+</div>
+
+<style>
+	.viz-root {
+		/* Validated against this site's surfaces: #ffffff light, #17181c dark. */
+		--surface: #ffffff;
+		--series-strong: #2a78d6;
+		--series-soft: #86b6ef;
+		--ink-primary: #0b0b0b;
+		--ink-secondary: #52514e;
+		--ink-muted: #898781;
+		--grid: #e1e0d9;
+		--axis: #c3c2b7;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		:root:where(:not([data-theme='light'])) .viz-root {
+			--surface: #17181c;
+			--series-strong: #3987e5;
+			--series-soft: #184f95;
+			--ink-primary: #ffffff;
+			--ink-secondary: #c3c2b7;
+			--grid: #2c2c2a;
+			--axis: #383835;
+		}
+	}
+
+	:root[data-theme='dark'] .viz-root {
+		--surface: #17181c;
+		--series-strong: #3987e5;
+		--series-soft: #184f95;
+		--ink-primary: #ffffff;
+		--ink-secondary: #c3c2b7;
+		--grid: #2c2c2a;
+		--axis: #383835;
+	}
+
+	.viz-figure {
+		margin: 1.75rem 0;
+	}
+
+	.viz-figure figcaption {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.viz-figure figcaption strong {
+		color: var(--ink-primary);
+		font-size: var(--sl-text-lg);
+	}
+
+	.viz-figure figcaption span,
+	.viz-note {
+		color: var(--ink-secondary);
+		font-size: var(--sl-text-sm);
+	}
+
+	.viz-note {
+		margin: 0.4rem 0 0;
+	}
+
+	svg {
+		display: block;
+		width: 100%;
+		height: auto;
+		overflow: visible;
+		font-family: var(--sl-font-system, system-ui, sans-serif);
+	}
+
+	.grid {
+		stroke: var(--grid);
+		stroke-width: 1;
+	}
+
+	.axis {
+		stroke: var(--axis);
+		stroke-width: 1;
+	}
+
+	.tick {
+		fill: var(--ink-muted);
+		font-size: 12px;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.row-label {
+		fill: var(--ink-secondary);
+		font-size: 13px;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.value {
+		fill: var(--ink-primary);
+		font-size: 13px;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.legend-text {
+		fill: var(--ink-secondary);
+		font-size: 12px;
+	}
+
+	.bar {
+		fill: var(--series-strong);
+	}
+
+	.reference {
+		stroke: var(--axis);
+		stroke-width: 1;
+		stroke-dasharray: 3 3;
+	}
+
+	.reference-label {
+		fill: var(--ink-muted);
+		font-size: 11px;
+	}
+
+	.connector {
+		stroke: var(--series-soft);
+		stroke-width: 2;
+	}
+
+	.dot-baseline {
+		fill: var(--series-soft);
+	}
+
+	.dot-candidate {
+		fill: var(--series-strong);
+		/* 2px surface ring, so overlapping marks stay separable. */
+		stroke: var(--surface);
+		stroke-width: 2;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.bar,
+		.dot-candidate {
+			transition: none;
+		}
+	}
+</style>

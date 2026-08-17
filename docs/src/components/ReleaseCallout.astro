@@ -1,0 +1,42 @@
+---
+/**
+ * The landing page's release line: what is available, and the one number that says
+ * why it is worth moving to. Reads the newest benchmark snapshot, so it follows the
+ * data rather than repeating a figure that will go stale.
+ */
+import { formatProjects, formatSpeedup, headline, latest } from '../lib/benchmarks';
+
+const top = latest ? headline(latest.data) : undefined;
+---
+
+{
+	latest && top && (
+		<aside class="release-callout">
+			<p>
+				<strong>v{latest.release} is available.</strong>{' '}
+				<a href="/performance/">
+					{formatSpeedup(top.speedup)} faster than {latest.data.comparison.baseline.ref}
+				</a>{' '}
+				on a {formatProjects(top.totalProjects)}-project repository, and the gap widens with
+				repository size. <a href="/upgrading/v6-to-v7/">See what changed</a>.
+			</p>
+		</aside>
+	)
+}
+
+<style>
+	.release-callout {
+		margin: 0 0 2rem;
+		padding: 0.9rem 1.1rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-inline-start: 4px solid var(--sl-color-accent);
+		border-radius: 0.35rem;
+		background: var(--sl-color-gray-6);
+	}
+
+	.release-callout p {
+		margin: 0;
+		font-size: var(--sl-text-base);
+		line-height: 1.5;
+	}
+</style>

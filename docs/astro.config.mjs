@@ -40,6 +40,7 @@ export default defineConfig({
 					},
 				},
 			],
+			customCss: ['./src/styles/layout.css'],
 			plugins: [starlightLinksValidator()],
 			sidebar: [
 				{
@@ -88,6 +89,7 @@ export default defineConfig({
 					items: [
 						{ label: 'CLI', slug: 'reference/cli' },
 						{ label: 'Exit codes', slug: 'reference/exit-codes' },
+						{ label: 'Performance', slug: 'performance' },
 					],
 				},
 				{

@@ -1,0 +1,127 @@
+---
+title: Performance
+description: How dotnet-affected v7 compares with v6 on the same repositories, and how the numbers were produced.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import BenchmarkHero from '../../components/BenchmarkHero.astro';
+import BenchmarkCharts from '../../components/BenchmarkCharts.astro';
+import BenchmarkTable from '../../components/BenchmarkTable.astro';
+import { releases, headline, formatProjects, formatSeconds, formatSpeedup } from '../../lib/benchmarks';
+
+export const latest = releases[0];
+export const top = headline(latest.data);
+export const smallest = [...latest.data.measurements].sort(
+	(a, b) => a.totalProjects - b.totalProjects,
+)[0];
+export const reproductionHours =
+	Math.round(latest.data.measurements.reduce((sum, m) => sum + m.sizeDurationSeconds, 0) / 360) / 10;
+
+<BenchmarkHero data={latest.data} />
+
+Every figure on this page compares **v7 against {latest.data.comparison.baseline.ref}**, the last v6
+release, over identical generated repositories. The larger the repository, the more v7 saves — which
+is the point worth taking from this page, since large repositories are what this tool is for.
+
+<BenchmarkCharts data={latest.data} />
+
+## The numbers
+
+<BenchmarkTable data={latest.data} />
+
+Both versions produced the **same affected projects** at every size, so this is not one of them
+doing less work: the run at {formatProjects(top.totalProjects)} projects reports {formatProjects(top.affectedProjects)} affected
+out of {formatProjects(top.totalProjects)}.
+
+## Why it scales better
+
+Cost growth per doubling, as an exponent: 1 is linear, 2 quadratic, 3 cubic.
+
+<div class="table-scroll">
+	<table>
+		<thead>
+			<tr>
+				<th>Step</th>
+				<th>{latest.data.comparison.baseline.ref}</th>
+				<th>v7</th>
+			</tr>
+		</thead>
+		<tbody>
+			{latest.data.scaling.baseline.map((step, i) => (
+				<tr>
+					<td>
+						{formatProjects(step.fromProjects)} → {formatProjects(step.toProjects)}
+					</td>
+					<td>{step.exponent}</td>
+					<td>{latest.data.scaling.candidate[i].exponent}</td>
+				</tr>
+			))}
+		</tbody>
+	</table>
+</div>
+
+v6's cost climbs from roughly linear to worse than quadratic as the repository grows. v7's stays
+under 2 across the same range. Neither exponent is constant, so neither should be extrapolated past
+the largest size measured.
+
+## How this was measured
+
+<Aside type="caution" title="These are desktop numbers">
+	They were produced on an unloaded desktop, not a CI runner, and they are comparable **to each
+	other and to nothing else**. Both sides were built with the same SDK, resolve the same MSBuild,
+	and each pair ran interleaved against one generated repository. Absolute figures on your
+	hardware will differ; the ratio is the transferable part.
+</Aside>
+
+| | |
+|---|---|
+| Baseline | <code>{latest.data.comparison.baseline.ref}</code> ({latest.data.comparison.baseline.commit.slice(0, 8)}) |
+| Candidate | <code>{latest.data.comparison.candidate.ref}</code> ({latest.data.comparison.candidate.commit.slice(0, 8)}) |
+| Invocation | <code>{latest.data.method.invocation}</code> |
+| Repository shape | {latest.data.method.repositoryShape} |
+| CPU | {latest.data.environment.cpu} |
+| OS | {latest.data.environment.os}, {latest.data.environment.kernel} |
+| .NET SDK | {latest.data.environment.dotnetSdk} |
+| MSBuild | {latest.data.environment.msbuild} |
+| Configuration | {latest.data.environment.configuration} |
+
+Measurement is at the **process** level: the executables are run and timed, so startup and MSBuild
+load count, which is what a user actually waits for. One warmup run per version is discarded, and
+the two versions alternate so drift affects both equally.
+
+Part of v7's gain comes from discovery no longer walking `.git` or
+[gitignored paths](/guides/project-discovery/#ignored-paths), not only from the graph work. The
+[BenchmarkDotNet suites](https://github.com/leonardochaia/dotnet-affected/tree/main/benchmarks) run
+on every push to `main` and isolate the algorithm from discovery; this page is the end-to-end view.
+
+Reproducing the whole comparison takes about {reproductionHours} hours of wall clock, most of it
+spent on the baseline at the largest size.
+
+## Data
+
+Every figure here is generated from a JSON snapshot committed alongside the site, one per release,
+under `docs/src/data/benchmarks/`. The snapshots hold the raw per-iteration timings where they were
+captured, and every derived field — change, speedup, cost ratio, exponent — is computed rather than
+transcribed. Snapshots are never regenerated: a published comparison that changes underneath a
+reader is not a comparison.
+
+{releases.length > 1 ? (
+	<ul>
+		{releases.slice(1).map(entry => (
+			<li>
+				<a href={`#v${entry.release}`}>v{entry.release}</a> — measured{' '}
+				{entry.data.generatedAt.slice(0, 10)}
+			</li>
+		))}
+	</ul>
+) : (
+	<p>v{latest.release} is the first release with a published comparison.</p>
+)}
+
+<style>
+	{`
+	.table-scroll {
+		overflow-x: auto;
+	}
+	`}
+</style>

@@ -1,0 +1,71 @@
+---
+/**
+ * The headline figure for a comparison.
+ *
+ * The number states what it is faster *than* and at what size, in the label above
+ * it: a bare "6.5x faster" reads as a blanket claim, and it is the best of the four
+ * sizes measured, not the general case. The caption gives the absolute times and the
+ * smallest size, so the range is visible without scrolling.
+ *
+ * A component rather than markup in the page: MDX wraps text inside JSX in a
+ * paragraph, and a paragraph inside the caption span is invalid nesting that the
+ * browser hoists apart, leaving the caption empty in the DOM.
+ */
+import type { BenchmarkComparison } from '../lib/benchmarks';
+import { formatProjects, formatSeconds, formatSpeedup, headline } from '../lib/benchmarks';
+
+interface Props {
+	data: BenchmarkComparison;
+}
+
+const { data } = Astro.props;
+const top = headline(data);
+const smallest = [...data.measurements].sort((a, b) => a.totalProjects - b.totalProjects)[0];
+const baselineRef = data.comparison.baseline.ref;
+---
+
+<div class="hero-figure">
+	<p class="hero-label">
+		v7 against {baselineRef}, on a {formatProjects(top.totalProjects)}-project repository
+	</p>
+	<p class="hero-value">{formatSpeedup(top.speedup)} faster</p>
+	<p class="hero-caption">
+		{formatSeconds(top.baseline.meanSeconds)} at {baselineRef} against {
+			formatSeconds(top.candidate.meanSeconds)
+		} at v7. At {formatProjects(smallest.totalProjects)} projects it is {
+			formatSpeedup(smallest.speedup)
+		} — the gap widens with repository size.
+	</p>
+</div>
+
+<style>
+	.hero-figure {
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+		margin: 1.5rem 0 1.75rem;
+	}
+
+	.hero-figure p {
+		margin: 0;
+	}
+
+	.hero-label {
+		color: var(--sl-color-gray-2);
+		font-size: var(--sl-text-sm);
+		text-transform: none;
+	}
+
+	.hero-value {
+		font-size: clamp(2.25rem, 7vw, 3.25rem);
+		font-weight: 700;
+		line-height: 1.05;
+		color: var(--sl-color-white);
+	}
+
+	.hero-caption {
+		color: var(--sl-color-gray-2);
+		font-size: var(--sl-text-base);
+		max-width: 56ch;
+	}
+</style>

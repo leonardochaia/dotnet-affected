@@ -1,0 +1,25 @@
+/*
+ * Layout adjustments on top of Starlight's defaults.
+ *
+ * Starlight sizes the table-of-contents column from whatever width is left after
+ * the sidebar and the content, so on a wide screen it grows without bound: at
+ * 1920px it measured 593px, wider than the 720px of prose it indexes, and the page
+ * read as mostly table of contents. Capping it turns that surplus into margin.
+ *
+ * The content width is only nudged. Starlight's 45rem is 87 characters per line at
+ * this font, already at the top of the comfortable range, so there is little to win
+ * by widening prose — 50rem buys 96 characters, which pays for itself on the wide
+ * code blocks and tables in the reference pages without hurting reading much.
+ */
+
+@media (min-width: 72rem) {
+	:root {
+		--sl-content-width: 50rem;
+		/* Enough for two-line entries like "Without installing: the MSBuild SDK". */
+		--docs-toc-width: 16rem;
+	}
+
+	.right-sidebar-container {
+		width: var(--docs-toc-width);
+	}
+}
