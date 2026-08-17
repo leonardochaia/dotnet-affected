@@ -1,0 +1,69 @@
+---
+/**
+ * The table view of a comparison. Present so the charts never carry a number that
+ * cannot be read exactly, and so the spread behind each mean is visible.
+ */
+import type { BenchmarkComparison } from '../lib/benchmarks';
+import { formatProjects, formatSeconds } from '../lib/benchmarks';
+
+interface Props {
+	data: BenchmarkComparison;
+}
+
+const { data } = Astro.props;
+const rows = [...data.measurements].sort((a, b) => a.totalProjects - b.totalProjects);
+const baselineRef = data.comparison.baseline.ref;
+---
+
+<div class="table-scroll">
+	<table>
+		<thead>
+			<tr>
+				<th>Projects</th>
+				<th>Graph nodes</th>
+				<th>{baselineRef}</th>
+				<th>v7</th>
+				<th>Change</th>
+				<th>Speedup</th>
+				<th>Iterations</th>
+			</tr>
+		</thead>
+		<tbody>
+			{
+				rows.map(row => (
+					<tr>
+						<td>{formatProjects(row.totalProjects)}</td>
+						<td>{formatProjects(row.graphNodes)}</td>
+						<td>
+							{formatSeconds(row.baseline.meanSeconds)}
+							<span class="spread">± {row.baseline.stdDevPercentOfMean}%</span>
+						</td>
+						<td>
+							{formatSeconds(row.candidate.meanSeconds)}
+							<span class="spread">± {row.candidate.stdDevPercentOfMean}%</span>
+						</td>
+						<td>{row.changePercent}%</td>
+						<td><strong>{row.speedup}×</strong></td>
+						<td>{row.iterations}</td>
+					</tr>
+				))
+			}
+		</tbody>
+	</table>
+</div>
+
+<style>
+	.table-scroll {
+		overflow-x: auto;
+	}
+
+	table {
+		font-variant-numeric: tabular-nums;
+	}
+
+	.spread {
+		display: block;
+		color: var(--sl-color-gray-3);
+		font-size: var(--sl-text-xs);
+	}
+</style>

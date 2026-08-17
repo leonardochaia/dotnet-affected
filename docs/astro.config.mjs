@@ -88,6 +88,7 @@ export default defineConfig({
 					items: [
 						{ label: 'CLI', slug: 'reference/cli' },
 						{ label: 'Exit codes', slug: 'reference/exit-codes' },
+						{ label: 'Performance', slug: 'performance' },
 					],
 				},
 				{

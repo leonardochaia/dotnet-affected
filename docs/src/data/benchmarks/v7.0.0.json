@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-17T12:59:17+00:00",
+  "description": "Wall clock of the dotnet-affected CLI at v6.2.0 against the working tree, over identical generated repositories. Produced by eng/benchmark-compare.sh.",
+  "comparison": {
+    "baseline": {
+      "ref": "v6.2.0",
+      "commit": "a88f3d63831f805508094f51bdde248e1dedbded",
+      "committedAt": "2025-11-19T07:59:54-03:00"
+    },
+    "candidate": {
+      "ref": "main",
+      "commit": "699ebb47f75710db5c9b739703687c5995e70f78",
+      "committedAt": "2026-08-16T11:53:51-03:00",
+      "subject": "ci: default CI to the Release configuration (#179)"
+    }
+  },
+  "environment": {
+    "cpu": "AMD Ryzen 7 PRO 8840U w/ Radeon 780M Graphics",
+    "kernel": "Linux 7.1.5-201.fc44.x86_64 x86_64",
+    "os": "fedora 44",
+    "dotnetSdk": "10.0.201",
+    "msbuild": "18.3.0-release-26153-122+4d3023de6",
+    "targetFramework": "net10.0",
+    "configuration": "Release",
+    "note": "Unloaded desktop, not a CI runner. Both sides were built with the same SDK and resolve the same MSBuild, and each pair ran interleaved against one repository, so the two columns are comparable to each other and to nothing else."
+  },
+  "method": {
+    "kind": "process",
+    "invocation": "dotnet-affected -p <repo> --dry-run --format text",
+    "interleaved": true,
+    "warmupRunsDiscardedPerVersion": 1,
+    "harness": "benchmarks/dotnet-affected.Benchmarks -- compare",
+    "driver": "eng/benchmark-compare.sh",
+    "repositoryShape": "Generated csproj tree, 20 children per project, one added .cs file in every fifth project, committed clean then dirtied.",
+    "whyProcess": "The two versions ship the same assembly names and differ only in version, so one shadows the other in process. Running the executables also measures startup and MSBuild load, which is what a user waits for."
+  },
+  "measurements": [
+    {
+      "totalProjects": 250,
+      "childrenPerProject": 20,
+      "graphNodes": 1000,
+      "changedFiles": 200,
+      "affectedProjects": 245,
+      "outputsMatch": true,
+      "iterations": 10,
+      "baseline": {
+        "minSeconds": 7.1,
+        "meanSeconds": 7.8,
+        "stdDevSeconds": 0.49,
+        "stdDevPercentOfMean": 6.28,
+        "samplesSeconds": null
+      },
+      "candidate": {
+        "minSeconds": 5.46,
+        "meanSeconds": 5.9,
+        "stdDevSeconds": 0.43,
+        "stdDevPercentOfMean": 7.29,
+        "samplesSeconds": null
+      },
+      "changePercent": -24.4,
+      "speedup": 1.32,
+      "sizeDurationSeconds": 166,
+      "sourceLog": "compare-20260816-145248.log"
+    },
+    {
+      "totalProjects": 500,
+      "childrenPerProject": 20,
+      "graphNodes": 2000,
+      "changedFiles": 400,
+      "affectedProjects": 497,
+      "outputsMatch": true,
+      "iterations": 10,
+      "baseline": {
+        "minSeconds": 16.45,
+        "meanSeconds": 17.09,
+        "stdDevSeconds": 0.44,
+        "stdDevPercentOfMean": 2.57,
+        "samplesSeconds": null
+      },
+      "candidate": {
+        "minSeconds": 10.61,
+        "meanSeconds": 10.87,
+        "stdDevSeconds": 0.23,
+        "stdDevPercentOfMean": 2.12,
+        "samplesSeconds": null
+      },
+      "changePercent": -36.4,
+      "speedup": 1.57,
+      "sizeDurationSeconds": 327,
+      "sourceLog": "compare-20260816-145248.log"
+    },
+    {
+      "totalProjects": 1000,
+      "childrenPerProject": 20,
+      "graphNodes": 4000,
+      "changedFiles": 800,
+      "affectedProjects": 995,
+      "outputsMatch": true,
+      "iterations": 10,
+      "baseline": {
+        "minSeconds": 77.74,
+        "meanSeconds": 79.91,
+        "stdDevSeconds": 1.56,
+        "stdDevPercentOfMean": 1.95,
+        "samplesSeconds": null
+      },
+      "candidate": {
+        "minSeconds": 27.03,
+        "meanSeconds": 28.12,
+        "stdDevSeconds": 0.68,
+        "stdDevPercentOfMean": 2.42,
+        "samplesSeconds": null
+      },
+      "changePercent": -64.8,
+      "speedup": 2.84,
+      "sizeDurationSeconds": 1224,
+      "sourceLog": "compare-20260816-145248.log"
+    },
+    {
+      "totalProjects": 2000,
+      "childrenPerProject": 20,
+      "graphNodes": 8000,
+      "changedFiles": 1600,
+      "affectedProjects": 1994,
+      "outputsMatch": true,
+      "iterations": 5,
+      "baseline": {
+        "minSeconds": 715.42,
+        "meanSeconds": 726.88,
+        "stdDevSeconds": 10.24,
+        "stdDevPercentOfMean": 1.41,
+        "samplesSeconds": [
+          734.69,
+          727.79,
+          715.42,
+          717.69,
+          738.8
+        ]
+      },
+      "candidate": {
+        "minSeconds": 102.75,
+        "meanSeconds": 111.41,
+        "stdDevSeconds": 4.9,
+        "stdDevPercentOfMean": 4.4,
+        "samplesSeconds": [
+          114.04,
+          114.52,
+          113.01,
+          112.75,
+          102.75
+        ]
+      },
+      "changePercent": -84.7,
+      "speedup": 6.52,
+      "sizeDurationSeconds": 5139,
+      "sourceLog": "compare-20260817-011610.log"
+    }
+  ],
+  "scaling": {
+    "note": "Cost growth per step. The exponent is log(costRatio)/log(sizeRatio): 1 is linear, 2 quadratic, 3 cubic. It is not constant for either version, so it should not be extrapolated far beyond the measured range.",
+    "baseline": [
+      {
+        "fromProjects": 250,
+        "toProjects": 500,
+        "costRatio": 2.191,
+        "exponent": 1.132
+      },
+      {
+        "fromProjects": 500,
+        "toProjects": 1000,
+        "costRatio": 4.676,
+        "exponent": 2.225
+      },
+      {
+        "fromProjects": 1000,
+        "toProjects": 2000,
+        "costRatio": 9.096,
+        "exponent": 3.185
+      }
+    ],
+    "candidate": [
+      {
+        "fromProjects": 250,
+        "toProjects": 500,
+        "costRatio": 1.842,
+        "exponent": 0.882
+      },
+      {
+        "fromProjects": 500,
+        "toProjects": 1000,
+        "costRatio": 2.587,
+        "exponent": 1.371
+      },
+      {
+        "fromProjects": 1000,
+        "toProjects": 2000,
+        "costRatio": 3.962,
+        "exponent": 1.986
+      }
+    ]
+  },
+  "abandonedRuns": [
+    {
+      "totalProjects": 2000,
+      "graphNodes": 8000,
+      "affectedProjects": 1998,
+      "outputsMatch": true,
+      "iterations": 10,
+      "outcome": "killed by the time budget after 5484s, before any timing was printed",
+      "reason": "The driver projected the size at three times the previous one; actual growth was steeper. The harness only printed after all iterations, so nothing survived. Both fixed afterwards.",
+      "sourceLog": "compare-20260816-145248.log"
+    }
+  ],
+  "notMeasured": [
+    {
+      "totalProjects": 4000,
+      "reason": "Extrapolating the observed 9.1x baseline growth puts one v6.2.0 run near 6500s, so a warmup plus a single iteration is over 3.5h of baseline alone. Refused by the driver's budget guard."
+    }
+  ],
+  "sourceLogs": [
+    {
+      "file": "compare-20260816-145248.log",
+      "sizes": [
+        250,
+        500,
+        1000,
+        2000
+      ],
+      "iterations": 10,
+      "note": "2000 was killed by the budget."
+    },
+    {
+      "file": "compare-20260817-011610.log",
+      "sizes": [
+        2000
+      ],
+      "iterations": 5,
+      "note": "Re-run of the size the first run lost, with per-iteration logging."
+    }
+  ]
+}

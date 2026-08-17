@@ -18,6 +18,9 @@ hero:
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
+import ReleaseCallout from '../../components/ReleaseCallout.astro';
+
+<ReleaseCallout />
 
 ## What it does
 
@@ -61,5 +64,8 @@ dotnet-affected compares your working tree against a baseline commit — a branc
 	</Card>
 	<Card title="CLI reference" icon="list-format">
 		[Every option](/reference/cli/), including `--filter-file-path` and the exclusion flags.
+	</Card>
+	<Card title="Performance" icon="rocket">
+		[How v7 compares with v6](/performance/) on the same repositories, and how it was measured.
 	</Card>
 </CardGrid>

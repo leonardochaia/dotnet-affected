@@ -9,6 +9,21 @@ Most v6 setups keep working unchanged on v7: every removed option still has a wo
 you already use are unchanged. What does change is what gets **discovered** — read the first section even if you
 change nothing else.
 
+## Why upgrade
+
+v7 is faster on the same repositories, and the difference grows with size — 6.5× faster at 2,000
+projects, where v6 takes over twelve minutes and v7 takes under two.
+
+| Projects | v6.2.0 | v7 | Speedup |
+|---|---|---|---|
+| 250 | 7.80s | 5.90s | 1.3× |
+| 500 | 17.1s | 10.9s | 1.6× |
+| 1,000 | 79.9s | 28.1s | 2.8× |
+| 2,000 | 727s | 111s | 6.5× |
+
+Desktop numbers, comparable to each other and nothing else. Both versions reported the same affected
+projects at every size. [Full method and charts](/performance/).
+
 ## Behaviour changes
 
 ### Every comparison ends at the working tree

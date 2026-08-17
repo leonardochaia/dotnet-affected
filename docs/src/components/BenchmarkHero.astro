@@ -1,0 +1,50 @@
+---
+/**
+ * The headline figure for a comparison.
+ *
+ * A component rather than markup in the page: MDX wraps text inside JSX in a
+ * paragraph, and a paragraph inside the caption span is invalid nesting that the
+ * browser hoists apart, leaving the caption empty in the DOM.
+ */
+import type { BenchmarkComparison } from '../lib/benchmarks';
+import { formatProjects, formatSeconds, formatSpeedup, headline } from '../lib/benchmarks';
+
+interface Props {
+	data: BenchmarkComparison;
+}
+
+const { data } = Astro.props;
+const top = headline(data);
+const baselineRef = data.comparison.baseline.ref;
+---
+
+<div class="hero-figure">
+	<div class="hero-value">{formatSpeedup(top.speedup)} faster</div>
+	<div class="hero-caption">
+		on a {formatProjects(top.totalProjects)}-project repository — {
+			formatSeconds(top.baseline.meanSeconds)
+		} at {baselineRef} against {formatSeconds(top.candidate.meanSeconds)} at v7
+	</div>
+</div>
+
+<style>
+	.hero-figure {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		margin: 1.5rem 0 1.75rem;
+	}
+
+	.hero-value {
+		font-size: clamp(2.5rem, 8vw, 3.5rem);
+		font-weight: 700;
+		line-height: 1.05;
+		color: var(--sl-color-white);
+	}
+
+	.hero-caption {
+		color: var(--sl-color-gray-2);
+		font-size: var(--sl-text-base);
+		max-width: 52ch;
+	}
+</style>
