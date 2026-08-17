@@ -16,6 +16,12 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      # Declaring any permission drops the rest to none, so contents has to be
+      # spelled out for actions/checkout. id-token is what lets the job request
+      # the OIDC token that NuGet trusted publishing exchanges for an API key.
+      contents: read
+      id-token: write
     steps:
     - uses: actions/checkout@v4
       with:
@@ -86,6 +92,15 @@ jobs:
         name: packages
         path: "."
 
+    # The key this hands back lives for an hour and is good for a single push, so
+    # it is requested here, last, rather than at the top of the job.
+    - name: NuGet login (OIDC -> temporary API key)
+      id: nuget-login
+      if: steps.affected.outputs.should_deploy == 'true'
+      uses: NuGet/login@v1
+      with:
+        user: ${{ secrets.NUGET_USER }}
+
     - name: Push to NuGet
       if: steps.affected.outputs.should_deploy == 'true'
-      run: dotnet nuget push *.nupkg --skip-duplicate -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}}
+      run: dotnet nuget push *.nupkg --skip-duplicate -s https://api.nuget.org/v3/index.json -k ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
