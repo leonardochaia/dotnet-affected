@@ -1,0 +1,24 @@
+{
+  "name": "dotnet-affected-docs",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "packageManager": "pnpm@11.21.0",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.41.7",
+    "astro": "^7.1.6",
+    "astro-mermaid": "^2.1.0",
+    "mermaid": "^11.16.1",
+    "sharp": "^0.35.3"
+  },
+  "devDependencies": {
+    "starlight-links-validator": "^0.25.2"
+  }
+}
