@@ -17,6 +17,21 @@ namespace DotnetAffected.Core
     {
         internal static readonly bool IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
+        /// <summary>
+        /// Rename detection, which libgit2 performs by default, pairs a deletion with an addition
+        /// and reports the two as a single entry carrying only the new path. Moving a file from one
+        /// project to another then never reports the project the file left as changed, and the old
+        /// path never reaches <see cref="FileSystem.DeletedFilesOverlayFileSystem"/> to be restored
+        /// for evaluation. Both paths are changes here, and rename identity is of no use to us, so
+        /// the pairing is turned off. It is also the expensive part of the diff: it compares the
+        /// content of every addition against every deletion, and gives up entirely once git's
+        /// rename limit is reached.
+        /// </summary>
+        private static readonly CompareOptions NoRenameDetection = new CompareOptions
+        {
+            Similarity = SimilarityOptions.None
+        };
+
         /// <inheritdoc />
         public IEnumerable<string> GetChangedFiles(string directory, string from, UncommittedChanges uncommitted)
         {
@@ -170,7 +185,9 @@ namespace DotnetAffected.Core
             return repository.Diff.Compare<T>(
                 tree,
                 targets,
-                files);
+                files,
+                explicitPathsOptions: null,
+                NoRenameDetection);
         }
 
         private static T GetChangesBetweenTrees<T>(
@@ -183,7 +200,8 @@ namespace DotnetAffected.Core
             return repository.Diff.Compare<T>(
                 fromTree,
                 toTree,
-                files);
+                files,
+                NoRenameDetection);
         }
 
         private static Commit GetCommitOrHead(Repository repository, string name)
