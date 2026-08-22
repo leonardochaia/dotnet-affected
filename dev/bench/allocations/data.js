@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787366305132,
+  "lastUpdate": 1787416102662,
   "repoUrl": "https://github.com/leonardochaia/dotnet-affected",
   "entries": {
     "dotnet-affected (allocations)": [
@@ -483,6 +483,50 @@ window.BENCHMARK_DATA = {
           {
             "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
             "value": 997338224,
+            "unit": "bytes"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "leonardochaia@users.noreply.github.com",
+            "name": "Leonardo Chaia",
+            "username": "leonardochaia"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a55daad6c0efe05dd4c58b6c5d03c189dca6ef2b",
+          "message": "perf: match predicted inputs as they are collected (#187)\n\n## The problem\n\n`PredictionChangedProjectsProvider` collects every file the predictors\nreport as an input, keyed by\ngraph node, and only then searches that index once per changed file:\n\n```csharp\nforeach (var file in normalizedFiles)\n    collector.PredictionsPerNode.Where(x => x.Value.Contains(file))\n```\n\nTwo costs. The index is held live for the whole of matching — one\n`HashSet<string>` per node holding\nevery predicted input under the repository. And the search is a lookup\nper node per changed file,\nwhich grows as the product of the size of the repository and the size of\nthe change: on a 4000 node\ngraph a 800 file change is 3.2M lookups, each allocating a fresh LINQ\nenumerator.\n\nThe set of changed files is known before prediction starts, so none of\nit is necessary.\n\n## The fix\n\n`FilesByProjectGraphCollector` now takes the changed files and matches\neach predicted input as it is\nreported, keeping only the nodes that hit. `PredictionsPerNode` is gone,\nthe search loop is gone, and\n`ProjectInputFilesCollector` — whose only job was the per-node set — is\ndeleted.\n\nThe checks in `AddInputFile` are ordered cheapest first, which turned\nout to matter more than the\nmatching itself. Most of what the predictors report is the SDK's own\nprops and targets: rooted, and\noutside the repository. Those are rejected by the existing\n`StartsWith(_repositoryPath)` test without\ntouching the string. Only what survives that pays for a\n`Path.GetFileName` compared against the\nchanged file names, and only what survives *that* pays for\n`Path.Combine` and `Path.GetFullPath` —\nwhich the old code ran on every input it kept.\n\nPutting the name check first instead, which is the obvious reading,\ncosts a substring allocation for\nevery SDK targets file and measured 3.6% *more* allocation than `main`\nat both sizes.\n\n## Results are the same\n\nTwo things the old loop did by accident and the new shape has to do on\npurpose:\n\n- It deduplicated by `ProjectInstance.FullPath`, not by node, so a multi\ntargeted project yielded one\nnode rather than one per inner build. The result now goes through\n`Deduplicate()` for that.\n- Its order came from the changed files. Matches collected across\nparallel predictors have no order,\nso the result walks `Graph.ProjectNodes` and filters, which is\ndeterministic.\n\nIt also removes a data race. `ProjectGraphPredictionExecutor` walks the\ngraph nodes in parallel *and*\nruns each project's predictors in parallel, all reporting into one\ncollector, so several predictors\nfor the same `ProjectInstance` were calling `Add` on a plain\n`HashSet<string>` concurrently. The\nmatches are now the only shared mutable state and they are behind a\nlock; everything else is built in\nthe constructor and only read.\n\n## Measurements\n\n16 logical / 8 physical cores net 10\n\n`MicroBenchmarks`, run back to back on an otherwise idle machine,\n`--warmupCount 5 --iterationCount 15`:\n\n| TotalProjects | | Mean | Allocated | Gen1 |\n|---|---|---|---|---|\n| 500 | before | 277.7 ms ± 2.71 | 475.59 MB | 1000 |\n| 500 | after | 258.5 ms ± 26.36 | 475.25 MB | 1000 |\n| 1000 | before | 582.1 ms ± 61.36 | 951.14 MB | 2000 |\n| 1000 | after | **432.8 ms ± 12.96** | 950.42 MB | **1000** |\n\nThe phase profiler, which isolates attribution from the graph build:\n\n| | before | after |\n|---|---|---|\n| 500 projects / 2000 nodes, attribute 400 files | 0.21s | **0.18s** |\n| 1000 projects / 4000 nodes, attribute 800 files | 0.51s | **0.33s** |\n\nThe profiler also runs the same call with a single changed file, which\npays for prediction but\nbarely for matching. At 1000 projects that goes 0.43s → 0.31s, so\nroughly two thirds of the saving\nis the cheaper collection and one third is the search loop no longer\nrunning.\n\nA note on the memory column, because it is easy to misread:\n`PhaseProfiler.Measure` reports\n`GC.GetTotalAllocatedBytes`, which is cumulative allocation over the\nphase, not live heap. It sits at\n~937 MB before and after, because the overwhelming majority of it is\nchurn inside MSBuildPrediction's\nitem expansion rather than the index this change removes. What moved is\nGen1 collections per 1000\noperations, halved at 1000 projects — fewer objects surviving gen0,\nwhich is the index no longer\nbeing held live.\n\n## Tests\n\nFull suite green on net8.0, net9.0 and net10.0: Core 135, CLI 57, Tasks\n4. Every generated test\nproject is multi targeted, so the deduplication path above is covered\nthroughout rather than by one\ncase.",
+          "timestamp": "2026-08-22T13:17:29-03:00",
+          "tree_id": "c772c0856ad61e17a34e896c80c1fae13cfabef6",
+          "url": "https://github.com/leonardochaia/dotnet-affected/commit/a55daad6c0efe05dd4c58b6c5d03c189dca6ef2b"
+        },
+        "date": 1787416102349,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 6394166392,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 498328456,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 14376637952,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 996586976,
             "unit": "bytes"
           }
         ]
