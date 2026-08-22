@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786995872752,
+  "lastUpdate": 1787366305132,
   "repoUrl": "https://github.com/leonardochaia/dotnet-affected",
   "entries": {
     "dotnet-affected (allocations)": [
@@ -439,6 +439,50 @@ window.BENCHMARK_DATA = {
           {
             "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
             "value": 997338032,
+            "unit": "bytes"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "leonardochaia@users.noreply.github.com",
+            "name": "Leonardo Chaia",
+            "username": "leonardochaia"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2322615cf5a76a2833ad1cc7983926851063ea0d",
+          "message": "fix: handle file moving between projects correctly (#186)\n\n## The bug\n\n`GitChangesProvider` asks libgit2 for a diff and takes `change.Path`\nfrom every entry. Rename detection is on by default, so a file moved\nfrom one project to another comes back as **one** entry holding only the\nnew path:\n\n```\n--- default options\n    Renamed    path=projB/Moved.cs oldPath=projA/Moved.cs\n--- Similarity = None\n    Deleted    path=projA/Moved.cs\n    Added      path=projB/Moved.cs\n```\n\nTwo consequences for a move across projects:\n\n- the project the file left is never reported as changed, even though\nits compiled set shrank;\n- the old path never reaches `DeletedFilesOverlayFileSystem`, so the\nfile is not restored for evaluation.\n\nIt is also the expensive part of the diff — `git_diff_find_similar`\ncompares the content of every addition against every deletion. Moving\n3000 files:\n\n```\ndefault (rename detection on)   1.747s   entries=4999\nSimilarity = None               0.001s   entries=6000\n```\n\nNote `entries=4999` vs `6000`: git's rename limit kicks in, so the\ncurrent behaviour is not even consistent at scale.\n\n## The fix\n\nRename identity is of no use to this tool — both paths are changes — so\nboth `Diff.Compare` call sites now pass `Similarity =\nSimilarityOptions.None`.\n\n## Tests\n\n`MovedFileChangeDetectionTests` covers a file moved between two\nprojects, once committed (tree-to-tree diff) and once staged\n(working-tree diff), asserting both projects are reported as changed.\nBoth fail on `main` (1 changed file, 1 changed project) and pass with\nthe fix.\n\nFull suite green: Core 135, CLI 57, Tasks 4.",
+          "timestamp": "2026-08-21T23:27:26-03:00",
+          "tree_id": "e20a02e05f538a2403630510aa3909730202e67f",
+          "url": "https://github.com/leonardochaia/dotnet-affected/commit/2322615cf5a76a2833ad1cc7983926851063ea0d"
+        },
+        "date": 1787366304841,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 6395598696,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 498717032,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 14379140472,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 997338224,
             "unit": "bytes"
           }
         ]
