@@ -74,30 +74,27 @@ namespace DotnetAffected.Core
         public IEnumerable<ProjectGraphNode> GetReferencingProjects(
             IEnumerable<string> files)
         {
-            var hasReturned = new HashSet<string>();
-
-            var collector = new FilesByProjectGraphCollector(this._graph, this._repositoryPath);
-            _executor.PredictInputsAndOutputs(_graph, collector);
-
             // normalize paths so that they match on windows.
             var normalizedFiles = files
                 .Where(f => !_fileExclusions.Any(f.EndsWith))
                 .Select(Path.GetFullPath);
 
-            foreach (var file in normalizedFiles)
-            {
-                // determine nodes depending on the changed file
-                var nodesWithFiles = collector.PredictionsPerNode
-                    .Where(x => x.Value.Contains(file));
+            // The collector matches every predicted input against these as it is reported, so
+            // nothing has to be searched once prediction is done.
+            var collector = new FilesByProjectGraphCollector(
+                this._graph,
+                this._repositoryPath,
+                normalizedFiles);
 
-                foreach (var (key, _) in nodesWithFiles)
-                {
-                    if (hasReturned.Add(key.ProjectInstance.FullPath))
-                    {
-                        yield return key;
-                    }
-                }
-            }
+            _executor.PredictInputsAndOutputs(_graph, collector);
+
+            // Walking the graph rather than the matches keeps the order the graph's, which the
+            // matches, collected in parallel, do not have. The inner builds of a multi targeted
+            // project match the same files, and callers have always been given one node per
+            // project.
+            return _graph.ProjectNodes
+                .Where(collector.HasChanges)
+                .Deduplicate();
         }
     }
 }
