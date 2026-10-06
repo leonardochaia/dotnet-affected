@@ -44,7 +44,7 @@ to `@v7`, so that from here on the two numbers line up. Nothing was skipped.
 :::
 
 :::caution[If you pin to `@v1.4` or earlier]
-Those tags are immutable and install an unpinned dotnet-affected, so they will pull in 7.x as soon as it is published
+Those tags are immutable and install an unpinned dotnet-affected, so now that 7.x is published they pull it in
 — a v6-era action driving a v7 tool. Either move to `@v7`, or hold the tool back explicitly:
 
 ```yaml

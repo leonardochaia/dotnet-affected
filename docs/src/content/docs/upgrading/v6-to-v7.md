@@ -213,8 +213,8 @@ The action major now tracks the dotnet-affected major it drives, so upgrading th
 latest 6.x rather than whatever is newest on NuGet, which is what kept it from silently picking up this major.
 
 :::caution
-Pinned to `@v1.4` or earlier? Those tags install an unpinned dotnet-affected and will pull in 7.x as soon as it is
-published — an action written against v6 driving a v7 CLI. Move to `@v7`, or hold the tool back explicitly:
+Pinned to `@v1.4` or earlier? Those tags install an unpinned dotnet-affected, so now that 7.x is published they pull
+it in — an action written against v6 driving a v7 CLI. Move to `@v7`, or hold the tool back explicitly:
 
 ```yaml
 - uses: leonardochaia/dotnet-affected-action@v1.4

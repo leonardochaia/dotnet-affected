@@ -70,8 +70,9 @@ output and comes from the tool itself, so it changes when the tool changes it.
 
 ### Preview releases
 
-`astro.config.mjs` carries a Starlight `banner` while a major is in preview. Remove it at GA, together with any
-`-preview` version strings in the files above.
+While a major is in preview, the site carries a site-wide Starlight `banner`: Starlight's banner is per page, so it
+is added as a default on the docs schema in `src/content.config.ts` (`docsSchema({ extend: ... })`, see the v7 preview
+in the git history). Remove it at GA, together with any `-preview` version strings in the files above.
 
 ### Ordering
 

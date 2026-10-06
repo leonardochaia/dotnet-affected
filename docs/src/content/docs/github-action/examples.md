@@ -95,7 +95,7 @@ outputs — use its `base` as `from`, and ignore `head`, since the workspace is 
 ```yaml
 - uses: leonardochaia/dotnet-affected-action@v7
   with:
-    toolVersion: '7.0.1'
+    toolVersion: '7.0.0'
 ```
 
 The input takes NuGet range syntax, so `'7.*'` pins the major while following patches. Pinning an exact version makes
