@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787416102662,
+  "lastUpdate": 1791280769760,
   "repoUrl": "https://github.com/leonardochaia/dotnet-affected",
   "entries": {
     "dotnet-affected (allocations)": [
@@ -527,6 +527,50 @@ window.BENCHMARK_DATA = {
           {
             "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
             "value": 996586976,
+            "unit": "bytes"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "leonardochaia@users.noreply.github.com",
+            "name": "Leonardo Chaia",
+            "username": "leonardochaia"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "99fe4355514e99415ef4dbeb328209761014e909",
+          "message": "docs: drop the v7 preview banner now that v7 and the action are GA (#196)\n\ndotnet-affected 7.0.0 and dotnet-affected-action v7.0.0 are both\npublished, so the site-wide \"v7 is in preview\" banner goes, along with\nthe install instructions that pointed at `--prerelease`.\n\nAlso:\n\n- Reword the `@v1.4`-or-earlier warnings on the action and upgrade pages\nfrom \"will pull in 7.x as soon as it is published\" to the present tense.\n- Pin the \"specific tool version\" example to `7.0.0`, which exists;\n`7.0.1` does not.\n- Correct the docs README: the preview banner lives on the docs schema\nin `src/content.config.ts`, not in `astro.config.mjs`.\n\nNo Node toolchain locally, so the Starlight build relies on the\nDocumentation workflow here.",
+          "timestamp": "2026-10-06T06:48:35-03:00",
+          "tree_id": "5c2dd05c7d0d0e7cd392677f7f2cf2eeb58fa348",
+          "url": "https://github.com/leonardochaia/dotnet-affected/commit/99fe4355514e99415ef4dbeb328209761014e909"
+        },
+        "date": 1791280769209,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 6393124128,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 498330032,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 13995671920,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 996590368,
             "unit": "bytes"
           }
         ]
