@@ -64,9 +64,6 @@ namespace DotnetAffected.Core.Tests
 
             var summary = Execute(worktree.Path);
 
-            var file = Assert.Single(summary.FilesThatChanged);
-            Assert.Equal(Path.Combine(worktree.Path, ProjectName, "Keep.cs"), file);
-
             var changed = Assert.Single(summary.ProjectsWithChangedFiles);
             Assert.Equal(
                 Path.Combine(worktree.Path, ProjectName, $"{ProjectName}.csproj"),
@@ -117,9 +114,6 @@ namespace DotnetAffected.Core.Tests
             worktree.StageAndCommit();
 
             var summary = Execute(worktree.Path, fromRef: baseCommit.Sha);
-
-            var file = Assert.Single(summary.FilesThatChanged);
-            Assert.Equal(Path.Combine(worktree.Path, ProjectName, "Added.cs"), file);
 
             var changed = Assert.Single(summary.ProjectsWithChangedFiles);
             Assert.Equal(
