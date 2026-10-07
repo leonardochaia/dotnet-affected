@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791401772803,
+  "lastUpdate": 1791405204400,
   "repoUrl": "https://github.com/leonardochaia/dotnet-affected",
   "entries": {
     "dotnet-affected (allocations)": [
@@ -615,6 +615,50 @@ window.BENCHMARK_DATA = {
           {
             "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
             "value": 996586368,
+            "unit": "bytes"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "patrickmichalina@mac.com",
+            "name": "Patrick Michalina",
+            "username": "patrickmichalina"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "34fca17bcfa19af57822090a3fce205053baaabc",
+          "message": "fix: git relative worktree support (195)\n\nFixes #194\n\n### Problem\n\ngit 2.48 and later set `extensions.relativeWorktrees = true` when a\nworktree is linked with relative paths. The libgit2 bundled with\nLibGit2Sharp does not know the extension and refuses to open the\nrepository. dotnet-affected then fails from both the worktree and the\nmain checkout.\n\n### Fix\n\nTell libgit2 the extension is supported, using\n`GlobalSettings.SetExtensions` (`GIT_OPT_SET_EXTENSIONS`). The new\n`GitRepository` class does this once, in its static constructor, before\nthe first repository is opened. All six places that opened a\n`Repository` (`GitChangesProvider` and `GitIgnoreFilter`) now go through\n`GitRepository.Open`.\n\n- It keeps extensions that are already registered (`GetExtensions()` ∪\n`relativeworktrees`), so it does not replace anything another caller in\nthe process set.\n- It is lazy rather than a module initializer. `SetExtensions` calls\ninto the native library, and `AffectedTask` sets\n`GlobalSettings.NativeLibraryPath` before that happens.\n- It stays correct after a LibGit2Sharp upgrade. libgit2 1.9.4\nrecognises the extension natively (libgit2/libgit2#7254), and\nregistering a known name has no effect. #193 (LibGit2Sharp 0.32.0) does\nnot fix this, because 0.32.0 bundles libgit2 1.8.6.\n\n### Why this is safe with libgit2 1.7.2\n\nThe extension name is the only thing libgit2 1.7.2 is missing.\nlibgit2/libgit2#7254 fixed the bug upstream by adding that name to the\nallowlist, with no other change. All three links of a relative worktree\nare already resolved by 1.7.2:\n\n- the worktree's `.git` file, relative to the directory that contains it\n(`read_gitfile`)\n- `commondir`, relative to the administrative directory\n(`lookup_commondir`)\n- `gitdir`, which is read on open to find the working directory\n(`load_workdir`), through `git_worktree__read_link`. That function\nresolves a relative value against the administrative directory, and its\ncode is the same in 1.7.2 and 1.9.4.\n\nThe new tests check this against the bundled libgit2 by comparing actual\npaths and results, not just by confirming the repository opens.\n\n### Tests\n\n`GitRelativeWorktreeDetectionTests` mirrors `GitWorktreeDetectionTests`.\nIt uses a worktree created by the git CLI with `--relative-paths`\n(`TemporaryRelativeWorktree`). The fixture checks that the `.git` link\nreally is relative, and it never opens the repository through\nLibGit2Sharp. It covers:\n\n- a change in the main checkout, once a relative worktree exists\n- a change inside the worktree, with paths resolved under the worktree\n- a file deleted inside the worktree, attributed to its project (read\nback from the object database)\n- commits on the worktree's branch compared with `--from`\n- changes in the main checkout, which are not reported from the worktree\n\nBefore the fix, all 5 fail with `unsupported extension name\nextensions.relativeworktrees` at `GitChangesProvider.GetChangedFiles`.\nAfter it, the full suite passes on net8.0, net9.0 and net10.0 (macOS\narm64, git 2.54). `dotnet build --no-incremental /WarnAsError -c\nRelease` is clean. The new tests also pass with LibGit2Sharp 0.32.0.\n\nThe tests require git 2.48 or later. The CI runner images have that.\n\n---------\n\nCo-authored-by: Patrick Michalina <patrickmichalina@gmail.com>\nCo-authored-by: Leonardo Chaia <leonardochaia@protonmail.com>",
+          "timestamp": "2026-10-07T17:22:47-03:00",
+          "tree_id": "45d23c113847ec4649022197006a0be42742529f",
+          "url": "https://github.com/leonardochaia/dotnet-affected/commit/34fca17bcfa19af57822090a3fce205053baaabc"
+        },
+        "date": 1791405203776,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 6393148288,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 498328760,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 14376633248,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 996586616,
             "unit": "bytes"
           }
         ]
