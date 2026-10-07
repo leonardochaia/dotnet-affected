@@ -29,7 +29,7 @@ namespace DotnetAffected.Core
         {
             try
             {
-                return new GitIgnoreFilter(new Repository(rootPath), rootPath);
+                return new GitIgnoreFilter(GitRepository.Open(rootPath), rootPath);
             }
             catch (RepositoryNotFoundException)
             {

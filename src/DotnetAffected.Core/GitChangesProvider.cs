@@ -35,7 +35,7 @@ namespace DotnetAffected.Core
         /// <inheritdoc />
         public IEnumerable<string> GetChangedFiles(string directory, string from, UncommittedChanges uncommitted)
         {
-            using var repository = new Repository(directory);
+            using var repository = GitRepository.Open(directory);
 
             var changes = GetChangesForRange<TreeChanges>(repository, from, uncommitted);
 
@@ -45,7 +45,7 @@ namespace DotnetAffected.Core
         /// <inheritdoc />
         public string? GetWorkingTreeCommitSha(string directory)
         {
-            using var repository = new Repository(directory);
+            using var repository = GitRepository.Open(directory);
 
             return repository.Head.Tip?.Sha;
         }
@@ -53,7 +53,7 @@ namespace DotnetAffected.Core
         /// <inheritdoc />
         public string ResolveCommitSha(string directory, string commitRef)
         {
-            using var repository = new Repository(directory);
+            using var repository = GitRepository.Open(directory);
 
             return GetCommitOrThrow(repository, commitRef)
                 .Sha;
@@ -92,7 +92,7 @@ namespace DotnetAffected.Core
             if (filePaths.Count == 0)
                 return contents;
 
-            using var repository = new Repository(directory);
+            using var repository = GitRepository.Open(directory);
 
             var commit = string.IsNullOrWhiteSpace(commitRef)
                 ? repository.Head.Tip
@@ -127,7 +127,7 @@ namespace DotnetAffected.Core
         {
             Commit? commit;
 
-            using var repository = new Repository(directory);
+            using var repository = GitRepository.Open(directory);
 
             if (string.IsNullOrWhiteSpace(commitRef))
                 commit = fallbackToHead ? repository.Head.Tip : null;
