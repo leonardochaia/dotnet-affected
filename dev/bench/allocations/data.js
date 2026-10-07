@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791280769760,
+  "lastUpdate": 1791401772803,
   "repoUrl": "https://github.com/leonardochaia/dotnet-affected",
   "entries": {
     "dotnet-affected (allocations)": [
@@ -571,6 +571,50 @@ window.BENCHMARK_DATA = {
           {
             "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
             "value": 996590368,
+            "unit": "bytes"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "arnaud.l4croix@gmail.com",
+            "name": "Arnaud Lacroix",
+            "username": "MartyMcFlaye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f64a8f80082b567b743a99f4dfc9f4a692ba79ae",
+          "message": "fix: make the ignored path cache thread-safe (#197)\n\nMSBuild expands globs in parallel, so the `_ignoredCache` dictionary\ngets written concurrently and corrupted.\n\nThis PR locks around both the cache and the `Repository.Ignore` lookup,\nsince a LibGit2Sharp `Repository` is not thread-safe either. The added\ntest queries the file system from 16 threads and fails without the fix.\n\n`MsBuildGitFileSystem` is internal, so I added `InternalsVisibleTo` for\n`DotnetAffected.Core.Tests`.\n\nCo-authored-by: Arnaud LACROIX <arnaud.lacroix@younited-credit.fr>",
+          "timestamp": "2026-10-07T16:26:23-03:00",
+          "tree_id": "7cfc908d88c0ec23ae5eae827c55914c47324352",
+          "url": "https://github.com/leonardochaia/dotnet-affected/commit/f64a8f80082b567b743a99f4dfc9f4a692ba79ae"
+        },
+        "date": 1791401772322,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 6391646336,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 500, ChildrenPerProject: 20)",
+            "value": 498328680,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MacroBenchmarks.MacroBenchmark(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 14400681696,
+            "unit": "bytes"
+          },
+          {
+            "name": "Affected.Cli.Benchmarks.MicroBenchmarks.AffectedAlgorithm(TotalProjects: 1000, ChildrenPerProject: 20)",
+            "value": 996586368,
             "unit": "bytes"
           }
         ]
