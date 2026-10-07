@@ -101,13 +101,17 @@ namespace DotnetAffected.Core.FileSystem
 
         private bool IsPathIgnored(string path)
         {
-            if (_ignoredCache.TryGetValue(path, out var isIgnored))
+            // MSBuild expands globs in parallel, and LibGit2Sharp repositories are not thread-safe.
+            lock (_ignoredCache)
+            {
+                if (_ignoredCache.TryGetValue(path, out var isIgnored))
+                    return isIgnored;
+
+                isIgnored = _repository.Ignore.IsPathIgnored(NormalizePathToGitDir(path));
+                _ignoredCache[path] = isIgnored;
+
                 return isIgnored;
-
-            isIgnored = _repository.Ignore.IsPathIgnored(NormalizePathToGitDir(path));
-            _ignoredCache[path] = isIgnored;
-
-            return isIgnored;
+            }
         }
 
         private Stream GetFileStreamGit(Commit commit, string path)
