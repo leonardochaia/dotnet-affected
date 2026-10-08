@@ -10,6 +10,7 @@
     <ItemGroup>
         <PackageReference Include="LibGit2Sharp"/>
         <PackageReference Include="Microsoft.Build.Locator"/>
+        <PackageReference Include="Microsoft.Build.Prediction" />
     </ItemGroup>
 
 </Project>
