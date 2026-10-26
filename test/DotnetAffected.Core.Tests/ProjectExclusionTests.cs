@@ -39,7 +39,8 @@ namespace DotnetAffected.Core.Tests
             Assert.Empty(AffectedSummary.ProjectsWithChangedFiles);
             Assert.Empty(AffectedSummary.AffectedProjects);
 
-            Assert.Single(AffectedSummary.ExcludedProjects);
+            // The changed project and the one depending on it both match
+            Assert.Equal(2, AffectedSummary.ExcludedProjects.Length);
         }
 
         [Fact]
@@ -83,7 +84,8 @@ namespace DotnetAffected.Core.Tests
             Assert.Equal(dependantProjectName, affectedProject.GetProjectName());
             Assert.Equal(dependantMsBuildProject.FullPath, affectedProject.GetFullPath());
 
-            Assert.Single(AffectedSummary.ExcludedProjects);
+            // The changed excluded project and the one depending on it, which matches too
+            Assert.Equal(2, AffectedSummary.ExcludedProjects.Length);
         }
 
         [Fact]
@@ -122,6 +124,75 @@ namespace DotnetAffected.Core.Tests
 
             // Both discovered and affected projects should be excluded
             Assert.Equal(2, AffectedSummary.ExcludedProjects.Length);
+        }
+
+        // https://github.com/leonardochaia/dotnet-affected/issues/199
+        [Fact]
+        public async Task When_changed_project_is_excluded_its_dependants_should_still_be_affected()
+        {
+            // Create a project
+            var projectName = "InventoryManagement";
+            var msBuildProject = this.Repository.CreateCsProject(projectName);
+
+            // Create another project that depends on the first one
+            var dependantProjectName = "InventoryManagement.Tests";
+            var dependantMsBuildProject = this.Repository.CreateCsProject(
+                dependantProjectName,
+                p => p.AddProjectDependency(msBuildProject.FullPath));
+
+            // Commit so there are no changes
+            this.Repository.StageAndCommit();
+
+            // Create changes in the first project
+            var targetFilePath = Path.Combine(projectName, "file.cs");
+            await this.Repository.CreateTextFileAsync(targetFilePath, "// Initial content");
+
+            // Exclude only the project that changed, not the one depending on it
+            var options = new AffectedOptions(this.Repository.Path,
+                exclusionRegex: @"InventoryManagement\.csproj$");
+            var summary = new AffectedExecutor(options).Execute();
+
+            Assert.Empty(summary.ProjectsWithChangedFiles);
+
+            var affectedProject = Assert.Single(summary.AffectedProjects);
+            Assert.Equal(dependantProjectName, affectedProject.GetProjectName());
+            Assert.Equal(dependantMsBuildProject.FullPath, affectedProject.GetFullPath());
+
+            var excludedProject = Assert.Single(summary.ExcludedProjects);
+            Assert.Equal(msBuildProject.FullPath, excludedProject.GetFullPath());
+        }
+
+        // https://github.com/leonardochaia/dotnet-affected/issues/199
+        [Fact]
+        public void When_assumed_project_is_excluded_its_dependants_should_still_be_affected()
+        {
+            // Create a project
+            var projectName = "InventoryManagement";
+            var msBuildProject = this.Repository.CreateCsProject(projectName);
+
+            // Create another project that depends on the first one
+            var dependantProjectName = "InventoryManagement.Tests";
+            var dependantMsBuildProject = this.Repository.CreateCsProject(
+                dependantProjectName,
+                p => p.AddProjectDependency(msBuildProject.FullPath));
+
+            // Commit so there are no changes
+            this.Repository.StageAndCommit();
+
+            // Assume the first project changed, and exclude only that one
+            var options = new AffectedOptions(this.Repository.Path,
+                assumeChanges: new[] { projectName },
+                exclusionRegex: @"InventoryManagement\.csproj$");
+            var summary = new AffectedExecutor(options).Execute();
+
+            Assert.Empty(summary.ProjectsWithChangedFiles);
+
+            var affectedProject = Assert.Single(summary.AffectedProjects);
+            Assert.Equal(dependantProjectName, affectedProject.GetProjectName());
+            Assert.Equal(dependantMsBuildProject.FullPath, affectedProject.GetFullPath());
+
+            var excludedProject = Assert.Single(summary.ExcludedProjects);
+            Assert.Equal(msBuildProject.FullPath, excludedProject.GetFullPath());
         }
     }
 }
