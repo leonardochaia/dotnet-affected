@@ -48,18 +48,24 @@ namespace DotnetAffected.Core.Processor
                 changedProjects = DiscoverProjectsForFiles(context);
             }
 
-            var excludedProjects = new List<ProjectGraphNode>();
-            context.ChangedProjects = ApplyExclusionPattern(
-                changedProjects,
-                context.Options,
-                excludedProjects);
+            // The graph is walked from every changed project, excluded ones included, so an
+            // excluded project still carries its changes through to the projects depending on it.
+            context.ChangedProjects = changedProjects.ToArray();
 
             // Get packages that have changed, either from central package management or from the project file
             context.ChangedPackages = DiscoverPackageChanges(context);
 
             // Determine which projects are affected by the projects and packages that have changed.
+            var affectedProjects = DiscoverAffectedProjects(context);
+
+            // Exclusion only keeps projects out of the output.
+            var excludedProjects = new List<ProjectGraphNode>();
+            context.ChangedProjects = ApplyExclusionPattern(
+                context.ChangedProjects,
+                context.Options,
+                excludedProjects);
             context.AffectedProjects = ApplyExclusionPattern(
-                DiscoverAffectedProjects(context),
+                affectedProjects,
                 context.Options,
                 excludedProjects);
 
