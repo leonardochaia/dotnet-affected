@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import starlightLinksValidator from 'starlight-links-validator';
+import starlightLlmsTxt from 'starlight-llms-txt';
 import mermaid from 'astro-mermaid';
 
 // https://astro.build/config
@@ -41,7 +42,7 @@ export default defineConfig({
 				},
 			],
 			customCss: ['./src/styles/layout.css'],
-			plugins: [starlightLinksValidator()],
+			plugins: [starlightLinksValidator(), starlightLlmsTxt()],
 			sidebar: [
 				{
 					label: 'Getting started',
