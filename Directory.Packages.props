@@ -39,4 +39,12 @@
         <PackageVersion Include="System.CodeDom" Version="10.0.0" />
     </ItemGroup>
 
+    <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+        <PackageVersion Include="Microsoft.Build" Version="18.12.2" />
+        <PackageVersion Include="Microsoft.Build.Framework" Version="18.12.2" />
+        <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.12.2" />
+        <PackageVersion Include="System.Configuration.ConfigurationManager" Version="11.0.0" />
+        <PackageVersion Include="System.CodeDom" Version="11.0.0" />
+    </ItemGroup>
+
 </Project>

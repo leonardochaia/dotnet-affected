@@ -15,3 +15,4 @@ $dotnetInstallDir = "$PSScriptRoot\.dotnet"
 # Runtimes for tests
 . $installScript -InstallDir $dotnetInstallDir -Channel 8.0
 . $installScript -InstallDir $dotnetInstallDir -Channel 9.0
+. $installScript -InstallDir $dotnetInstallDir -Channel 10.0
