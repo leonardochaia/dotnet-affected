@@ -19,3 +19,4 @@ dotnet_install_dir="$(dirname "$0")/.dotnet"
 # Runtimes for tests
 "$install_script" --install-dir "$dotnet_install_dir" --channel 8.0
 "$install_script" --install-dir "$dotnet_install_dir" --channel 9.0
+"$install_script" --install-dir "$dotnet_install_dir" --channel 10.0
